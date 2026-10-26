@@ -1,1 +1,1250 @@
-<!-- The Actual App -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b0c10">
+    <title>MineDM — Web App</title>
+
+    <style>
+        :root {
+            --bg-dark: #0b0c10;
+            --bg-card: #1f2833;
+            --bg-sidebar: #11151c;
+            --bg-hover: #252f3b;
+            --neon-cyan: #00f2fe;
+            --neon-blue: #4facfe;
+            --neon-green: #39ff14;
+            --text-main: #c5c6c7;
+            --text-muted: #7f8b99;
+            --text-white: #ffffff;
+            --border: rgba(0, 242, 254, 0.13);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 70% 0%, #1a0b2e 0%, transparent 42%);
+        }
+
+        button, input {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        button:focus-visible,
+        input:focus-visible {
+            outline: 2px solid var(--neon-cyan);
+            outline-offset: 2px;
+        }
+
+        .app {
+            display: grid;
+            grid-template-columns: 68px 235px minmax(0, 1fr);
+            height: 100vh;
+        }
+
+        /* Server rail */
+
+        .server-rail {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 9px;
+            background: #090a0e;
+            border-right: 1px solid var(--border);
+        }
+
+        .brand {
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            color: #071014;
+            background: linear-gradient(
+                135deg,
+                var(--neon-cyan),
+                var(--neon-blue)
+            );
+            font-size: 21px;
+            font-weight: 900;
+            box-shadow: 0 0 18px #00f2fe26;
+        }
+
+        .rail-divider {
+            width: 28px;
+            height: 1px;
+            background: #34313f;
+            margin: 2px 0;
+        }
+
+        .server-button {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            border: 1px solid transparent;
+            border-radius: 14px;
+            background: #1c2029;
+            color: #c5c6c7;
+            font-size: 21px;
+            transition: .2s;
+        }
+
+        .server-button:hover,
+        .server-button.active {
+            border-color: #00f2fe55;
+            border-radius: 11px;
+            background: linear-gradient(145deg, #193443, #27203d);
+            color: var(--neon-cyan);
+        }
+
+        .server-button.active::before {
+            content: "";
+            position: absolute;
+            left: -10px;
+            top: 10px;
+            height: 24px;
+            width: 4px;
+            border-radius: 0 4px 4px 0;
+            background: var(--neon-cyan);
+        }
+
+        .server-add {
+            color: var(--neon-green);
+            font-size: 25px;
+        }
+
+        .rail-bottom {
+            margin-top: auto;
+        }
+
+        /* Channel sidebar */
+
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: rgba(17, 21, 28, .95);
+            border-right: 1px solid var(--border);
+        }
+
+        .server-heading {
+            height: 72px;
+            padding: 15px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .server-heading h1 {
+            color: var(--text-white);
+            font-size: 17px;
+            letter-spacing: .3px;
+        }
+
+        .server-heading p {
+            margin-top: 4px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .online-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            margin-right: 5px;
+            border-radius: 50%;
+            background: var(--neon-green);
+            box-shadow: 0 0 8px #39ff1455;
+        }
+
+        .search-area {
+            padding: 13px 11px 6px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 10px 11px;
+            border: 1px solid #ffffff0c;
+            border-radius: 8px;
+            background: #090b10;
+            color: white;
+            outline: none;
+            font-size: 12px;
+        }
+
+        .search-input:focus {
+            border-color: #00f2fe66;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 14px 7px;
+            color: #858a99;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .section-heading button {
+            border: none;
+            background: transparent;
+            color: #9aa5b5;
+            font-size: 20px;
+        }
+
+        .section-heading button:hover {
+            color: var(--neon-cyan);
+        }
+
+        .nav-list {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 0 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            padding: 10px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: transparent;
+            color: #aeb6c3;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        .nav-item:hover {
+            background: #ffffff08;
+            color: white;
+        }
+
+        .nav-item.active {
+            background: linear-gradient(
+                90deg,
+                #00f2fe16,
+                #4facfe12
+            );
+            border-color: #00f2fe19;
+            color: white;
+        }
+
+        .channel-hash {
+            width: 17px;
+            color: #7f899b;
+            font-size: 17px;
+            text-align: center;
+        }
+
+        .nav-item.active .channel-hash {
+            color: var(--neon-cyan);
+        }
+
+        .unread-count {
+            margin-left: auto;
+            padding: 2px 6px;
+            border-radius: 5px;
+            background: #26394a;
+            color: var(--neon-cyan);
+            font-size: 10px;
+        }
+
+        .dm-avatar {
+            width: 29px;
+            height: 29px;
+            display: grid;
+            place-items: center;
+            border-radius: 9px;
+            background: linear-gradient(135deg, #4facfe, #7547c8);
+            color: white;
+            font-size: 10px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .dm-list {
+            overflow-y: auto;
+        }
+
+        .profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: auto;
+            padding: 13px;
+            border-top: 1px solid var(--border);
+            background: #090b10;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            display: grid;
+            place-items: center;
+            border-radius: 11px;
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+            color: #071014;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .profile-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .profile-info strong {
+            display: block;
+            color: white;
+            font-size: 12px;
+        }
+
+        .profile-info span {
+            color: var(--neon-green);
+            font-size: 10px;
+        }
+
+        .icon-button {
+            padding: 7px;
+            border: none;
+            border-radius: 6px;
+            background: transparent;
+            color: #929aaa;
+        }
+
+        .icon-button:hover {
+            background: #ffffff0c;
+            color: var(--neon-cyan);
+        }
+
+        /* Main chat */
+
+        .chat {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            min-height: 0;
+        }
+
+        .chat-header {
+            min-height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 0 23px;
+            border-bottom: 1px solid var(--border);
+            background: #0b0c10aa;
+        }
+
+        .chat-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+
+        .chat-title .hash {
+            color: var(--neon-cyan);
+            font-size: 24px;
+        }
+
+        .chat-title h2 {
+            color: white;
+            font-size: 15px;
+            font-weight: 700;
+        }
+
+        .chat-title p {
+            margin-top: 3px;
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .online-label {
+            padding: 6px 9px;
+            border-radius: 20px;
+            background: #39ff1410;
+            color: var(--neon-green);
+            font-size: 10px;
+            white-space: nowrap;
+        }
+
+        .header-actions button {
+            padding: 8px 10px;
+            border: 1px solid #ffffff10;
+            border-radius: 7px;
+            background: #1f2833;
+            color: #c5c6c7;
+        }
+
+        .header-actions button:hover {
+            border-color: #00f2fe55;
+            color: var(--neon-cyan);
+        }
+
+        .messages {
+            display: flex;
+            flex: 1;
+            flex-direction: column;
+            gap: 22px;
+            overflow-y: auto;
+            padding: 27px clamp(16px, 4vw, 45px);
+        }
+
+        .welcome-card {
+            padding: 20px;
+            border: 1px solid #00f2fe2b;
+            border-radius: 10px;
+            background: linear-gradient(
+                115deg,
+                #00f2fe0c,
+                #4facfe0a,
+                #1a0b2e55
+            );
+        }
+
+        .welcome-label {
+            color: var(--neon-cyan);
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.1px;
+            text-transform: uppercase;
+        }
+
+        .welcome-card h3 {
+            margin: 8px 0 5px;
+            color: white;
+            font-size: 20px;
+        }
+
+        .welcome-card p {
+            color: #a9b7c6;
+            font-size: 12px;
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            display: grid;
+            place-items: center;
+            width: 39px;
+            height: 39px;
+            flex-shrink: 0;
+            border: 1px solid #ffffff10;
+            border-radius: 11px;
+            background: linear-gradient(135deg, #4facfe, #7547c8);
+            color: white;
+            font-size: 11px;
+            font-weight: 900;
+        }
+
+        .message-avatar.green {
+            background: linear-gradient(135deg, #087f5b, #39ff14);
+            color: #08130b;
+        }
+
+        .message-avatar.orange {
+            background: linear-gradient(135deg, #f4a261, #bc477b);
+        }
+
+        .message-avatar.purple {
+            background: linear-gradient(135deg, #8a5cf6, #4facfe);
+        }
+
+        .message-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .message-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .message-meta strong {
+            color: white;
+            font-size: 12px;
+        }
+
+        .role-tag {
+            padding: 2px 5px;
+            border-radius: 4px;
+            background: #00f2fe14;
+            color: var(--neon-cyan);
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .timestamp {
+            color: #717b8c;
+            font-size: 10px;
+        }
+
+        .message-text {
+            margin-top: 5px;
+            color: #c5c6c7;
+            font-size: 13px;
+            line-height: 1.65;
+            overflow-wrap: anywhere;
+            white-space: pre-wrap;
+        }
+
+        .attachment {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            max-width: 340px;
+            margin-top: 10px;
+            padding: 12px;
+            border: 1px solid #ffffff10;
+            border-radius: 9px;
+            background: #1f2833;
+        }
+
+        .file-icon {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 42px;
+            border-radius: 7px;
+            background: #4facfe18;
+            color: var(--neon-blue);
+            font-size: 21px;
+        }
+
+        .attachment strong {
+            display: block;
+            color: white;
+            font-size: 11px;
+        }
+
+        .attachment span {
+            color: var(--text-muted);
+            font-size: 10px;
+        }
+
+        /* Message composer */
+
+        .composer-area {
+            padding: 0 clamp(16px, 4vw, 45px) 19px;
+        }
+
+        .composer {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 9px;
+            border: 1px solid #00f2fe2b;
+            border-radius: 10px;
+            background: #1f2833;
+            transition: border-color .2s;
+        }
+
+        .composer:focus-within {
+            border-color: #00f2fe85;
+            box-shadow: 0 0 16px #00f2fe0a;
+        }
+
+        .composer-plus {
+            width: 34px;
+            height: 34px;
+            flex-shrink: 0;
+            border: none;
+            border-radius: 7px;
+            background: #2b3542;
+            color: var(--neon-cyan);
+            font-size: 22px;
+        }
+
+        .composer input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 2px;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: white;
+            font-size: 13px;
+        }
+
+        .composer input::placeholder {
+            color: #7f8b99;
+        }
+
+        .send-button {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border: 1px solid #00f2fe55;
+            border-radius: 8px;
+            background: var(--neon-cyan);
+            color: #0b0c10;
+            font-weight: 900;
+            transition: .2s;
+        }
+
+        .send-button:hover {
+            background: transparent;
+            color: var(--neon-cyan);
+            box-shadow: 0 0 12px #00f2fe25;
+        }
+
+        .composer-hint {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 7px 3px 0;
+            color: #626e7d;
+            font-size: 10px;
+        }
+
+        .composer-hint kbd {
+            padding: 2px 5px;
+            border: 1px solid #343c48;
+            border-radius: 4px;
+            color: #a9b7c6;
+            font: inherit;
+        }
+
+        .toast {
+            position: fixed;
+            z-index: 10;
+            bottom: 22px;
+            left: 50%;
+            max-width: calc(100vw - 30px);
+            padding: 11px 16px;
+            transform: translate(-50%, 15px);
+            border: 1px solid #00f2fe55;
+            border-radius: 8px;
+            background: #1f2833;
+            color: white;
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: .2s;
+        }
+
+        .toast.show {
+            transform: translate(-50%, 0);
+            opacity: 1;
+        }
+
+        .mobile-menu {
+            display: none;
+        }
+
+        /* Responsive layout */
+
+        @media (max-width: 850px) {
+            .app {
+                grid-template-columns: 58px 205px minmax(0, 1fr);
+            }
+
+            .server-rail {
+                padding-inline: 6px;
+            }
+
+            .server-button,
+            .brand {
+                width: 40px;
+                height: 40px;
+            }
+
+            .chat-header {
+                padding: 0 14px;
+            }
+
+            .online-label {
+                display: none;
+            }
+
+            .header-actions {
+                gap: 4px;
+            }
+        }
+
+        @media (max-width: 620px) {
+            .app {
+                grid-template-columns: 54px minmax(0, 1fr);
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .sidebar.mobile-open {
+                position: fixed;
+                z-index: 5;
+                display: flex;
+                top: 0;
+                bottom: 0;
+                left: 54px;
+                width: min(260px, calc(100vw - 54px));
+                box-shadow: 12px 0 35px #0009;
+            }
+
+            .server-rail {
+                padding: 12px 6px;
+            }
+
+            .server-button,
+            .brand {
+                width: 38px;
+                height: 38px;
+            }
+
+            .chat-header {
+                min-height: 64px;
+                padding: 0 10px;
+                gap: 6px;
+            }
+
+            .mobile-menu {
+                display: inline-grid;
+                place-items: center;
+                width: 30px;
+                height: 30px;
+                border: 1px solid #ffffff14;
+                border-radius: 7px;
+                background: #1f2833;
+                color: var(--neon-cyan);
+            }
+
+            .chat-title {
+                gap: 7px;
+            }
+
+            .chat-title h2 {
+                font-size: 13px;
+            }
+
+            .chat-title p {
+                display: none;
+            }
+
+            .header-actions {
+                gap: 0;
+            }
+
+            .header-actions button {
+                padding: 7px;
+                border-color: transparent;
+                background: transparent;
+            }
+
+            .messages {
+                padding: 17px 12px;
+                gap: 19px;
+            }
+
+            .welcome-card {
+                padding: 15px;
+            }
+
+            .welcome-card h3 {
+                font-size: 17px;
+            }
+
+            .message {
+                gap: 9px;
+            }
+
+            .message-avatar {
+                width: 34px;
+                height: 34px;
+            }
+
+            .composer-area {
+                padding: 0 9px 12px;
+            }
+
+            .composer {
+                gap: 6px;
+            }
+
+            .composer-plus {
+                width: 30px;
+                height: 30px;
+            }
+
+            .composer-hint {
+                font-size: 9px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+
+        <aside class="server-rail" aria-label="Servers">
+            <div class="brand" title="MineDM">M</div>
+            <div class="rail-divider"></div>
+
+            <button class="server-button active" title="Block Buddies">⛏</button>
+            <button class="server-button" title="Redstone Lab">⚙</button>
+            <button class="server-button" title="Survival Squad">🌲</button>
+            <button class="server-button server-add" id="addServer" title="Add server">+</button>
+
+            <div class="rail-bottom">
+                <button class="server-button" id="settingsButton" title="Settings">⚙</button>
+            </div>
+        </aside>
+
+        <aside class="sidebar" id="sidebar">
+            <header class="server-heading">
+                <div>
+                    <h1>Block Buddies</h1>
+                    <p><span class="online-dot"></span>Community online</p>
+                </div>
+                <button class="icon-button" id="serverMenu" aria-label="Server menu">⌄</button>
+            </header>
+
+            <div class="search-area">
+                <input
+                    class="search-input"
+                    id="searchInput"
+                    type="search"
+                    placeholder="Search channels..."
+                    aria-label="Search channels and people"
+                >
+            </div>
+
+            <div class="section-heading">
+                <span>Text Channels</span>
+                <button id="addChannel" aria-label="Add channel">+</button>
+            </div>
+
+            <nav class="nav-list" id="channelList">
+                <button class="nav-item active" data-channel="general">
+                    <span class="channel-hash">#</span> general
+                </button>
+                <button class="nav-item" data-channel="survival-chat">
+                    <span class="channel-hash">#</span> survival-chat
+                    <span class="unread-count">3</span>
+                </button>
+                <button class="nav-item" data-channel="build-showcase">
+                    <span class="channel-hash">#</span> build-showcase
+                </button>
+                <button class="nav-item" data-channel="redstone-help">
+                    <span class="channel-hash">#</span> redstone-help
+                </button>
+            </nav>
+
+            <div class="section-heading">
+                <span>Direct Messages</span>
+                <button id="addDm" aria-label="New direct message">+</button>
+            </div>
+
+            <div class="nav-list dm-list" id="dmList">
+                <button class="nav-item" data-dm="Alex">
+                    <span class="dm-avatar">AX</span> Alex
+                    <span class="online-dot" style="margin-left:auto"></span>
+                </button>
+                <button class="nav-item" data-dm="PixelPete">
+                    <span class="dm-avatar" style="background:linear-gradient(135deg,#087f5b,#39ff14)">PP</span>
+                    PixelPete
+                </button>
+                <button class="nav-item" data-dm="CreeperQueen">
+                    <span class="dm-avatar" style="background:linear-gradient(135deg,#f4a261,#bc477b)">CQ</span>
+                    CreeperQueen
+                </button>
+            </div>
+
+            <footer class="profile">
+                <div class="profile-avatar">CB</div>
+                <div class="profile-info">
+                    <strong>CraftyBuilder</strong>
+                    <span><span class="online-dot"></span>Online</span>
+                </div>
+                <button class="icon-button" id="profileSettings" aria-label="Profile settings">⚙</button>
+            </footer>
+        </aside>
+
+        <main class="chat">
+            <header class="chat-header">
+                <div class="chat-title">
+                    <button class="mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
+                    <span class="hash" id="titleSymbol">#</span>
+                    <div>
+                        <h2 id="channelTitle">general</h2>
+                        <p id="channelSubtitle">The place for all things Minecraft</p>
+                    </div>
+                </div>
+
+                <div class="header-actions">
+                    <span class="online-label">● 12 online</span>
+                    <button id="searchButton" title="Search">⌕</button>
+                    <button id="membersButton" title="Members">♙</button>
+                    <button id="inboxButton" title="Inbox">▤</button>
+                </div>
+            </header>
+
+            <section class="messages" id="messages" aria-live="polite">
+                <div class="welcome-card">
+                    <span class="welcome-label">✦ Welcome to MineDM</span>
+                    <h3>Your Minecraft crew, all in one place.</h3>
+                    <p>Chat with friends, share builds, and plan your next adventure.</p>
+                </div>
+
+                <article class="message">
+                    <div class="message-avatar green">AX</div>
+                    <div class="message-content">
+                        <div class="message-meta">
+                            <strong>Alex</strong>
+                            <span class="role-tag">Builder</span>
+                            <time class="timestamp">Today at 10:24 AM</time>
+                        </div>
+                        <p class="message-text">Morning everyone! Finally finished the entrance to our new castle 🏰</p>
+                    </div>
+                </article>
+
+                <article class="message">
+                    <div class="message-avatar purple">PP</div>
+                    <div class="message-content">
+                        <div class="message-meta">
+                            <strong>PixelPete</strong>
+                            <time class="timestamp">Today at 10:26 AM</time>
+                        </div>
+                        <p class="message-text">That looks amazing! We should connect it to the village with a bridge.</p>
+                        <div class="attachment">
+                            <div class="file-icon">▧</div>
+                            <div>
+                                <strong>castle-entrance.png</strong>
+                                <span>Image preview · Demo attachment</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="message">
+                    <div class="message-avatar orange">CQ</div>
+                    <div class="message-content">
+                        <div class="message-meta">
+                            <strong>CreeperQueen</strong>
+                            <span class="role-tag">Redstone Pro</span>
+                            <time class="timestamp">Today at 10:31 AM</time>
+                        </div>
+                        <p class="message-text">Anyone up for a mining run later? Need more ancient debris 😅</p>
+                    </div>
+                </article>
+
+                <article class="message">
+                    <div class="message-avatar">CB</div>
+                    <div class="message-content">
+                        <div class="message-meta">
+                            <strong>CraftyBuilder</strong>
+                            <time class="timestamp">Today at 10:33 AM</time>
+                        </div>
+                        <p class="message-text">Count me in. I'll bring the fire resistance potions!</p>
+                    </div>
+                </article>
+            </section>
+
+            <div class="composer-area">
+                <form class="composer" id="messageForm">
+                    <button class="composer-plus" id="attachButton" type="button" aria-label="Attach file">+</button>
+                    <input
+                        id="messageInput"
+                        type="text"
+                        maxlength="2000"
+                        autocomplete="off"
+                        placeholder="Message #general"
+                        aria-label="Write a message"
+                    >
+                    <button class="send-button" type="submit" aria-label="Send message">➤</button>
+                </form>
+                <div class="composer-hint">
+                    <span>Welcome to MineDM. Be kind and have fun.</span>
+                    <span><kbd>Enter</kbd> to send</span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <script>
+        const messages = document.getElementById("messages");
+        const messageForm = document.getElementById("messageForm");
+        const messageInput = document.getElementById("messageInput");
+        const channelTitle = document.getElementById("channelTitle");
+        const channelSubtitle = document.getElementById("channelSubtitle");
+        const titleSymbol = document.getElementById("titleSymbol");
+        const sidebar = document.getElementById("sidebar");
+        const toast = document.getElementById("toast");
+
+        let toastTimer;
+
+        const channelDescriptions = {
+            "general": "The place for all things Minecraft",
+            "survival-chat": "Survive together, one block at a time",
+            "build-showcase": "Show off your latest creations",
+            "redstone-help": "Circuits, contraptions, and clever ideas"
+        };
+
+        function showToast(text) {
+            toast.textContent = text;
+            toast.classList.add("show");
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.remove("show");
+            }, 2300);
+        }
+
+        function currentTime() {
+            return new Date().toLocaleTimeString([], {
+                hour: "numeric",
+                minute: "2-digit"
+            });
+        }
+
+        function addMessage(text) {
+            const article = document.createElement("article");
+            article.className = "message";
+
+            const avatar = document.createElement("div");
+            avatar.className = "message-avatar";
+            avatar.textContent = "CB";
+
+            const content = document.createElement("div");
+            content.className = "message-content";
+
+            const meta = document.createElement("div");
+            meta.className = "message-meta";
+
+            const name = document.createElement("strong");
+            name.textContent = "CraftyBuilder";
+
+            const time = document.createElement("time");
+            time.className = "timestamp";
+            time.textContent = "Today at " + currentTime();
+
+            const paragraph = document.createElement("p");
+            paragraph.className = "message-text";
+            paragraph.textContent = text;
+
+            meta.append(name, time);
+            content.append(meta, paragraph);
+            article.append(avatar, content);
+            messages.appendChild(article);
+
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        messageForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+
+            const text = messageInput.value.trim();
+
+            if (!text) return;
+
+            addMessage(text);
+            messageInput.value = "";
+            messageInput.focus();
+        });
+
+        function setActiveItem(activeButton) {
+            document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
+                item.classList.remove("active");
+            });
+
+            activeButton.classList.add("active");
+            sidebar.classList.remove("mobile-open");
+        }
+
+        function openChannel(button, name) {
+            setActiveItem(button);
+
+            channelTitle.textContent = name;
+            channelSubtitle.textContent =
+                channelDescriptions[name] || "Your MineDM channel";
+            titleSymbol.textContent = "#";
+            messageInput.placeholder = "Message #" + name;
+        }
+
+        function openDM(button, name) {
+            setActiveItem(button);
+
+            channelTitle.textContent = name;
+            channelSubtitle.textContent = "Direct message · Demo conversation";
+            titleSymbol.textContent = "@";
+            messageInput.placeholder = "Message " + name;
+        }
+
+        function attachChannelHandler(button) {
+            button.addEventListener("click", () => {
+                openChannel(button, button.dataset.channel);
+            });
+        }
+
+        function attachDMHandler(button) {
+            button.addEventListener("click", () => {
+                openDM(button, button.dataset.dm);
+            });
+        }
+
+        document.querySelectorAll("[data-channel]").forEach(attachChannelHandler);
+        document.querySelectorAll("[data-dm]").forEach(attachDMHandler);
+
+        document.getElementById("searchInput").addEventListener("input", event => {
+            const query = event.target.value.toLowerCase().trim();
+
+            document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
+                item.style.display = item.textContent.toLowerCase().includes(query)
+                    ? "flex"
+                    : "none";
+            });
+        });
+
+        document.getElementById("addChannel").addEventListener("click", () => {
+            const entered = prompt("Enter a channel name:");
+
+            if (!entered) return;
+
+            const name = entered.trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9-]+/g, "-")
+                .replace(/^-+|-+$/g, "");
+
+            if (!name) {
+                showToast("Please enter a valid channel name.");
+                return;
+            }
+
+            const existing = [...document.querySelectorAll("[data-channel]")]
+                .some(item => item.dataset.channel === name);
+
+            if (existing) {
+                showToast("That channel already exists.");
+                return;
+            }
+
+            const button = document.createElement("button");
+            button.className = "nav-item";
+            button.dataset.channel = name;
+
+            const hash = document.createElement("span");
+            hash.className = "channel-hash";
+            hash.textContent = "#";
+
+            const label = document.createElement("span");
+            label.textContent = name;
+
+            button.append(hash, label);
+            document.getElementById("channelList").appendChild(button);
+            attachChannelHandler(button);
+
+            openChannel(button, name);
+            showToast("Demo channel created.");
+        });
+
+        document.getElementById("addDm").addEventListener("click", () => {
+            const entered = prompt("Enter your friend's username:");
+
+            if (!entered || !entered.trim()) return;
+
+            const name = entered.trim();
+
+            const existing = [...document.querySelectorAll("[data-dm]")]
+                .some(item => item.dataset.dm.toLowerCase() === name.toLowerCase());
+
+            if (existing) {
+                showToast("That conversation is already listed.");
+                return;
+            }
+
+            const button = document.createElement("button");
+            button.className = "nav-item";
+            button.dataset.dm = name;
+
+            const avatar = document.createElement("span");
+            avatar.className = "dm-avatar";
+            avatar.textContent = name.slice(0, 2).toUpperCase();
+
+            const label = document.createElement("span");
+            label.textContent = name;
+
+            button.append(avatar, label);
+            document.getElementById("dmList").appendChild(button);
+            attachDMHandler(button);
+
+            openDM(button, name);
+        });
+
+        document.getElementById("mobileMenu").addEventListener("click", () => {
+            sidebar.classList.toggle("mobile-open");
+        });
+
+        document.getElementById("searchButton").addEventListener("click", () => {
+            sidebar.classList.add("mobile-open");
+            document.getElementById("searchInput").focus();
+        });
+
+        document.getElementById("attachButton").addEventListener("click", () => {
+            showToast("File uploads will be available when a backend is connected.");
+        });
+
+        document.getElementById("membersButton").addEventListener("click", () => {
+            showToast("The member list is currently demo data.");
+        });
+
+        document.getElementById("inboxButton").addEventListener("click", () => {
+            showToast("You're all caught up!");
+        });
+
+        document.getElementById("addServer").addEventListener("click", () => {
+            showToast("Server creation is not connected yet.");
+        });
+
+        document.getElementById("settingsButton").addEventListener("click", () => {
+            showToast("Settings are coming soon.");
+        });
+
+        document.getElementById("profileSettings").addEventListener("click", () => {
+            showToast("Profile settings are coming soon.");
+        });
+
+        document.getElementById("serverMenu").addEventListener("click", () => {
+            showToast("Block Buddies server menu.");
+        });
+    </script>
+</body>
+</html>
