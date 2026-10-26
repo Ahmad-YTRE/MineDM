@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b1020">
+  <title>Direct Messages — MineDM</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020;
+      --panel: #111a2e;
+      --panel-hover: #192640;
+      --border: #26344d;
+      --text: #edf4ff;
+      --muted: #8da1bf;
+      --cyan: #38d9ff;
+      --blue: #6585ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at top left, #142b49 0, transparent 45%),
+        var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", system-ui, sans-serif;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .topbar {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      border-bottom: 1px solid var(--border);
+      background: rgb(11 16 32 / 85%);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 20px;
+      font-weight: 750;
+      letter-spacing: -.5px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      color: #07111f;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+    }
+
+    .back {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .back:hover { color: var(--cyan); }
+
+    main {
+      width: min(900px, calc(100% - 32px));
+      margin: 64px auto;
+    }
+
+    .eyebrow {
+      color: var(--cyan);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 10px 0;
+      font-size: clamp(30px, 5vw, 44px);
+      letter-spacing: -1.5px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      margin: 30px 0 18px;
+    }
+
+    .search {
+      flex: 1;
+      min-width: 0;
+      padding: 13px 15px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+    }
+
+    .search:focus { border-color: var(--cyan); }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--panel);
+      color: var(--text);
+      font: inherit;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+
+    .button:hover {
+      background: var(--panel-hover);
+      border-color: var(--cyan);
+    }
+
+    .button-primary {
+      border-color: transparent;
+      background: linear-gradient(110deg, #24c8ec, #6482ff);
+      color: #07111f;
+      font-weight: 750;
+    }
+
+    .button-primary:hover { filter: brightness(1.08); }
+
+    .section-label {
+      margin: 25px 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .conversation-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .conversation {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 15px;
+      background: rgb(17 26 46 / 85%);
+      transition: transform .15s, background .15s, border-color .15s;
+    }
+
+    .conversation:hover {
+      transform: translateY(-1px);
+      border-color: #3c6088;
+      background: var(--panel-hover);
+    }
+
+    .avatar {
+      display: grid;
+      place-items: center;
+      flex: 0 0 46px;
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #174d71, #4445a0);
+      color: #e6faff;
+      font-weight: 800;
+    }
+
+    .conversation-info { flex: 1; min-width: 0; }
+
+    .conversation-name {
+      margin-bottom: 5px;
+      font-weight: 700;
+    }
+
+    .conversation-preview {
+      overflow: hidden;
+      color: var(--muted);
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty {
+      padding: 35px 20px;
+      border: 1px dashed var(--border);
+      border-radius: 15px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .empty svg { margin-bottom: 12px; color: var(--cyan); }
+
+    .footer {
+      margin-top: 40px;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 560px) {
+      .topbar { padding: 0 16px; }
+      main { margin-top: 42px; }
+      .toolbar { flex-direction: column; }
+      .toolbar .button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="../app/">
+      <span class="brand-icon" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round"
+             stroke-linejoin="round">
+          <path d="M4 5h16v11H9l-5 4z"/>
+          <path d="M8 9h8M8 12h5"/>
+        </svg>
+      </span>
+      MineDM
+    </a>
+    <a class="back" href="../app/">← Back to app</a>
+  </header>
+
+  <main>
+    <div class="eyebrow">Your conversations</div>
+    <h1>Direct Messages</h1>
+    <p class="subtitle">Find your friends and continue the conversation.</p>
+
+    <div class="toolbar">
+      <input
+        class="search"
+        id="search"
+        type="search"
+        placeholder="Search conversations..."
+        aria-label="Search conversations"
+      >
+      <a class="button button-primary" href="../app/">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        Open chat
+      </a>
+    </div>
+
+    <div class="section-label">Recent conversations</div>
+
+    <div class="conversation-list" id="conversationList">
+      <div class="empty" id="emptyState">
+        <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+             stroke-linejoin="round" aria-hidden="true">
+          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>
+        </svg>
+        <div>No conversations to show yet.</div>
+        <p>Open MineDM to start a conversation with a friend.</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      MineDM · A Minecraft-inspired chat experience
+    </div>
+  </main>
+
+  <script>
+    const search = document.getElementById("search");
+    const conversationList = document.getElementById("conversationList");
+    const emptyState = document.getElementById("emptyState");
+
+    // The current app is a frontend demo without shared message storage.
+    // Add conversation objects here when a real backend is connected.
+    const conversations = [];
+
+    function renderConversations(query = "") {
+      conversationList.replaceChildren();
+
+      const filtered = conversations.filter(item =>
+        `${item.name} ${item.preview}`.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (filtered.length === 0) {
+        const empty = emptyState.cloneNode(true);
+        empty.style.display = "block";
+        empty.querySelector("div").textContent = query
+          ? "No conversations match your search."
+          : "No conversations to show yet.";
+        empty.querySelector("p").textContent = query
+          ? "Try searching for a different name."
+          : "Open MineDM to start a conversation with a friend.";
+        conversationList.appendChild(empty);
+        return;
+      }
+
+      filtered.forEach(item => {
+        const link = document.createElement("a");
+        link.className = "conversation";
+        link.href = item.href || "../app/";
+
+        const avatar = document.createElement("div");
+        avatar.className = "avatar";
+        avatar.textContent = item.name.slice(0, 1).toUpperCase();
+
+        const info = document.createElement("div");
+        info.className = "conversation-info";
+
+        const name = document.createElement("div");
+        name.className = "conversation-name";
+        name.textContent = item.name;
+
+        const preview = document.createElement("div");
+        preview.className = "conversation-preview";
+        preview.textContent = item.preview || "Start a conversation";
+
+        info.append(name, preview);
+        link.append(avatar, info);
+        conversationList.appendChild(link);
+      });
+    }
+
+    search.addEventListener("input", () => renderConversations(search.value));
+    renderConversations();
+  </script>
+</body>
+</html>
