@@ -1,1 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MineDM - The Mini Discord for Minecraft</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --bg-dark: #0b0c10;
+            --bg-card: #1f2833;
+            --neon-cyan: #00f2fe;
+            --neon-purple: #4facfe;
+            --neon-green: #39ff14;
+            --text-main: #c5c6c7;
+            --text-glow: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #0b0c10 100%);
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 10%;
+            background: rgba(11, 12, 16, 0.85);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(0, 242, 254, 0.2);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+        }
+
+        .logo span {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        nav a {
+            color: var(--text-main);
+            text-decoration: none;
+            margin-left: 20px;
+            transition: 0.3s;
+            font-size: 15px;
+        }
+
+        nav a:hover {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px var(--neon-cyan);
+        }
+
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 0 20px;
+            margin-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+            line-height: 1.2;
+        }
+
+        .hero h1 span {
+            background: linear-gradient(45deg, var(--neon-cyan), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            max-width: 600px;
+            margin-bottom: 40px;
+            color: #a9b7c6;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 20px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-transform: uppercase;
+            border-radius: 8px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            color: #0b0c10;
+            background: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--neon-cyan);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.8), inset 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        .btn-secondary {
+            color: #fff;
+            background: transparent;
+            border: 2px solid var(--neon-purple);
+            box-shadow: 0 0 10px rgba(79, 172, 254, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: var(--neon-purple);
+            color: #0b0c10;
+            box-shadow: 0 0 25px rgba(79, 172, 254, 0.8);
+        }
+
+        .features {
+            padding: 100px 10%;
+            background: rgba(31, 40, 51, 0.3);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 60px;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: rgba(31, 40, 51, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 40px 30px;
+            border-radius: 12px;
+            transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+            text-align: left;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            border-color: var(--neon-cyan);
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.15);
+        }
+
+        .card-icon {
+            font-size: 35px;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+
+        .card h3 {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+        }
+
+        .card p {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { font-size: 1rem; }
+            .btn-container { flex-direction: column; width: 100%; max-width: 300px; }
+            .btn { text-align: center; }
+            header { padding: 20px 5%; }
+            nav { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Mine<span>DM</span></div>
+        <nav>
+            <a href="#features">Features</a>
+            <a href="#download">Download</a>
+            <a href="#community">Community</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Chat. Play.<br><span>Right In-Game.</span></h1>
+        <p>Discover MineDM, the mini, lightning-fast Discord experience built exclusively for the Minecraft ecosystem. Connect your text channels, start private DMs, and stay synced with your friends.</p>
+        <div class="btn-container">
+            <a href="#" class="btn btn-primary">Open Web App</a>
+            <a href="#" class="btn btn-secondary">Download Plugin</a>
+        </div>
+    </section>
+
+    <section class="features" id="features">
+        <h2 class="section-title">Why choose MineDM?</h2>
+        <div class="grid">
+            <div class="card">
+                <div class="card-icon" style="text-shadow: 0 0 10px var(--neon-cyan);">💬</div>
+                <h3>Mini Channels & DMs</h3>
+                <p>A familiar, clean, and condensed interface to exchange private direct messages or manage small instant text rooms.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="text-shadow: 0 0 10px var(--neon-purple);">🔌</div>
+                <h3>Minecraft Integration</h3>
+                <p>Seamlessly link your game account. Route chat messages from your Minecraft server to the web and vice versa in real time.</p>
+            </div>
+            <div class="card">
+                <div class="card-icon" style="text-shadow: 0 0 10px var(--neon-green);">⚡</div>
+                <h3>Lightweight Build</h3>
+                <p>Zero lag. An ultra-light system architecture designed to keep your game running smoothly without hurting your FPS.</p>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>&copy; 2026 MineDM. Not affiliated with Mojang Studios or Discord Inc.</p>
+    </footer>
+
+</body>
+</html>
 
