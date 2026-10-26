@@ -1597,5 +1597,109 @@
       showToast("Block Buddies server menu.");
     });
   </script>
+
+<script>
+/* MineDM local-first prototype persistence */
+(() => {
+  const KEY = "minedm.v1";
+  const safeRead = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
+  const state = safeRead();
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { showToast("Browser storage is full. Some changes may not persist."); } };
+  const activeKey = () => (titleSymbol.textContent === "@" ? "dm:" : "channel:") + channelTitle.textContent;
+  const captureConversation = () => {
+    if (!messagesElement || !channelTitle.textContent) return;
+    state.conversations ||= {};
+    state.conversations[activeKey()] = messagesElement.innerHTML;
+    save();
+  };
+  const restoreConversation = key => {
+    if (state.conversations && typeof state.conversations[key] === "string") {
+      messagesElement.innerHTML = state.conversations[key];
+    } else if (key !== "channel:general") {
+      messagesElement.replaceChildren();
+    }
+    messagesElement.scrollTop = messagesElement.scrollHeight;
+  };
+  const originalOpenChannel = openChannel;
+  const originalOpenDM = openDM;
+  openChannel = function(button, name) {
+    captureConversation();
+    originalOpenChannel(button, name);
+    restoreConversation("channel:" + name);
+    state.lastView = "channel:" + name;
+    save();
+  };
+  openDM = function(button, name) {
+    captureConversation();
+    originalOpenDM(button, name);
+    restoreConversation("dm:" + name);
+    state.lastView = "dm:" + name;
+    save();
+  };
+  const originalAddMessage = addMessage;
+  addMessage = function(text) {
+    originalAddMessage(text);
+    captureConversation();
+  };
+  // Restore user-created channels using text nodes, never stored HTML.
+  (state.channels || []).forEach(name => {
+    if ([...document.querySelectorAll("[data-channel]")].some(el => el.dataset.channel === name)) return;
+    const button = document.createElement("button");
+    button.className = "nav-item"; button.dataset.channel = name;
+    const hash = document.createElement("span"); hash.className = "channel-hash"; hash.textContent = "#";
+    const label = document.createElement("span"); label.textContent = name;
+    button.append(hash, label); document.getElementById("channelList").appendChild(button); attachChannelHandler(button);
+  });
+  (state.directMessages || []).forEach(name => {
+    if ([...document.querySelectorAll("[data-dm]")].some(el => el.dataset.dm.toLowerCase() === name.toLowerCase())) return;
+    const button = document.createElement("button"); button.className = "nav-item"; button.dataset.dm = name;
+    const avatar = document.createElement("span"); avatar.className = "dm-avatar"; avatar.textContent = name.slice(0,2).toUpperCase();
+    const label = document.createElement("span"); label.textContent = name; button.append(avatar,label);
+    document.getElementById("dmList").appendChild(button); attachDMHandler(button);
+  });
+  const persistLists = () => {
+    state.channels = [...document.querySelectorAll("[data-channel]")].map(el => el.dataset.channel).filter(n => !["general","survival-chat","build-showcase","redstone-help"].includes(n));
+    state.directMessages = [...document.querySelectorAll("[data-dm]")].map(el => el.dataset.dm).filter(n => !["Alex","PixelPete","CreeperQueen"].includes(n));
+    save();
+  };
+  document.getElementById("addChannel").addEventListener("click", () => setTimeout(persistLists, 0));
+  document.getElementById("addDm").addEventListener("click", () => setTimeout(persistLists, 0));
+  document.getElementById("channelList").addEventListener("click", () => setTimeout(persistLists, 0));
+  document.getElementById("dmList").addEventListener("click", () => setTimeout(persistLists, 0));
+  // Preferences persist across reloads and between the app and DMs pages.
+  const pref = state.preferences || {};
+  if (pref.name) { document.getElementById("displayNameInput").value = pref.name; document.getElementById("profileName").textContent = pref.name; document.getElementById("profileAvatar").textContent = pref.name.slice(0,2).toUpperCase(); }
+  if (pref.status) document.getElementById("statusSelect").value = pref.status;
+  if (pref.accent) { document.getElementById("accentSelect").value = pref.accent; document.documentElement.style.setProperty("--neon-cyan", ({cyan:"#00f2fe",blue:"#4facfe",green:"#39ff14",purple:"#a78bfa"})[pref.accent] || "#00f2fe"); }
+  if (pref.compact) { const t=document.getElementById("compactToggle"); t.setAttribute("aria-checked","true"); messagesElement.style.gap="12px"; }
+  if (pref.reducedMotion) { const t=document.getElementById("motionToggle"); t.setAttribute("aria-checked","true"); document.documentElement.style.setProperty("--motion-duration","0s"); }
+  const originalSaveSettings = document.getElementById("saveSettings").onclick;
+  document.getElementById("saveSettings").addEventListener("click", () => {
+    state.preferences = {
+      name: document.getElementById("displayNameInput").value.trim(),
+      status: document.getElementById("statusSelect").value,
+      accent: document.getElementById("accentSelect").value,
+      compact: document.getElementById("compactToggle").getAttribute("aria-checked")==="true",
+      reducedMotion: document.getElementById("motionToggle").getAttribute("aria-checked")==="true"
+    };
+    save();
+  });
+  document.getElementById("accentSelect").addEventListener("change", () => { state.preferences ||= {}; state.preferences.accent=document.getElementById("accentSelect").value; save(); });
+  document.querySelectorAll(".toggle").forEach(el => el.addEventListener("click", () => {
+    state.preferences ||= {};
+    if (el.id==="compactToggle") state.preferences.compact=el.getAttribute("aria-checked")==="true";
+    if (el.id==="motionToggle") state.preferences.reducedMotion=el.getAttribute("aria-checked")==="true";
+    save();
+  }));
+  if (state.lastView && state.lastView.startsWith("channel:")) {
+    const name=state.lastView.slice(8), btn=[...document.querySelectorAll("[data-channel]")].find(el=>el.dataset.channel===name);
+    if (btn) openChannel(btn,name);
+  } else if (state.lastView && state.lastView.startsWith("dm:")) {
+    const name=state.lastView.slice(3), btn=[...document.querySelectorAll("[data-dm]")].find(el=>el.dataset.dm===name);
+    if (btn) openDM(btn,name);
+  }
+  window.addEventListener("beforeunload", captureConversation);
+})();
+</script>
 </body>
 </html>
