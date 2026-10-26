@@ -1,344 +1,599 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#0b1020">
-  <title>Direct Messages — MineDM</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0b1020;
-      --panel: #111a2e;
-      --panel-hover: #192640;
-      --border: #26344d;
-      --text: #edf4ff;
-      --muted: #8da1bf;
-      --cyan: #38d9ff;
-      --blue: #6585ff;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#313338">
+<title>Direct Messages — MineDM</title>
+<style>
+:root {
+  --rail:#1e1f22;
+  --sidebar:#2b2d31;
+  --main:#313338;
+  --hover:#3b3d44;
+  --active:#404249;
+  --text:#dbdee1;
+  --muted:#949ba4;
+  --white:#f2f3f5;
+  --cyan:#00d9f5;
+  --blue:#5865f2;
+  --green:#23a559;
+  --border:#ffffff0c;
+}
+* { box-sizing:border-box; margin:0; padding:0; }
+body {
+  height:100vh;
+  overflow:hidden;
+  background:var(--main);
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+  font-size:14px;
+}
+button,input { font:inherit; }
+button { cursor:pointer; }
+button:focus-visible,input:focus-visible { outline:2px solid var(--cyan); outline-offset:2px; }
+svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.app { display:grid; grid-template-columns:72px 240px minmax(0,1fr); height:100vh; }
 
-    * { box-sizing: border-box; }
+/* Server rail */
+.rail {
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  padding:12px 0; background:var(--rail);
+}
+.rail-logo,.server {
+  display:grid; place-items:center; width:48px; height:48px;
+  border:0; border-radius:50%; background:var(--sidebar);
+  color:var(--text); text-decoration:none; font-size:21px; font-weight:900;
+  transition:background .15s,border-radius .15s,color .15s;
+}
+.rail-logo { border-radius:16px; background:linear-gradient(135deg,#00d9f5,#5865f2); color:#111827; }
+.rail-logo:hover,.server:hover,.server.active { border-radius:16px; background:var(--blue); color:white; }
+.rail-divider { width:32px; height:2px; border-radius:2px; background:#3b3d44; margin:2px 0; }
+.rail-spacer { flex:1; }
+.server.add { color:var(--green); }
+.server.add:hover { background:var(--green); color:white; }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background:
-        radial-gradient(ellipse at top left, #142b49 0, transparent 45%),
-        var(--bg);
-      color: var(--text);
-      font-family: "Segoe UI", system-ui, sans-serif;
-    }
+/* DM sidebar */
+.dm-sidebar { display:flex; flex-direction:column; min-width:0; background:var(--sidebar); }
+.sidebar-search { padding:12px; border-bottom:1px solid var(--border); }
+.search {
+  width:100%; border:0; border-radius:5px; padding:9px 10px;
+  background:#1e1f22; color:var(--text); font-size:13px;
+}
+.search::placeholder { color:var(--muted); }
+.sidebar-heading {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 14px 10px; color:var(--muted);
+  font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.5px;
+}
+.icon-button {
+  display:grid; place-items:center; width:30px; height:30px;
+  border:0; border-radius:5px; background:transparent; color:var(--muted);
+}
+.icon-button:hover { background:var(--hover); color:var(--white); }
+.friends-link {
+  display:flex; align-items:center; gap:13px; margin:0 8px 8px;
+  padding:11px 12px; border-radius:5px; background:transparent;
+  color:var(--text); text-decoration:none; font-weight:600;
+}
+.friends-link:hover,.friends-link.active { background:var(--active); }
+.friends-link svg { color:var(--muted); }
+.dm-list { overflow:auto; padding:0 8px; }
+.dm-item {
+  display:flex; align-items:center; gap:12px; width:100%;
+  padding:8px; border:0; border-radius:5px; background:transparent;
+  color:var(--muted); text-align:left;
+}
+.dm-item:hover { background:#ffffff0a; color:var(--text); }
+.dm-item.active { background:var(--active); color:var(--white); }
+.avatar {
+  position:relative; display:grid; place-items:center; flex-shrink:0;
+  width:36px; height:36px; border-radius:50%;
+  background:linear-gradient(135deg,#5865f2,#00b9d6);
+  color:white; font-weight:800; font-size:12px;
+}
+.avatar.green { background:linear-gradient(135deg,#248046,#45c77a); }
+.avatar.orange { background:linear-gradient(135deg,#dd8542,#bc477b); }
+.avatar.purple { background:linear-gradient(135deg,#8b5cf6,#4facfe); }
+.avatar.pink { background:linear-gradient(135deg,#df579b,#8b5cf6); }
+.avatar .status {
+  position:absolute; right:-2px; bottom:-2px; width:12px; height:12px;
+  border:3px solid var(--sidebar); border-radius:50%; background:var(--green);
+}
+.dm-name { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.dm-preview { display:block; margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--muted); font-size:11px; }
+.sidebar-bottom {
+  display:flex; align-items:center; gap:9px; margin-top:auto;
+  padding:10px; background:#232428;
+}
+.profile-avatar { width:32px; height:32px; font-size:11px; }
+.profile-text { flex:1; min-width:0; }
+.profile-text strong { display:block; overflow:hidden; color:var(--white); font-size:12px; text-overflow:ellipsis; }
+.profile-text span { color:var(--muted); font-size:10px; }
+.profile-actions { display:flex; gap:2px; }
 
-    a { color: inherit; text-decoration: none; }
+/* Main area */
+.main { display:flex; flex-direction:column; min-width:0; min-height:0; }
+.topbar {
+  display:flex; align-items:center; gap:12px; height:49px; flex-shrink:0;
+  padding:0 17px; border-bottom:1px solid #202127;
+  box-shadow:0 1px 2px #0002;
+}
+.topbar .title { display:flex; align-items:center; gap:10px; color:var(--white); font-weight:700; }
+.topbar .title svg { color:var(--muted); }
+.topbar-divider { width:1px; height:24px; background:#ffffff12; }
+.topbar .muted { color:var(--muted); font-weight:400; }
+.topbar-actions { display:flex; align-items:center; gap:12px; margin-left:auto; }
+.topbar-actions button { display:grid; place-items:center; border:0; background:transparent; color:var(--muted); }
+.topbar-actions button:hover { color:var(--white); }
+.topbar-actions .help { font-weight:800; font-size:17px; }
 
-    .topbar {
-      height: 68px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      border-bottom: 1px solid var(--border);
-      background: rgb(11 16 32 / 85%);
-    }
+.content { display:flex; flex:1; min-height:0; overflow:hidden; }
+.center { display:flex; flex:1; flex-direction:column; min-width:0; overflow:auto; }
+.welcome {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex:1; min-height:300px; padding:30px 20px; text-align:center;
+}
+.welcome-art {
+  display:grid; place-items:center; width:94px; height:94px;
+  margin-bottom:24px; border-radius:30px;
+  background:linear-gradient(145deg,#4146a5,#147d91);
+  color:white; box-shadow:0 12px 40px #0002;
+}
+.welcome-art svg { width:43px; height:43px; }
+.welcome h1 { margin-bottom:10px; color:var(--white); font-size:25px; }
+.welcome p { max-width:430px; color:var(--muted); line-height:1.6; }
+.welcome .primary {
+  margin-top:22px; padding:11px 18px; border:0; border-radius:5px;
+  background:var(--blue); color:white; font-weight:700;
+}
+.welcome .primary:hover { background:#4752c4; }
+.quick-actions { display:flex; flex-wrap:wrap; justify-content:center; gap:9px; margin-top:18px; }
+.quick-actions button {
+  display:flex; align-items:center; gap:8px; padding:9px 12px;
+  border:1px solid #ffffff12; border-radius:5px; background:#2b2d31; color:var(--text);
+}
+.quick-actions button:hover { background:var(--hover); }
 
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 20px;
-      font-weight: 750;
-      letter-spacing: -.5px;
-    }
+/* Friends home */
+.friends-home { display:none; flex-direction:column; min-height:100%; padding:25px; }
+.friends-home.visible { display:flex; }
+.friends-home h2 { margin-bottom:18px; color:var(--white); font-size:20px; }
+.friends-search { max-width:600px; margin-bottom:22px; }
+.friends-row {
+  display:flex; align-items:center; gap:12px; max-width:700px;
+  padding:12px; border-top:1px solid var(--border);
+}
+.friends-row .friend-info { flex:1; min-width:0; }
+.friend-info strong { color:var(--white); }
+.friend-info p { margin-top:4px; color:var(--muted); font-size:12px; }
+.friends-row button {
+  padding:8px 12px; border:0; border-radius:5px; background:var(--blue); color:white;
+}
+.friends-row button.secondary { background:#232428; color:var(--text); }
 
-    .brand-icon {
-      display: grid;
-      place-items: center;
-      width: 38px;
-      height: 38px;
-      border-radius: 12px;
-      color: #07111f;
-      background: linear-gradient(135deg, var(--cyan), var(--blue));
-    }
+/* Right profile panel */
+.profile-panel {
+  width:250px; flex-shrink:0; overflow:auto;
+  border-left:1px solid #202127; background:#2b2d31;
+}
+.profile-banner { height:90px; background:linear-gradient(120deg,#5865f2,#00b9d6,#8b5cf6); }
+.profile-large-avatar {
+  display:grid; place-items:center; width:82px; height:82px; margin-top:-38px;
+  border:7px solid #2b2d31; border-radius:50%;
+  background:linear-gradient(135deg,#5865f2,#00b9d6); color:white;
+  font-size:24px; font-weight:900;
+}
+.profile-card { margin:0 12px 14px; padding:0 12px 14px; border-radius:8px; background:#232428; }
+.profile-card h3 { padding-top:10px; color:var(--white); font-size:19px; }
+.profile-card .username { margin-top:4px; color:var(--muted); font-size:12px; }
+.profile-card hr { margin:13px 0; border:0; border-top:1px solid #ffffff12; }
+.profile-card h4 { margin-bottom:7px; color:var(--white); font-size:11px; text-transform:uppercase; }
+.profile-card p { color:var(--text); font-size:12px; line-height:1.5; }
+.profile-card .since { color:var(--muted); font-size:11px; }
+.panel-action {
+  display:flex; align-items:center; gap:10px; width:calc(100% - 24px);
+  margin:0 12px 6px; padding:10px; border:0; border-radius:5px;
+  background:transparent; color:var(--text); text-align:left;
+}
+.panel-action:hover { background:var(--hover); }
 
-    .back {
-      color: var(--muted);
-      font-size: 14px;
-    }
+/* Dialogs */
+.overlay {
+  position:fixed; z-index:20; inset:0; display:none; align-items:center;
+  justify-content:center; padding:20px; background:#0009;
+}
+.overlay.open { display:flex; }
+.dialog {
+  width:min(430px,100%); padding:22px; border:1px solid #ffffff10;
+  border-radius:10px; background:#313338; box-shadow:0 15px 70px #0005;
+}
+.dialog h2 { margin-bottom:8px; color:var(--white); }
+.dialog p { margin-bottom:16px; color:var(--muted); line-height:1.5; }
+.dialog input {
+  width:100%; padding:11px; border:1px solid #1e1f22; border-radius:5px;
+  background:#1e1f22; color:white;
+}
+.dialog-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+.dialog-actions button { padding:9px 14px; border:0; border-radius:5px; background:#4e5058; color:white; }
+.dialog-actions .confirm { background:var(--blue); }
+.toast {
+  position:fixed; z-index:50; bottom:20px; left:50%;
+  padding:11px 16px; transform:translate(-50%,10px);
+  border:1px solid #ffffff16; border-radius:6px; background:#111214;
+  color:white; opacity:0; pointer-events:none; transition:.2s;
+}
+.toast.show { opacity:1; transform:translate(-50%,0); }
 
-    .back:hover { color: var(--cyan); }
+.mobile-back { display:none; }
 
-    main {
-      width: min(900px, calc(100% - 32px));
-      margin: 64px auto;
-    }
-
-    .eyebrow {
-      color: var(--cyan);
-      font-size: 12px;
-      font-weight: 750;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      margin: 10px 0;
-      font-size: clamp(30px, 5vw, 44px);
-      letter-spacing: -1.5px;
-    }
-
-    .subtitle {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .toolbar {
-      display: flex;
-      gap: 12px;
-      margin: 30px 0 18px;
-    }
-
-    .search {
-      flex: 1;
-      min-width: 0;
-      padding: 13px 15px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      outline: none;
-      background: var(--panel);
-      color: var(--text);
-      font: inherit;
-    }
-
-    .search:focus { border-color: var(--cyan); }
-
-    .button {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 16px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: var(--panel);
-      color: var(--text);
-      font: inherit;
-      cursor: pointer;
-      transition: background .15s, border-color .15s;
-    }
-
-    .button:hover {
-      background: var(--panel-hover);
-      border-color: var(--cyan);
-    }
-
-    .button-primary {
-      border-color: transparent;
-      background: linear-gradient(110deg, #24c8ec, #6482ff);
-      color: #07111f;
-      font-weight: 750;
-    }
-
-    .button-primary:hover { filter: brightness(1.08); }
-
-    .section-label {
-      margin: 25px 0 12px;
-      color: var(--muted);
-      font-size: 12px;
-      font-weight: 750;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-    }
-
-    .conversation-list {
-      display: grid;
-      gap: 10px;
-    }
-
-    .conversation {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 16px;
-      border: 1px solid var(--border);
-      border-radius: 15px;
-      background: rgb(17 26 46 / 85%);
-      transition: transform .15s, background .15s, border-color .15s;
-    }
-
-    .conversation:hover {
-      transform: translateY(-1px);
-      border-color: #3c6088;
-      background: var(--panel-hover);
-    }
-
-    .avatar {
-      display: grid;
-      place-items: center;
-      flex: 0 0 46px;
-      width: 46px;
-      height: 46px;
-      border-radius: 14px;
-      background: linear-gradient(135deg, #174d71, #4445a0);
-      color: #e6faff;
-      font-weight: 800;
-    }
-
-    .conversation-info { flex: 1; min-width: 0; }
-
-    .conversation-name {
-      margin-bottom: 5px;
-      font-weight: 700;
-    }
-
-    .conversation-preview {
-      overflow: hidden;
-      color: var(--muted);
-      font-size: 13px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .empty {
-      padding: 35px 20px;
-      border: 1px dashed var(--border);
-      border-radius: 15px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    .empty svg { margin-bottom: 12px; color: var(--cyan); }
-
-    .footer {
-      margin-top: 40px;
-      color: var(--muted);
-      font-size: 12px;
-      text-align: center;
-    }
-
-    @media (max-width: 560px) {
-      .topbar { padding: 0 16px; }
-      main { margin-top: 42px; }
-      .toolbar { flex-direction: column; }
-      .toolbar .button { width: 100%; }
-    }
-  </style>
+@media(max-width:950px) {
+  .profile-panel { display:none; }
+}
+@media(max-width:650px) {
+  .app { grid-template-columns:56px minmax(0,1fr); }
+  .rail-logo,.server { width:40px; height:40px; }
+  .dm-sidebar { display:none; }
+  .dm-sidebar.mobile-open {
+    display:flex; position:fixed; z-index:10; left:56px; top:0; bottom:0;
+    width:min(270px,calc(100vw - 56px)); box-shadow:12px 0 30px #0006;
+  }
+  .mobile-back { display:grid; place-items:center; border:0; background:transparent; color:var(--muted); }
+  .topbar { gap:8px; padding:0 10px; }
+  .topbar-actions { gap:10px; }
+  .welcome h1 { font-size:21px; }
+  .welcome { padding:18px; }
+  .friends-home { padding:18px 12px; }
+}
+</style>
 </head>
 <body>
-  <header class="topbar">
-    <a class="brand" href="../app/">
-      <span class="brand-icon" aria-hidden="true">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round"
-             stroke-linejoin="round">
-          <path d="M4 5h16v11H9l-5 4z"/>
-          <path d="M8 9h8M8 12h5"/>
-        </svg>
-      </span>
-      MineDM
-    </a>
-    <a class="back" href="../app/">← Back to app</a>
-  </header>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
+  <symbol id="i-friends" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 3.2a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 4h16v16H4zM4 13h4l2 3h4l2-3h4"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.2 1.8c-1.2 1.1-1.7 1.4-1.7 3M12 17h.01"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="m18 6-12 12M6 6l12 12"/></symbol>
+  <symbol id="i-people" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 11a4 4 0 1 0 0-8"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-2 .9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-2-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 2-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 2 .9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.9Z" transform="translate(-1 -1)"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.9L7.7 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 1.9-.6l3 .5a2 2 0 0 1 2.1 2.4Z"/></symbol>
+  <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="14" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+</svg>
 
-  <main>
-    <div class="eyebrow">Your conversations</div>
-    <h1>Direct Messages</h1>
-    <p class="subtitle">Find your friends and continue the conversation.</p>
+<div class="app">
+  <aside class="rail" aria-label="Servers">
+    <a class="rail-logo" href="../" title="MineDM app" aria-label="Return to MineDM chat">M</a>
+    <div class="rail-divider"></div>
+    <button class="server active" title="Block Buddies">⛏</button>
+    <button class="server" title="Survival Squad">🌲</button>
+    <button class="server" title="Redstone Lab">R</button>
+    <button class="server add" id="addServer" title="Add server"><svg><use href="#i-plus"/></svg></button>
+    <div class="rail-spacer"></div>
+    <button class="server" id="railSettings" title="Settings"><svg><use href="#i-settings"/></svg></button>
+  </aside>
 
-    <div class="toolbar">
-      <input
-        class="search"
-        id="search"
-        type="search"
-        placeholder="Search conversations..."
-        aria-label="Search conversations"
-      >
-      <a class="button button-primary" href="../app/">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        Open chat
-      </a>
+  <aside class="dm-sidebar" id="dmSidebar">
+    <div class="sidebar-search">
+      <input class="search" id="searchInput" type="search" placeholder="Find or start a conversation" aria-label="Find conversations">
     </div>
 
-    <div class="section-label">Recent conversations</div>
+    <a class="friends-link" href="#" id="friendsLink">
+      <svg><use href="#i-friends"/></svg> Friends
+    </a>
 
-    <div class="conversation-list" id="conversationList">
-      <div class="empty" id="emptyState">
-        <svg width="34" height="34" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-             stroke-linejoin="round" aria-hidden="true">
-          <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/>
-        </svg>
-        <div>No conversations to show yet.</div>
-        <p>Open MineDM to start a conversation with a friend.</p>
+    <div class="sidebar-heading">
+      <span>Direct Messages</span>
+      <button class="icon-button" id="newDM" title="New message" aria-label="New message"><svg><use href="#i-plus"/></svg></button>
+    </div>
+
+    <div class="dm-list" id="dmList">
+      <button class="dm-item" data-name="Alex" data-color="">
+        <span class="avatar green">AX<span class="status"></span></span>
+        <span class="dm-name">Alex<span class="dm-preview">That castle looks awesome</span></span>
+      </button>
+      <button class="dm-item" data-name="PixelPete">
+        <span class="avatar purple">PP<span class="status"></span></span>
+        <span class="dm-name">PixelPete<span class="dm-preview">See you in the server!</span></span>
+      </button>
+      <button class="dm-item" data-name="CreeperQueen">
+        <span class="avatar orange">CQ<span class="status"></span></span>
+        <span class="dm-name">CreeperQueen<span class="dm-preview">Want to go mining later?</span></span>
+      </button>
+      <button class="dm-item" data-name="Steve">
+        <span class="avatar">ST</span>
+        <span class="dm-name">Steve<span class="dm-preview">Thanks for the invite</span></span>
+      </button>
+      <button class="dm-item" data-name="EnderGirl">
+        <span class="avatar pink">EG</span>
+        <span class="dm-name">EnderGirl<span class="dm-preview">Sent you a screenshot</span></span>
+      </button>
+    </div>
+
+    <div class="sidebar-bottom">
+      <span class="avatar profile-avatar">CB<span class="status"></span></span>
+      <div class="profile-text"><strong id="myName">CraftyBuilder</strong><span>Online</span></div>
+      <div class="profile-actions">
+        <button class="icon-button" id="muteButton" title="Mute" aria-label="Mute"><svg><use href="#i-phone"/></svg></button>
+        <button class="icon-button" id="userSettings" title="User settings" aria-label="User settings"><svg><use href="#i-settings"/></svg></button>
       </div>
     </div>
+  </aside>
 
-    <div class="footer">
-      MineDM · A Minecraft-inspired chat experience
+  <main class="main">
+    <header class="topbar">
+      <button class="mobile-back" id="mobileMenu" aria-label="Show conversations"><svg><use href="#i-menu"/></svg></button>
+      <div class="title"><svg><use href="#i-friends"/></svg><span id="topTitle">Friends</span></div>
+      <div class="topbar-divider"></div>
+      <span class="muted" id="topSubtitle">Your people, all in one place</span>
+      <div class="topbar-actions">
+        <button id="startSearch" title="Search conversations" aria-label="Search"><svg><use href="#i-search"/></svg></button>
+        <button id="inboxButton" title="Inbox" aria-label="Inbox"><svg><use href="#i-inbox"/></svg></button>
+        <button id="helpButton" title="Help" aria-label="Help"><svg><use href="#i-help"/></svg></button>
+      </div>
+    </header>
+
+    <div class="content">
+      <section class="center">
+        <div class="welcome" id="welcome">
+          <div class="welcome-art"><svg><use href="#i-message"/></svg></div>
+          <h1>Your friends are just a message away</h1>
+          <p>Pick a conversation on the left to jump back in, or start a new chat with someone from your Minecraft crew.</p>
+          <button class="primary" id="startDM">Start a conversation</button>
+          <div class="quick-actions">
+            <button id="showFriends"><svg><use href="#i-friends"/></svg> Friends</button>
+            <button id="showInbox"><svg><use href="#i-inbox"/></svg> Inbox</button>
+          </div>
+        </div>
+
+        <div class="friends-home" id="friendsHome">
+          <h2>Friends</h2>
+          <input class="search friends-search" id="friendSearch" placeholder="Search friends" aria-label="Search friends">
+          <div id="friendsRows"></div>
+        </div>
+      </section>
+
+      <aside class="profile-panel" id="profilePanel">
+        <div class="profile-banner"></div>
+        <div class="profile-card">
+          <div class="profile-large-avatar" id="largeAvatar">M</div>
+          <h3>MineDM</h3>
+          <p class="username">Your Minecraft community</p>
+          <hr>
+          <h4>About MineDM</h4>
+          <p>A place to hang out, chat with friends, and plan your next adventure.</p>
+          <hr>
+          <h4>Made for gamers</h4>
+          <p class="since">A Minecraft-inspired chat demo.</p>
+        </div>
+        <button class="panel-action" id="panelNewDM"><svg><use href="#i-plus"/></svg> Start a conversation</button>
+        <button class="panel-action" id="panelSettings"><svg><use href="#i-settings"/></svg> User settings</button>
+      </aside>
     </div>
   </main>
+</div>
 
-  <script>
-    const search = document.getElementById("search");
-    const conversationList = document.getElementById("conversationList");
-    const emptyState = document.getElementById("emptyState");
+<div class="overlay" id="newDMOverlay" aria-hidden="true">
+  <section class="dialog" role="dialog" aria-modal="true" aria-labelledby="dialogTitle">
+    <h2 id="dialogTitle">Start a conversation</h2>
+    <p>Enter a username to add a demo conversation to your list.</p>
+    <input id="usernameInput" maxlength="32" placeholder="Enter username" autocomplete="off">
+    <div class="dialog-actions">
+      <button id="cancelDialog">Cancel</button>
+      <button class="confirm" id="createDM">Create DM</button>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-    // The current app is a frontend demo without shared message storage.
-    // Add conversation objects here when a real backend is connected.
-    const conversations = [];
+<script>
+const $ = id => document.getElementById(id);
+const dmSidebar = $("dmSidebar");
+const dmList = $("dmList");
+const welcome = $("welcome");
+const friendsHome = $("friendsHome");
+const profilePanel = $("profilePanel");
+const overlay = $("newDMOverlay");
+let toastTimer;
 
-    function renderConversations(query = "") {
-      conversationList.replaceChildren();
+const people = [
+  {name:"Alex", initials:"AX", color:"green", online:true, preview:"That castle looks awesome"},
+  {name:"PixelPete", initials:"PP", color:"purple", online:true, preview:"See you in the server!"},
+  {name:"CreeperQueen", initials:"CQ", color:"orange", online:true, preview:"Want to go mining later?"},
+  {name:"Steve", initials:"ST", color:"", online:false, preview:"Thanks for the invite"},
+  {name:"EnderGirl", initials:"EG", color:"pink", online:false, preview:"Sent you a screenshot"}
+];
 
-      const filtered = conversations.filter(item =>
-        `${item.name} ${item.preview}`.toLowerCase().includes(query.toLowerCase())
-      );
+function notify(message) {
+  $("toast").textContent = message;
+  $("toast").classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => $("toast").classList.remove("show"), 2300);
+}
 
-      if (filtered.length === 0) {
-        const empty = emptyState.cloneNode(true);
-        empty.style.display = "block";
-        empty.querySelector("div").textContent = query
-          ? "No conversations match your search."
-          : "No conversations to show yet.";
-        empty.querySelector("p").textContent = query
-          ? "Try searching for a different name."
-          : "Open MineDM to start a conversation with a friend.";
-        conversationList.appendChild(empty);
-        return;
-      }
+function showWelcome() {
+  welcome.style.display = "flex";
+  friendsHome.classList.remove("visible");
+  profilePanel.style.display = "";
+  $("topTitle").textContent = "Friends";
+  $("topSubtitle").textContent = "Your people, all in one place";
+  document.querySelectorAll(".dm-item").forEach(el => el.classList.remove("active"));
+}
 
-      filtered.forEach(item => {
-        const link = document.createElement("a");
-        link.className = "conversation";
-        link.href = item.href || "../app/";
+function showFriends() {
+  welcome.style.display = "none";
+  friendsHome.classList.add("visible");
+  profilePanel.style.display = "none";
+  $("topTitle").textContent = "Friends";
+  $("topSubtitle").textContent = "Your people, all in one place";
+  renderFriends();
+}
 
-        const avatar = document.createElement("div");
-        avatar.className = "avatar";
-        avatar.textContent = item.name.slice(0, 1).toUpperCase();
+function renderFriends(filter = "") {
+  const rows = $("friendsRows");
+  rows.replaceChildren();
+  const matches = people.filter(person => person.name.toLowerCase().includes(filter.toLowerCase()));
 
-        const info = document.createElement("div");
-        info.className = "conversation-info";
+  if (!matches.length) {
+    const empty = document.createElement("p");
+    empty.textContent = "No friends found.";
+    empty.style.color = "var(--muted)";
+    rows.appendChild(empty);
+    return;
+  }
 
-        const name = document.createElement("div");
-        name.className = "conversation-name";
-        name.textContent = item.name;
+  matches.forEach(person => {
+    const row = document.createElement("div");
+    row.className = "friends-row";
 
-        const preview = document.createElement("div");
-        preview.className = "conversation-preview";
-        preview.textContent = item.preview || "Start a conversation";
+    const avatar = document.createElement("span");
+    avatar.className = "avatar " + person.color;
+    avatar.textContent = person.initials;
 
-        info.append(name, preview);
-        link.append(avatar, info);
-        conversationList.appendChild(link);
-      });
-    }
+    const info = document.createElement("div");
+    info.className = "friend-info";
+    const name = document.createElement("strong");
+    name.textContent = person.name;
+    const status = document.createElement("p");
+    status.textContent = person.online ? "Online" : "Offline";
+    info.append(name, status);
 
-    search.addEventListener("input", () => renderConversations(search.value));
-    renderConversations();
-  </script>
+    const button = document.createElement("button");
+    button.textContent = "Message";
+    button.addEventListener("click", () => openDM(person.name));
+
+    row.append(avatar, info, button);
+    rows.appendChild(row);
+  });
+}
+
+function openDM(name) {
+  welcome.style.display = "none";
+  friendsHome.classList.remove("visible");
+  profilePanel.style.display = "";
+  $("topTitle").textContent = name;
+  $("topSubtitle").textContent = "Direct message";
+  document.querySelectorAll(".dm-item").forEach(el => {
+    el.classList.toggle("active", el.dataset.name.toLowerCase() === name.toLowerCase());
+  });
+  dmSidebar.classList.remove("mobile-open");
+  notify("Opened " + name + "'s demo conversation.");
+}
+
+function addDM(name) {
+  name = name.trim();
+  if (!name) return;
+  const existing = [...document.querySelectorAll(".dm-item")]
+    .find(el => el.dataset.name.toLowerCase() === name.toLowerCase());
+
+  if (existing) {
+    closeDialog();
+    openDM(existing.dataset.name);
+    return;
+  }
+
+  const initials = name.slice(0, 2).toUpperCase();
+  const person = {name, initials, color:"", online:false, preview:"New conversation"};
+  people.push(person);
+
+  const button = document.createElement("button");
+  button.className = "dm-item";
+  button.dataset.name = name;
+
+  const avatar = document.createElement("span");
+  avatar.className = "avatar";
+  avatar.textContent = initials;
+
+  const label = document.createElement("span");
+  label.className = "dm-name";
+  label.append(document.createTextNode(name));
+
+  const preview = document.createElement("span");
+  preview.className = "dm-preview";
+  preview.textContent = "New conversation";
+  label.appendChild(preview);
+
+  button.append(avatar, label);
+  button.addEventListener("click", () => openDM(name));
+  dmList.prepend(button);
+
+  closeDialog();
+  openDM(name);
+  notify("Demo conversation added.");
+}
+
+function openDialog() {
+  overlay.classList.add("open");
+  overlay.setAttribute("aria-hidden", "false");
+  $("usernameInput").value = "";
+  $("usernameInput").focus();
+}
+function closeDialog() {
+  overlay.classList.remove("open");
+  overlay.setAttribute("aria-hidden", "true");
+}
+
+document.querySelectorAll(".dm-item").forEach(button => {
+  button.addEventListener("click", () => openDM(button.dataset.name));
+});
+
+$("friendsLink").addEventListener("click", event => {
+  event.preventDefault();
+  showFriends();
+});
+
+$("startDM").addEventListener("click", openDialog);
+$("newDM").addEventListener("click", openDialog);
+$("panelNewDM").addEventListener("click", openDialog);
+$("createDM").addEventListener("click", () => addDM($("usernameInput").value));
+$("cancelDialog").addEventListener("click", closeDialog);
+
+$("usernameInput").addEventListener("keydown", event => {
+  if (event.key === "Enter") addDM($("usernameInput").value);
+  if (event.key === "Escape") closeDialog();
+});
+
+overlay.addEventListener("click", event => {
+  if (event.target === overlay) closeDialog();
+});
+
+document.addEventListener("keydown", event => {
+  if (event.key === "Escape") closeDialog();
+});
+
+$("showFriends").addEventListener("click", showFriends);
+$("friendSearch").addEventListener("input", event => renderFriends(event.target.value));
+
+$("searchInput").addEventListener("input", event => {
+  const query = event.target.value.toLowerCase().trim();
+  document.querySelectorAll(".dm-item").forEach(item => {
+    item.style.display = item.dataset.name.toLowerCase().includes(query) ? "flex" : "none";
+  });
+});
+
+$("startSearch").addEventListener("click", () => {
+  dmSidebar.classList.add("mobile-open");
+  $("searchInput").focus();
+});
+$("mobileMenu").addEventListener("click", () => dmSidebar.classList.toggle("mobile-open"));
+
+$("showInbox").addEventListener("click", () => notify("Your inbox is up to date."));
+$("inboxButton").addEventListener("click", () => notify("Your inbox is up to date."));
+$("helpButton").addEventListener("click", () => notify("MineDM Direct Messages demo."));
+$("muteButton").addEventListener("click", () => notify("Voice controls are not connected yet."));
+
+function openSettingsNotice() {
+  notify("Settings can be opened from the main MineDM app.");
+}
+$("userSettings").addEventListener("click", openSettingsNotice);
+$("railSettings").addEventListener("click", openSettingsNotice);
+$("panelSettings").addEventListener("click", openSettingsNotice);
+$("addServer").addEventListener("click", () => notify("Server creation is not connected yet."));
+
+showWelcome();
+</script>
 </body>
 </html>
