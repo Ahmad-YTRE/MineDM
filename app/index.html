@@ -1,1250 +1,1601 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#0b0c10">
-    <title>MineDM — Web App</title>
-
-    <style>
-        :root {
-            --bg-dark: #0b0c10;
-            --bg-card: #1f2833;
-            --bg-sidebar: #11151c;
-            --bg-hover: #252f3b;
-            --neon-cyan: #00f2fe;
-            --neon-blue: #4facfe;
-            --neon-green: #39ff14;
-            --text-main: #c5c6c7;
-            --text-muted: #7f8b99;
-            --text-white: #ffffff;
-            --border: rgba(0, 242, 254, 0.13);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: var(--bg-dark);
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
-            background-image:
-                radial-gradient(circle at 70% 0%, #1a0b2e 0%, transparent 42%);
-        }
-
-        button, input {
-            font: inherit;
-        }
-
-        button {
-            cursor: pointer;
-        }
-
-        button:focus-visible,
-        input:focus-visible {
-            outline: 2px solid var(--neon-cyan);
-            outline-offset: 2px;
-        }
-
-        .app {
-            display: grid;
-            grid-template-columns: 68px 235px minmax(0, 1fr);
-            height: 100vh;
-        }
-
-        /* Server rail */
-
-        .server-rail {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 12px;
-            padding: 16px 9px;
-            background: #090a0e;
-            border-right: 1px solid var(--border);
-        }
-
-        .brand {
-            width: 46px;
-            height: 46px;
-            display: grid;
-            place-items: center;
-            border-radius: 14px;
-            color: #071014;
-            background: linear-gradient(
-                135deg,
-                var(--neon-cyan),
-                var(--neon-blue)
-            );
-            font-size: 21px;
-            font-weight: 900;
-            box-shadow: 0 0 18px #00f2fe26;
-        }
-
-        .rail-divider {
-            width: 28px;
-            height: 1px;
-            background: #34313f;
-            margin: 2px 0;
-        }
-
-        .server-button {
-            position: relative;
-            width: 44px;
-            height: 44px;
-            border: 1px solid transparent;
-            border-radius: 14px;
-            background: #1c2029;
-            color: #c5c6c7;
-            font-size: 21px;
-            transition: .2s;
-        }
-
-        .server-button:hover,
-        .server-button.active {
-            border-color: #00f2fe55;
-            border-radius: 11px;
-            background: linear-gradient(145deg, #193443, #27203d);
-            color: var(--neon-cyan);
-        }
-
-        .server-button.active::before {
-            content: "";
-            position: absolute;
-            left: -10px;
-            top: 10px;
-            height: 24px;
-            width: 4px;
-            border-radius: 0 4px 4px 0;
-            background: var(--neon-cyan);
-        }
-
-        .server-add {
-            color: var(--neon-green);
-            font-size: 25px;
-        }
-
-        .rail-bottom {
-            margin-top: auto;
-        }
-
-        /* Channel sidebar */
-
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            background: rgba(17, 21, 28, .95);
-            border-right: 1px solid var(--border);
-        }
-
-        .server-heading {
-            height: 72px;
-            padding: 15px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .server-heading h1 {
-            color: var(--text-white);
-            font-size: 17px;
-            letter-spacing: .3px;
-        }
-
-        .server-heading p {
-            margin-top: 4px;
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-
-        .online-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            margin-right: 5px;
-            border-radius: 50%;
-            background: var(--neon-green);
-            box-shadow: 0 0 8px #39ff1455;
-        }
-
-        .search-area {
-            padding: 13px 11px 6px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 10px 11px;
-            border: 1px solid #ffffff0c;
-            border-radius: 8px;
-            background: #090b10;
-            color: white;
-            outline: none;
-            font-size: 12px;
-        }
-
-        .search-input:focus {
-            border-color: #00f2fe66;
-        }
-
-        .section-heading {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 18px 14px 7px;
-            color: #858a99;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-        }
-
-        .section-heading button {
-            border: none;
-            background: transparent;
-            color: #9aa5b5;
-            font-size: 20px;
-        }
-
-        .section-heading button:hover {
-            color: var(--neon-cyan);
-        }
-
-        .nav-list {
-            display: flex;
-            flex-direction: column;
-            gap: 3px;
-            padding: 0 8px;
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            width: 100%;
-            padding: 10px;
-            border: 1px solid transparent;
-            border-radius: 7px;
-            background: transparent;
-            color: #aeb6c3;
-            text-align: left;
-            font-size: 12px;
-        }
-
-        .nav-item:hover {
-            background: #ffffff08;
-            color: white;
-        }
-
-        .nav-item.active {
-            background: linear-gradient(
-                90deg,
-                #00f2fe16,
-                #4facfe12
-            );
-            border-color: #00f2fe19;
-            color: white;
-        }
-
-        .channel-hash {
-            width: 17px;
-            color: #7f899b;
-            font-size: 17px;
-            text-align: center;
-        }
-
-        .nav-item.active .channel-hash {
-            color: var(--neon-cyan);
-        }
-
-        .unread-count {
-            margin-left: auto;
-            padding: 2px 6px;
-            border-radius: 5px;
-            background: #26394a;
-            color: var(--neon-cyan);
-            font-size: 10px;
-        }
-
-        .dm-avatar {
-            width: 29px;
-            height: 29px;
-            display: grid;
-            place-items: center;
-            border-radius: 9px;
-            background: linear-gradient(135deg, #4facfe, #7547c8);
-            color: white;
-            font-size: 10px;
-            font-weight: 800;
-            flex-shrink: 0;
-        }
-
-        .dm-list {
-            overflow-y: auto;
-        }
-
-        .profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: auto;
-            padding: 13px;
-            border-top: 1px solid var(--border);
-            background: #090b10;
-        }
-
-        .profile-avatar {
-            width: 36px;
-            height: 36px;
-            display: grid;
-            place-items: center;
-            border-radius: 11px;
-            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
-            color: #071014;
-            font-size: 11px;
-            font-weight: 900;
-        }
-
-        .profile-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .profile-info strong {
-            display: block;
-            color: white;
-            font-size: 12px;
-        }
-
-        .profile-info span {
-            color: var(--neon-green);
-            font-size: 10px;
-        }
-
-        .icon-button {
-            padding: 7px;
-            border: none;
-            border-radius: 6px;
-            background: transparent;
-            color: #929aaa;
-        }
-
-        .icon-button:hover {
-            background: #ffffff0c;
-            color: var(--neon-cyan);
-        }
-
-        /* Main chat */
-
-        .chat {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-            min-height: 0;
-        }
-
-        .chat-header {
-            min-height: 72px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 0 23px;
-            border-bottom: 1px solid var(--border);
-            background: #0b0c10aa;
-        }
-
-        .chat-title {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0;
-        }
-
-        .chat-title .hash {
-            color: var(--neon-cyan);
-            font-size: 24px;
-        }
-
-        .chat-title h2 {
-            color: white;
-            font-size: 15px;
-            font-weight: 700;
-        }
-
-        .chat-title p {
-            margin-top: 3px;
-            color: var(--text-muted);
-            font-size: 11px;
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .online-label {
-            padding: 6px 9px;
-            border-radius: 20px;
-            background: #39ff1410;
-            color: var(--neon-green);
-            font-size: 10px;
-            white-space: nowrap;
-        }
-
-        .header-actions button {
-            padding: 8px 10px;
-            border: 1px solid #ffffff10;
-            border-radius: 7px;
-            background: #1f2833;
-            color: #c5c6c7;
-        }
-
-        .header-actions button:hover {
-            border-color: #00f2fe55;
-            color: var(--neon-cyan);
-        }
-
-        .messages {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            gap: 22px;
-            overflow-y: auto;
-            padding: 27px clamp(16px, 4vw, 45px);
-        }
-
-        .welcome-card {
-            padding: 20px;
-            border: 1px solid #00f2fe2b;
-            border-radius: 10px;
-            background: linear-gradient(
-                115deg,
-                #00f2fe0c,
-                #4facfe0a,
-                #1a0b2e55
-            );
-        }
-
-        .welcome-label {
-            color: var(--neon-cyan);
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.1px;
-            text-transform: uppercase;
-        }
-
-        .welcome-card h3 {
-            margin: 8px 0 5px;
-            color: white;
-            font-size: 20px;
-        }
-
-        .welcome-card p {
-            color: #a9b7c6;
-            font-size: 12px;
-        }
-
-        .message {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .message-avatar {
-            display: grid;
-            place-items: center;
-            width: 39px;
-            height: 39px;
-            flex-shrink: 0;
-            border: 1px solid #ffffff10;
-            border-radius: 11px;
-            background: linear-gradient(135deg, #4facfe, #7547c8);
-            color: white;
-            font-size: 11px;
-            font-weight: 900;
-        }
-
-        .message-avatar.green {
-            background: linear-gradient(135deg, #087f5b, #39ff14);
-            color: #08130b;
-        }
-
-        .message-avatar.orange {
-            background: linear-gradient(135deg, #f4a261, #bc477b);
-        }
-
-        .message-avatar.purple {
-            background: linear-gradient(135deg, #8a5cf6, #4facfe);
-        }
-
-        .message-content {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .message-meta {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .message-meta strong {
-            color: white;
-            font-size: 12px;
-        }
-
-        .role-tag {
-            padding: 2px 5px;
-            border-radius: 4px;
-            background: #00f2fe14;
-            color: var(--neon-cyan);
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-        }
-
-        .timestamp {
-            color: #717b8c;
-            font-size: 10px;
-        }
-
-        .message-text {
-            margin-top: 5px;
-            color: #c5c6c7;
-            font-size: 13px;
-            line-height: 1.65;
-            overflow-wrap: anywhere;
-            white-space: pre-wrap;
-        }
-
-        .attachment {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            max-width: 340px;
-            margin-top: 10px;
-            padding: 12px;
-            border: 1px solid #ffffff10;
-            border-radius: 9px;
-            background: #1f2833;
-        }
-
-        .file-icon {
-            display: grid;
-            place-items: center;
-            width: 40px;
-            height: 42px;
-            border-radius: 7px;
-            background: #4facfe18;
-            color: var(--neon-blue);
-            font-size: 21px;
-        }
-
-        .attachment strong {
-            display: block;
-            color: white;
-            font-size: 11px;
-        }
-
-        .attachment span {
-            color: var(--text-muted);
-            font-size: 10px;
-        }
-
-        /* Message composer */
-
-        .composer-area {
-            padding: 0 clamp(16px, 4vw, 45px) 19px;
-        }
-
-        .composer {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            padding: 9px;
-            border: 1px solid #00f2fe2b;
-            border-radius: 10px;
-            background: #1f2833;
-            transition: border-color .2s;
-        }
-
-        .composer:focus-within {
-            border-color: #00f2fe85;
-            box-shadow: 0 0 16px #00f2fe0a;
-        }
-
-        .composer-plus {
-            width: 34px;
-            height: 34px;
-            flex-shrink: 0;
-            border: none;
-            border-radius: 7px;
-            background: #2b3542;
-            color: var(--neon-cyan);
-            font-size: 22px;
-        }
-
-        .composer input {
-            flex: 1;
-            min-width: 0;
-            padding: 8px 2px;
-            border: none;
-            outline: none;
-            background: transparent;
-            color: white;
-            font-size: 13px;
-        }
-
-        .composer input::placeholder {
-            color: #7f8b99;
-        }
-
-        .send-button {
-            width: 36px;
-            height: 36px;
-            flex-shrink: 0;
-            border: 1px solid #00f2fe55;
-            border-radius: 8px;
-            background: var(--neon-cyan);
-            color: #0b0c10;
-            font-weight: 900;
-            transition: .2s;
-        }
-
-        .send-button:hover {
-            background: transparent;
-            color: var(--neon-cyan);
-            box-shadow: 0 0 12px #00f2fe25;
-        }
-
-        .composer-hint {
-            display: flex;
-            justify-content: space-between;
-            gap: 10px;
-            margin: 7px 3px 0;
-            color: #626e7d;
-            font-size: 10px;
-        }
-
-        .composer-hint kbd {
-            padding: 2px 5px;
-            border: 1px solid #343c48;
-            border-radius: 4px;
-            color: #a9b7c6;
-            font: inherit;
-        }
-
-        .toast {
-            position: fixed;
-            z-index: 10;
-            bottom: 22px;
-            left: 50%;
-            max-width: calc(100vw - 30px);
-            padding: 11px 16px;
-            transform: translate(-50%, 15px);
-            border: 1px solid #00f2fe55;
-            border-radius: 8px;
-            background: #1f2833;
-            color: white;
-            font-size: 12px;
-            opacity: 0;
-            pointer-events: none;
-            transition: .2s;
-        }
-
-        .toast.show {
-            transform: translate(-50%, 0);
-            opacity: 1;
-        }
-
-        .mobile-menu {
-            display: none;
-        }
-
-        /* Responsive layout */
-
-        @media (max-width: 850px) {
-            .app {
-                grid-template-columns: 58px 205px minmax(0, 1fr);
-            }
-
-            .server-rail {
-                padding-inline: 6px;
-            }
-
-            .server-button,
-            .brand {
-                width: 40px;
-                height: 40px;
-            }
-
-            .chat-header {
-                padding: 0 14px;
-            }
-
-            .online-label {
-                display: none;
-            }
-
-            .header-actions {
-                gap: 4px;
-            }
-        }
-
-        @media (max-width: 620px) {
-            .app {
-                grid-template-columns: 54px minmax(0, 1fr);
-            }
-
-            .sidebar {
-                display: none;
-            }
-
-            .sidebar.mobile-open {
-                position: fixed;
-                z-index: 5;
-                display: flex;
-                top: 0;
-                bottom: 0;
-                left: 54px;
-                width: min(260px, calc(100vw - 54px));
-                box-shadow: 12px 0 35px #0009;
-            }
-
-            .server-rail {
-                padding: 12px 6px;
-            }
-
-            .server-button,
-            .brand {
-                width: 38px;
-                height: 38px;
-            }
-
-            .chat-header {
-                min-height: 64px;
-                padding: 0 10px;
-                gap: 6px;
-            }
-
-            .mobile-menu {
-                display: inline-grid;
-                place-items: center;
-                width: 30px;
-                height: 30px;
-                border: 1px solid #ffffff14;
-                border-radius: 7px;
-                background: #1f2833;
-                color: var(--neon-cyan);
-            }
-
-            .chat-title {
-                gap: 7px;
-            }
-
-            .chat-title h2 {
-                font-size: 13px;
-            }
-
-            .chat-title p {
-                display: none;
-            }
-
-            .header-actions {
-                gap: 0;
-            }
-
-            .header-actions button {
-                padding: 7px;
-                border-color: transparent;
-                background: transparent;
-            }
-
-            .messages {
-                padding: 17px 12px;
-                gap: 19px;
-            }
-
-            .welcome-card {
-                padding: 15px;
-            }
-
-            .welcome-card h3 {
-                font-size: 17px;
-            }
-
-            .message {
-                gap: 9px;
-            }
-
-            .message-avatar {
-                width: 34px;
-                height: 34px;
-            }
-
-            .composer-area {
-                padding: 0 9px 12px;
-            }
-
-            .composer {
-                gap: 6px;
-            }
-
-            .composer-plus {
-                width: 30px;
-                height: 30px;
-            }
-
-            .composer-hint {
-                font-size: 9px;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0b0c10">
+  <title>MineDM — Web App</title>
+
+  <style>
+    :root {
+      --bg-dark: #0b0c10;
+      --bg-card: #1f2833;
+      --bg-sidebar: #11151c;
+      --bg-hover: #252f3b;
+      --neon-cyan: #00f2fe;
+      --neon-blue: #4facfe;
+      --neon-green: #39ff14;
+      --text-main: #c5c6c7;
+      --text-muted: #7f8b99;
+      --text-white: #fff;
+      --border: rgba(0, 242, 254, .13);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg-dark);
+      background-image: radial-gradient(circle at 70% 0%, #1a0b2e 0%, transparent 42%);
+      color: var(--text-main);
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 2px solid var(--neon-cyan);
+      outline-offset: 2px;
+    }
+
+    svg { display: block; flex-shrink: 0; }
+    .icon { width: 18px; height: 18px; }
+    .icon-sm { width: 15px; height: 15px; }
+    .icon-lg { width: 22px; height: 22px; }
+
+    .app {
+      display: grid;
+      grid-template-columns: 68px 235px minmax(0, 1fr);
+      height: 100vh;
+    }
+
+    /* Server rail */
+
+    .server-rail {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 16px 9px;
+      background: #090a0e;
+      border-right: 1px solid var(--border);
+    }
+
+    .brand {
+      display: grid;
+      place-items: center;
+      width: 46px;
+      height: 46px;
+      border-radius: 14px;
+      color: #071014;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+      box-shadow: 0 0 18px #00f2fe26;
+      font-size: 21px;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .rail-divider {
+      width: 28px;
+      height: 1px;
+      margin: 2px 0;
+      background: #34313f;
+    }
+
+    .server-button {
+      position: relative;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      background: #1c2029;
+      color: #c5c6c7;
+      transition: .2s;
+    }
+
+    .server-button:hover, .server-button.active {
+      border-color: #00f2fe55;
+      border-radius: 11px;
+      background: linear-gradient(145deg, #193443, #27203d);
+      color: var(--neon-cyan);
+    }
+
+    .server-button.active::before {
+      position: absolute;
+      top: 10px;
+      left: -10px;
+      width: 4px;
+      height: 24px;
+      border-radius: 0 4px 4px 0;
+      background: var(--neon-cyan);
+      content: "";
+    }
+
+    .server-add { color: var(--neon-green); }
+    .rail-bottom { margin-top: auto; }
+
+    /* Sidebar */
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: rgba(17, 21, 28, .95);
+      border-right: 1px solid var(--border);
+    }
+
+    .server-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      padding: 15px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .server-heading h1 {
+      color: var(--text-white);
+      font-size: 17px;
+      letter-spacing: .3px;
+    }
+
+    .server-heading p {
+      margin-top: 4px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .online-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      margin-right: 5px;
+      border-radius: 50%;
+      background: var(--neon-green);
+      box-shadow: 0 0 8px #39ff1455;
+    }
+
+    .search-area { padding: 13px 11px 6px; }
+
+    .search-input {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid #ffffff0c;
+      border-radius: 8px;
+      outline: none;
+      background: #090b10;
+      color: white;
+      font-size: 12px;
+    }
+
+    .search-input:focus { border-color: #00f2fe66; }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 14px 7px;
+      color: #858a99;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+    }
+
+    .section-heading button {
+      display: grid;
+      place-items: center;
+      padding: 3px;
+      border: none;
+      border-radius: 5px;
+      background: transparent;
+      color: #9aa5b5;
+    }
+
+    .section-heading button:hover { color: var(--neon-cyan); }
+
+    .nav-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      padding: 0 8px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      padding: 9px 10px;
+      border: 1px solid transparent;
+      border-radius: 7px;
+      background: transparent;
+      color: #aeb6c3;
+      text-align: left;
+      font-size: 12px;
+      text-decoration: none;
+    }
+
+    .nav-item:hover { background: #ffffff08; color: white; }
+
+    .nav-item.active {
+      border-color: #00f2fe19;
+      background: linear-gradient(90deg, #00f2fe16, #4facfe12);
+      color: white;
+    }
+
+    .channel-hash {
+      width: 17px;
+      color: #7f899b;
+      font-size: 17px;
+      text-align: center;
+    }
+
+    .nav-item.active .channel-hash { color: var(--neon-cyan); }
+
+    .unread-count {
+      margin-left: auto;
+      padding: 2px 6px;
+      border-radius: 5px;
+      background: #26394a;
+      color: var(--neon-cyan);
+      font-size: 10px;
+    }
+
+    .dm-avatar {
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      width: 29px;
+      height: 29px;
+      border-radius: 9px;
+      background: linear-gradient(135deg, #4facfe, #7547c8);
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .dm-list { overflow-y: auto; }
+
+    .dms-link { margin-top: 7px; }
+    .dms-link .icon { color: var(--neon-cyan); }
+
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: auto;
+      padding: 13px;
+      border-top: 1px solid var(--border);
+      background: #090b10;
+    }
+
+    .profile-avatar {
+      display: grid;
+      place-items: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 11px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+      color: #071014;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .profile-info { flex: 1; min-width: 0; }
+    .profile-info strong { display: block; color: white; font-size: 12px; }
+    .profile-info span { color: var(--neon-green); font-size: 10px; }
+
+    .icon-button {
+      display: grid;
+      place-items: center;
+      padding: 7px;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: #929aaa;
+    }
+
+    .icon-button:hover { background: #ffffff0c; color: var(--neon-cyan); }
+
+    /* Chat */
+
+    .chat {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-height: 72px;
+      padding: 0 23px;
+      border-bottom: 1px solid var(--border);
+      background: #0b0c10aa;
+    }
+
+    .chat-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .chat-title .hash { color: var(--neon-cyan); font-size: 24px; }
+    .chat-title h2 { color: white; font-size: 15px; font-weight: 700; }
+    .chat-title p { margin-top: 3px; color: var(--text-muted); font-size: 11px; }
+
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .online-label {
+      padding: 6px 9px;
+      border-radius: 20px;
+      background: #39ff1410;
+      color: var(--neon-green);
+      font-size: 10px;
+      white-space: nowrap;
+    }
+
+    .header-actions button {
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      border: 1px solid #ffffff10;
+      border-radius: 7px;
+      background: #1f2833;
+      color: #c5c6c7;
+    }
+
+    .header-actions button:hover { border-color: #00f2fe55; color: var(--neon-cyan); }
+
+    .messages {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      gap: 22px;
+      overflow-y: auto;
+      padding: 27px clamp(16px, 4vw, 45px);
+    }
+
+    .welcome-card {
+      padding: 20px;
+      border: 1px solid #00f2fe2b;
+      border-radius: 10px;
+      background: linear-gradient(115deg, #00f2fe0c, #4facfe0a, #1a0b2e55);
+    }
+
+    .welcome-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--neon-cyan);
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 1.1px;
+      text-transform: uppercase;
+    }
+
+    .welcome-card h3 { margin: 8px 0 5px; color: white; font-size: 20px; }
+    .welcome-card p { color: #a9b7c6; font-size: 12px; }
+
+    .message { display: flex; align-items: flex-start; gap: 12px; }
+
+    .message-avatar {
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      width: 39px;
+      height: 39px;
+      border: 1px solid #ffffff10;
+      border-radius: 11px;
+      background: linear-gradient(135deg, #4facfe, #7547c8);
+      color: white;
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .message-avatar.green { background: linear-gradient(135deg, #087f5b, #39ff14); color: #08130b; }
+    .message-avatar.orange { background: linear-gradient(135deg, #f4a261, #bc477b); }
+    .message-avatar.purple { background: linear-gradient(135deg, #8a5cf6, #4facfe); }
+
+    .message-content { flex: 1; min-width: 0; }
+    .message-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .message-meta strong { color: white; font-size: 12px; }
+
+    .role-tag {
+      padding: 2px 5px;
+      border-radius: 4px;
+      background: #00f2fe14;
+      color: var(--neon-cyan);
+      font-size: 9px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .timestamp { color: #717b8c; font-size: 10px; }
+
+    .message-text {
+      margin-top: 5px;
+      color: #c5c6c7;
+      font-size: 13px;
+      line-height: 1.65;
+      overflow-wrap: anywhere;
+      white-space: pre-wrap;
+    }
+
+    .attachment {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      max-width: 340px;
+      margin-top: 10px;
+      padding: 12px;
+      border: 1px solid #ffffff10;
+      border-radius: 9px;
+      background: #1f2833;
+    }
+
+    .file-icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 42px;
+      border-radius: 7px;
+      background: #4facfe18;
+      color: var(--neon-blue);
+    }
+
+    .attachment strong { display: block; color: white; font-size: 11px; }
+    .attachment span { color: var(--text-muted); font-size: 10px; }
+
+    /* Composer */
+
+    .composer-area { padding: 0 clamp(16px, 4vw, 45px) 19px; }
+
+    .composer {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px;
+      border: 1px solid #00f2fe2b;
+      border-radius: 10px;
+      background: #1f2833;
+      transition: border-color .2s;
+    }
+
+    .composer:focus-within { border-color: #00f2fe85; box-shadow: 0 0 16px #00f2fe0a; }
+
+    .composer-plus {
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 7px;
+      background: #2b3542;
+      color: var(--neon-cyan);
+    }
+
+    .composer input {
+      flex: 1;
+      min-width: 0;
+      padding: 8px 2px;
+      border: none;
+      outline: none;
+      background: transparent;
+      color: white;
+      font-size: 13px;
+    }
+
+    .composer input::placeholder { color: #7f8b99; }
+
+    .send-button {
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+      width: 36px;
+      height: 36px;
+      border: 1px solid #00f2fe55;
+      border-radius: 8px;
+      background: var(--neon-cyan);
+      color: #0b0c10;
+      transition: .2s;
+    }
+
+    .send-button:hover { background: transparent; color: var(--neon-cyan); }
+
+    .composer-hint {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 7px 3px 0;
+      color: #626e7d;
+      font-size: 10px;
+    }
+
+    .composer-hint kbd {
+      padding: 2px 5px;
+      border: 1px solid #343c48;
+      border-radius: 4px;
+      color: #a9b7c6;
+      font: inherit;
+    }
+
+    /* Toast notifications */
+
+    .toast {
+      position: fixed;
+      z-index: 30;
+      bottom: 22px;
+      left: 50%;
+      max-width: calc(100vw - 30px);
+      padding: 11px 16px;
+      transform: translate(-50%, 15px);
+      border: 1px solid #00f2fe55;
+      border-radius: 8px;
+      background: #1f2833;
+      color: white;
+      font-size: 12px;
+      opacity: 0;
+      pointer-events: none;
+      transition: .2s;
+    }
+
+    .toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+    /* Settings modal */
+
+    .modal-backdrop {
+      position: fixed;
+      z-index: 100;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(0, 0, 0, .75);
+      backdrop-filter: blur(7px);
+    }
+
+    .modal-backdrop.open { display: flex; }
+
+    .settings-modal {
+      display: flex;
+      flex-direction: column;
+      width: min(680px, 100%);
+      max-height: min(600px, 90vh);
+      overflow: hidden;
+      border: 1px solid #00f2fe35;
+      border-radius: 16px;
+      background: #10151e;
+      box-shadow: 0 24px 100px #000a, 0 0 40px #00f2fe0a;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 20px 22px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .modal-header h2 { color: white; font-size: 18px; }
+    .modal-header p { margin-top: 4px; color: var(--text-muted); font-size: 12px; }
+
+    .modal-close {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid #ffffff12;
+      border-radius: 8px;
+      background: #1f2833;
+      color: #b9c5d4;
+    }
+
+    .modal-close:hover { color: var(--neon-cyan); border-color: #00f2fe55; }
+
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 175px minmax(0, 1fr);
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .settings-tabs {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      padding: 15px 10px;
+      border-right: 1px solid var(--border);
+      background: #0c1017;
+    }
+
+    .settings-tab {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 12px;
+      border: 1px solid transparent;
+      border-radius: 8px;
+      background: transparent;
+      color: #aeb6c3;
+      text-align: left;
+      font-size: 12px;
+    }
+
+    .settings-tab:hover { background: #ffffff08; color: white; }
+
+    .settings-tab.active {
+      border-color: #00f2fe1a;
+      background: #00f2fe10;
+      color: var(--neon-cyan);
+    }
+
+    .settings-content {
+      overflow-y: auto;
+      padding: 22px;
+    }
+
+    .settings-panel { display: none; }
+    .settings-panel.active { display: block; }
+
+    .settings-panel h3 { margin-bottom: 6px; color: white; font-size: 17px; }
+    .settings-description { margin-bottom: 22px; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 15px;
+      padding: 15px 0;
+      border-top: 1px solid #ffffff0c;
+    }
+
+    .setting-copy { min-width: 0; }
+    .setting-copy strong { display: block; color: #e6edf7; font-size: 12px; }
+    .setting-copy p { margin-top: 5px; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+
+    .setting-input, .setting-select {
+      width: min(220px, 48%);
+      min-width: 100px;
+      padding: 9px 10px;
+      border: 1px solid #ffffff18;
+      border-radius: 7px;
+      background: #090b10;
+      color: white;
+      font-size: 12px;
+    }
+
+    .toggle {
+      position: relative;
+      flex-shrink: 0;
+      width: 38px;
+      height: 22px;
+      border: none;
+      border-radius: 20px;
+      background: #394454;
+      transition: .2s;
+    }
+
+    .toggle::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      content: "";
+      transition: .2s;
+    }
+
+    .toggle[aria-checked="true"] { background: #00b8c7; }
+    .toggle[aria-checked="true"]::after { left: 19px; }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+    }
+
+    .modal-footer p { color: var(--text-muted); font-size: 10px; }
+
+    .primary-button {
+      padding: 9px 15px;
+      border: 1px solid #00f2fe55;
+      border-radius: 8px;
+      background: linear-gradient(110deg, var(--neon-cyan), var(--neon-blue));
+      color: #071014;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .primary-button:hover { filter: brightness(1.08); }
+
+    .about-logo {
+      display: grid;
+      place-items: center;
+      width: 56px;
+      height: 56px;
+      margin-bottom: 15px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-blue));
+      color: #071014;
+      font-size: 27px;
+      font-weight: 900;
+    }
+
+    .mobile-menu { display: none; }
+
+    /* Responsive */
+
+    @media (max-width: 850px) {
+      .app { grid-template-columns: 58px 205px minmax(0, 1fr); }
+      .server-rail { padding-inline: 6px; }
+      .server-button, .brand { width: 40px; height: 40px; }
+      .chat-header { padding: 0 14px; }
+      .online-label { display: none; }
+      .header-actions { gap: 4px; }
+    }
+
+    @media (max-width: 620px) {
+      .app { grid-template-columns: 54px minmax(0, 1fr); }
+      .sidebar { display: none; }
+
+      .sidebar.mobile-open {
+        position: fixed;
+        z-index: 5;
+        top: 0;
+        bottom: 0;
+        left: 54px;
+        display: flex;
+        width: min(260px, calc(100vw - 54px));
+        box-shadow: 12px 0 35px #0009;
+      }
+
+      .server-rail { padding: 12px 6px; }
+      .server-button, .brand { width: 38px; height: 38px; }
+
+      .chat-header { min-height: 64px; padding: 0 10px; gap: 6px; }
+
+      .mobile-menu {
+        display: inline-grid;
+        place-items: center;
+        width: 30px;
+        height: 30px;
+        border: 1px solid #ffffff14;
+        border-radius: 7px;
+        background: #1f2833;
+        color: var(--neon-cyan);
+      }
+
+      .chat-title { gap: 7px; }
+      .chat-title h2 { font-size: 13px; }
+      .chat-title p { display: none; }
+      .header-actions { gap: 0; }
+
+      .header-actions button {
+        padding: 7px;
+        border-color: transparent;
+        background: transparent;
+      }
+
+      .messages { gap: 19px; padding: 17px 12px; }
+      .welcome-card { padding: 15px; }
+      .welcome-card h3 { font-size: 17px; }
+      .message { gap: 9px; }
+      .message-avatar { width: 34px; height: 34px; }
+      .composer-area { padding: 0 9px 12px; }
+      .composer { gap: 6px; }
+      .composer-plus { width: 30px; height: 30px; }
+      .composer-hint { font-size: 9px; }
+
+      .modal-backdrop { padding: 10px; }
+      .settings-modal { max-height: 94vh; }
+      .modal-header { padding: 16px; }
+      .settings-layout { grid-template-columns: 1fr; overflow-y: auto; }
+      .settings-tabs {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 10px;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+
+      .settings-tab { flex-shrink: 0; padding: 9px; }
+      .settings-tab span { display: none; }
+      .settings-content { padding: 17px; }
+      .setting-row { align-items: flex-start; }
+      .setting-input, .setting-select { width: 45%; }
+      .modal-footer { padding: 12px 16px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        scroll-behavior: auto !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
 </head>
 
 <body>
-    <div class="app">
+  <!-- Reusable inline SVG icon library -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+    <symbol id="i-pickaxe" viewBox="0 0 24 24">
+      <path d="M3 5c4-3 9-3 13 0l4 4-3 3-4-4c-2-2-5-2-7 0L3 5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="m7 7 10 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24">
+      <path d="m12 2 9 5v10l-9 5-9-5V7l9-5Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="m3 7 9 5 9-5M12 12v10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-tree" viewBox="0 0 24 24">
+      <path d="m12 2 7 9h-4l5 6h-6v5h-4v-5H4l5-6H5l7-9Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-2 .9l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-2-.9l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 2-.9l.3-1.8h2.8l.3 1.8a8 8 0 0 1 2 .9l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 1.9Z" transform="translate(-1 -1)" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="10.8" cy="10.8" r="6.8" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="m16 16 5 5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-users" viewBox="0 0 24 24">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 3.2a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-inbox" viewBox="0 0 24 24">
+      <path d="M4 4h16v16H4zM4 13h4l2 3h4l2-3h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-message" viewBox="0 0 24 24">
+      <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-send" viewBox="0 0 24 24">
+      <path d="m22 2-7 20-4-9-9-4 20-7ZM22 2 11 13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m18 6-12 12M6 6l12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-user" viewBox="0 0 24 24">
+      <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M4 21a8 8 0 0 1 16 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-palette" viewBox="0 0 24 24">
+      <path d="M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 1.5-3.3 1.7 1.7 0 0 1 1.3-2.8H18a3 3 0 0 0 3-3A9 9 0 0 0 12 3Z" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <circle cx="7.5" cy="10" r="1" fill="currentColor"/><circle cx="10" cy="6.5" r="1" fill="currentColor"/><circle cx="15" cy="7" r="1" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24">
+      <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>
+      <path d="M12 11v5M12 8h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24">
+      <path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-file" viewBox="0 0 24 24">
+      <path d="M6 2h8l5 5v15H6zM14 2v6h5M9 14h6M9 18h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
 
-        <aside class="server-rail" aria-label="Servers">
-            <div class="brand" title="MineDM">M</div>
-            <div class="rail-divider"></div>
+  <div class="app">
+    <aside class="server-rail" aria-label="Servers">
+      <a class="brand" href="../" title="MineDM home" aria-label="MineDM home">M</a>
+      <div class="rail-divider"></div>
 
-            <button class="server-button active" title="Block Buddies">⛏</button>
-            <button class="server-button" title="Redstone Lab">⚙</button>
-            <button class="server-button" title="Survival Squad">🌲</button>
-            <button class="server-button server-add" id="addServer" title="Add server">+</button>
+      <button class="server-button active" title="Block Buddies" aria-label="Block Buddies">
+        <svg class="icon-lg"><use href="#i-pickaxe"/></svg>
+      </button>
+      <button class="server-button" title="Redstone Lab" aria-label="Redstone Lab">
+        <svg class="icon-lg"><use href="#i-settings"/></svg>
+      </button>
+      <button class="server-button" title="Survival Squad" aria-label="Survival Squad">
+        <svg class="icon-lg"><use href="#i-tree"/></svg>
+      </button>
+      <button class="server-button server-add" id="addServer" title="Add server" aria-label="Add server">
+        <svg class="icon-lg"><use href="#i-plus"/></svg>
+      </button>
 
-            <div class="rail-bottom">
-                <button class="server-button" id="settingsButton" title="Settings">⚙</button>
+      <div class="rail-bottom">
+        <button class="server-button" id="settingsButton" title="Settings" aria-label="Settings">
+          <svg class="icon-lg"><use href="#i-settings"/></svg>
+        </button>
+      </div>
+    </aside>
+
+    <aside class="sidebar" id="sidebar">
+      <header class="server-heading">
+        <div>
+          <h1>Block Buddies</h1>
+          <p><span class="online-dot"></span>Community online</p>
+        </div>
+        <button class="icon-button" id="serverMenu" aria-label="Server menu">
+          <svg class="icon"><use href="#i-menu"/></svg>
+        </button>
+      </header>
+
+      <div class="search-area">
+        <input class="search-input" id="searchInput" type="search"
+          placeholder="Search channels..." aria-label="Search channels and people">
+      </div>
+
+      <div class="section-heading">
+        <span>Text Channels</span>
+        <button id="addChannel" aria-label="Add channel">
+          <svg class="icon"><use href="#i-plus"/></svg>
+        </button>
+      </div>
+
+      <nav class="nav-list" id="channelList" aria-label="Text channels">
+        <button class="nav-item active" data-channel="general">
+          <span class="channel-hash">#</span><span>general</span>
+        </button>
+        <button class="nav-item" data-channel="survival-chat">
+          <span class="channel-hash">#</span><span>survival-chat</span>
+          <span class="unread-count">3</span>
+        </button>
+        <button class="nav-item" data-channel="build-showcase">
+          <span class="channel-hash">#</span><span>build-showcase</span>
+        </button>
+        <button class="nav-item" data-channel="redstone-help">
+          <span class="channel-hash">#</span><span>redstone-help</span>
+        </button>
+      </nav>
+
+      <div class="section-heading">
+        <span>Direct Messages</span>
+        <button id="addDm" aria-label="New direct message">
+          <svg class="icon"><use href="#i-plus"/></svg>
+        </button>
+      </div>
+
+      <div class="nav-list dm-list" id="dmList">
+        <button class="nav-item" data-dm="Alex">
+          <span class="dm-avatar">AX</span><span>Alex</span>
+          <span class="online-dot" style="margin-left:auto"></span>
+        </button>
+        <button class="nav-item" data-dm="PixelPete">
+          <span class="dm-avatar" style="background:linear-gradient(135deg,#087f5b,#39ff14)">PP</span>
+          <span>PixelPete</span>
+        </button>
+        <button class="nav-item" data-dm="CreeperQueen">
+          <span class="dm-avatar" style="background:linear-gradient(135deg,#f4a261,#bc477b)">CQ</span>
+          <span>CreeperQueen</span>
+        </button>
+      </div>
+
+      <div class="nav-list dms-link">
+        <a class="nav-item" href="../dms/">
+          <svg class="icon"><use href="#i-message"/></svg>
+          <span>All Direct Messages</span>
+        </a>
+      </div>
+
+      <footer class="profile">
+        <div class="profile-avatar" id="profileAvatar">CB</div>
+        <div class="profile-info">
+          <strong id="profileName">CraftyBuilder</strong>
+          <span><span class="online-dot"></span>Online</span>
+        </div>
+        <button class="icon-button" id="profileSettings" aria-label="Profile settings" title="Settings">
+          <svg class="icon"><use href="#i-settings"/></svg>
+        </button>
+      </footer>
+    </aside>
+
+    <main class="chat">
+      <header class="chat-header">
+        <div class="chat-title">
+          <button class="mobile-menu" id="mobileMenu" aria-label="Open menu">
+            <svg class="icon"><use href="#i-menu"/></svg>
+          </button>
+          <span class="hash" id="titleSymbol">#</span>
+          <div>
+            <h2 id="channelTitle">general</h2>
+            <p id="channelSubtitle">The place for all things Minecraft</p>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <span class="online-label">● 12 online</span>
+          <button id="searchButton" title="Search" aria-label="Search">
+            <svg class="icon"><use href="#i-search"/></svg>
+          </button>
+          <button id="membersButton" title="Members" aria-label="Members">
+            <svg class="icon"><use href="#i-users"/></svg>
+          </button>
+          <button id="inboxButton" title="Inbox" aria-label="Inbox">
+            <svg class="icon"><use href="#i-inbox"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <section class="messages" id="messages" aria-live="polite">
+        <div class="welcome-card">
+          <span class="welcome-label">
+            <svg class="icon-sm"><use href="#i-cube"/></svg>
+            Welcome to MineDM
+          </span>
+          <h3>Your Minecraft crew, all in one place.</h3>
+          <p>Chat with friends, share builds, and plan your next adventure.</p>
+        </div>
+
+        <article class="message">
+          <div class="message-avatar green">AX</div>
+          <div class="message-content">
+            <div class="message-meta">
+              <strong>Alex</strong><span class="role-tag">Builder</span>
+              <time class="timestamp">Today at 10:24 AM</time>
             </div>
-        </aside>
+            <p class="message-text">Morning everyone! Finally finished the entrance to our new castle.</p>
+          </div>
+        </article>
 
-        <aside class="sidebar" id="sidebar">
-            <header class="server-heading">
-                <div>
-                    <h1>Block Buddies</h1>
-                    <p><span class="online-dot"></span>Community online</p>
-                </div>
-                <button class="icon-button" id="serverMenu" aria-label="Server menu">⌄</button>
-            </header>
+        <article class="message">
+          <div class="message-avatar purple">PP</div>
+          <div class="message-content">
+            <div class="message-meta">
+              <strong>PixelPete</strong>
+              <time class="timestamp">Today at 10:26 AM</time>
+            </div>
+            <p class="message-text">That looks amazing! We should connect it to the village with a bridge.</p>
+            <div class="attachment">
+              <div class="file-icon"><svg class="icon-lg"><use href="#i-file"/></svg></div>
+              <div>
+                <strong>castle-entrance.png</strong>
+                <span>Image preview · Demo attachment</span>
+              </div>
+            </div>
+          </div>
+        </article>
 
-            <div class="search-area">
-                <input
-                    class="search-input"
-                    id="searchInput"
-                    type="search"
-                    placeholder="Search channels..."
-                    aria-label="Search channels and people"
-                >
+        <article class="message">
+          <div class="message-avatar orange">CQ</div>
+          <div class="message-content">
+            <div class="message-meta">
+              <strong>CreeperQueen</strong><span class="role-tag">Redstone Pro</span>
+              <time class="timestamp">Today at 10:31 AM</time>
+            </div>
+            <p class="message-text">Anyone up for a mining run later? Need more ancient debris.</p>
+          </div>
+        </article>
+
+        <article class="message">
+          <div class="message-avatar">CB</div>
+          <div class="message-content">
+            <div class="message-meta">
+              <strong>CraftyBuilder</strong>
+              <time class="timestamp">Today at 10:33 AM</time>
+            </div>
+            <p class="message-text">Count me in. I'll bring the fire resistance potions!</p>
+          </div>
+        </article>
+      </section>
+
+      <div class="composer-area">
+        <form class="composer" id="messageForm">
+          <button class="composer-plus" id="attachButton" type="button" aria-label="Attach file">
+            <svg class="icon"><use href="#i-plus"/></svg>
+          </button>
+          <input id="messageInput" type="text" maxlength="2000" autocomplete="off"
+            placeholder="Message #general" aria-label="Write a message">
+          <button class="send-button" type="submit" aria-label="Send message">
+            <svg class="icon"><use href="#i-send"/></svg>
+          </button>
+        </form>
+        <div class="composer-hint">
+          <span>Welcome to MineDM. Be kind and have fun.</span>
+          <span><kbd>Enter</kbd> to send</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Settings modal -->
+  <div class="modal-backdrop" id="settingsBackdrop" aria-hidden="true">
+    <section class="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+      <header class="modal-header">
+        <div>
+          <h2 id="settingsTitle">User Settings</h2>
+          <p>Customize your MineDM experience.</p>
+        </div>
+        <button class="modal-close" id="closeSettings" aria-label="Close settings">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </header>
+
+      <div class="settings-layout">
+        <nav class="settings-tabs" aria-label="Settings sections">
+          <button class="settings-tab active" data-settings-tab="account">
+            <svg class="icon"><use href="#i-user"/></svg><span>Account</span>
+          </button>
+          <button class="settings-tab" data-settings-tab="appearance">
+            <svg class="icon"><use href="#i-palette"/></svg><span>Appearance</span>
+          </button>
+          <button class="settings-tab" data-settings-tab="notifications">
+            <svg class="icon"><use href="#i-bell"/></svg><span>Notifications</span>
+          </button>
+          <button class="settings-tab" data-settings-tab="about">
+            <svg class="icon"><use href="#i-info"/></svg><span>About MineDM</span>
+          </button>
+        </nav>
+
+        <div class="settings-content">
+          <section class="settings-panel active" data-settings-panel="account">
+            <h3>My Account</h3>
+            <p class="settings-description">Manage the profile shown in this demo app.</p>
+
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Display name</strong>
+                <p>This name appears next to your messages.</p>
+              </div>
+              <input class="setting-input" id="displayNameInput" maxlength="32" value="CraftyBuilder" aria-label="Display name">
             </div>
 
-            <div class="section-heading">
-                <span>Text Channels</span>
-                <button id="addChannel" aria-label="Add channel">+</button>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Account status</strong>
+                <p>Your current demo presence.</p>
+              </div>
+              <select class="setting-select" id="statusSelect" aria-label="Account status">
+                <option value="Online">Online</option>
+                <option value="Away">Away</option>
+                <option value="Do Not Disturb">Do Not Disturb</option>
+                <option value="Invisible">Invisible</option>
+              </select>
             </div>
 
-            <nav class="nav-list" id="channelList">
-                <button class="nav-item active" data-channel="general">
-                    <span class="channel-hash">#</span> general
-                </button>
-                <button class="nav-item" data-channel="survival-chat">
-                    <span class="channel-hash">#</span> survival-chat
-                    <span class="unread-count">3</span>
-                </button>
-                <button class="nav-item" data-channel="build-showcase">
-                    <span class="channel-hash">#</span> build-showcase
-                </button>
-                <button class="nav-item" data-channel="redstone-help">
-                    <span class="channel-hash">#</span> redstone-help
-                </button>
-            </nav>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Demo account</strong>
+                <p>Authentication and cloud profiles are not connected yet.</p>
+              </div>
+            </div>
+          </section>
 
-            <div class="section-heading">
-                <span>Direct Messages</span>
-                <button id="addDm" aria-label="New direct message">+</button>
+          <section class="settings-panel" data-settings-panel="appearance">
+            <h3>Appearance</h3>
+            <p class="settings-description">Adjust the look and feel of the interface.</p>
+
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Compact messages</strong>
+                <p>Reduce the spacing between chat messages.</p>
+              </div>
+              <button class="toggle" id="compactToggle" role="switch" aria-checked="false" aria-label="Compact messages"></button>
             </div>
 
-            <div class="nav-list dm-list" id="dmList">
-                <button class="nav-item" data-dm="Alex">
-                    <span class="dm-avatar">AX</span> Alex
-                    <span class="online-dot" style="margin-left:auto"></span>
-                </button>
-                <button class="nav-item" data-dm="PixelPete">
-                    <span class="dm-avatar" style="background:linear-gradient(135deg,#087f5b,#39ff14)">PP</span>
-                    PixelPete
-                </button>
-                <button class="nav-item" data-dm="CreeperQueen">
-                    <span class="dm-avatar" style="background:linear-gradient(135deg,#f4a261,#bc477b)">CQ</span>
-                    CreeperQueen
-                </button>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Interface accent</strong>
+                <p>Choose the main highlight color.</p>
+              </div>
+              <select class="setting-select" id="accentSelect" aria-label="Interface accent">
+                <option value="cyan">Neon cyan</option>
+                <option value="blue">Electric blue</option>
+                <option value="green">Pixel green</option>
+                <option value="purple">Violet</option>
+              </select>
             </div>
 
-            <footer class="profile">
-                <div class="profile-avatar">CB</div>
-                <div class="profile-info">
-                    <strong>CraftyBuilder</strong>
-                    <span><span class="online-dot"></span>Online</span>
-                </div>
-                <button class="icon-button" id="profileSettings" aria-label="Profile settings">⚙</button>
-            </footer>
-        </aside>
-
-        <main class="chat">
-            <header class="chat-header">
-                <div class="chat-title">
-                    <button class="mobile-menu" id="mobileMenu" aria-label="Open menu">☰</button>
-                    <span class="hash" id="titleSymbol">#</span>
-                    <div>
-                        <h2 id="channelTitle">general</h2>
-                        <p id="channelSubtitle">The place for all things Minecraft</p>
-                    </div>
-                </div>
-
-                <div class="header-actions">
-                    <span class="online-label">● 12 online</span>
-                    <button id="searchButton" title="Search">⌕</button>
-                    <button id="membersButton" title="Members">♙</button>
-                    <button id="inboxButton" title="Inbox">▤</button>
-                </div>
-            </header>
-
-            <section class="messages" id="messages" aria-live="polite">
-                <div class="welcome-card">
-                    <span class="welcome-label">✦ Welcome to MineDM</span>
-                    <h3>Your Minecraft crew, all in one place.</h3>
-                    <p>Chat with friends, share builds, and plan your next adventure.</p>
-                </div>
-
-                <article class="message">
-                    <div class="message-avatar green">AX</div>
-                    <div class="message-content">
-                        <div class="message-meta">
-                            <strong>Alex</strong>
-                            <span class="role-tag">Builder</span>
-                            <time class="timestamp">Today at 10:24 AM</time>
-                        </div>
-                        <p class="message-text">Morning everyone! Finally finished the entrance to our new castle 🏰</p>
-                    </div>
-                </article>
-
-                <article class="message">
-                    <div class="message-avatar purple">PP</div>
-                    <div class="message-content">
-                        <div class="message-meta">
-                            <strong>PixelPete</strong>
-                            <time class="timestamp">Today at 10:26 AM</time>
-                        </div>
-                        <p class="message-text">That looks amazing! We should connect it to the village with a bridge.</p>
-                        <div class="attachment">
-                            <div class="file-icon">▧</div>
-                            <div>
-                                <strong>castle-entrance.png</strong>
-                                <span>Image preview · Demo attachment</span>
-                            </div>
-                        </div>
-                    </div>
-                </article>
-
-                <article class="message">
-                    <div class="message-avatar orange">CQ</div>
-                    <div class="message-content">
-                        <div class="message-meta">
-                            <strong>CreeperQueen</strong>
-                            <span class="role-tag">Redstone Pro</span>
-                            <time class="timestamp">Today at 10:31 AM</time>
-                        </div>
-                        <p class="message-text">Anyone up for a mining run later? Need more ancient debris 😅</p>
-                    </div>
-                </article>
-
-                <article class="message">
-                    <div class="message-avatar">CB</div>
-                    <div class="message-content">
-                        <div class="message-meta">
-                            <strong>CraftyBuilder</strong>
-                            <time class="timestamp">Today at 10:33 AM</time>
-                        </div>
-                        <p class="message-text">Count me in. I'll bring the fire resistance potions!</p>
-                    </div>
-                </article>
-            </section>
-
-            <div class="composer-area">
-                <form class="composer" id="messageForm">
-                    <button class="composer-plus" id="attachButton" type="button" aria-label="Attach file">+</button>
-                    <input
-                        id="messageInput"
-                        type="text"
-                        maxlength="2000"
-                        autocomplete="off"
-                        placeholder="Message #general"
-                        aria-label="Write a message"
-                    >
-                    <button class="send-button" type="submit" aria-label="Send message">➤</button>
-                </form>
-                <div class="composer-hint">
-                    <span>Welcome to MineDM. Be kind and have fun.</span>
-                    <span><kbd>Enter</kbd> to send</span>
-                </div>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Reduced motion</strong>
+                <p>Limit animations where possible.</p>
+              </div>
+              <button class="toggle" id="motionToggle" role="switch" aria-checked="false" aria-label="Reduced motion"></button>
             </div>
-        </main>
-    </div>
+          </section>
 
-    <div class="toast" id="toast" role="status"></div>
+          <section class="settings-panel" data-settings-panel="notifications">
+            <h3>Notifications</h3>
+            <p class="settings-description">These preferences are local to this browser demo.</p>
 
-    <script>
-        const messages = document.getElementById("messages");
-        const messageForm = document.getElementById("messageForm");
-        const messageInput = document.getElementById("messageInput");
-        const channelTitle = document.getElementById("channelTitle");
-        const channelSubtitle = document.getElementById("channelSubtitle");
-        const titleSymbol = document.getElementById("titleSymbol");
-        const sidebar = document.getElementById("sidebar");
-        const toast = document.getElementById("toast");
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Message notifications</strong>
+                <p>Allow in-app notification feedback.</p>
+              </div>
+              <button class="toggle" id="notificationsToggle" role="switch" aria-checked="true" aria-label="Message notifications"></button>
+            </div>
 
-        let toastTimer;
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Sound effects</strong>
+                <p>Enable sound effects when supported.</p>
+              </div>
+              <button class="toggle" id="soundToggle" role="switch" aria-checked="false" aria-label="Sound effects"></button>
+            </div>
+          </section>
 
-        const channelDescriptions = {
-            "general": "The place for all things Minecraft",
-            "survival-chat": "Survive together, one block at a time",
-            "build-showcase": "Show off your latest creations",
-            "redstone-help": "Circuits, contraptions, and clever ideas"
-        };
+          <section class="settings-panel" data-settings-panel="about">
+            <div class="about-logo">M</div>
+            <h3>MineDM</h3>
+            <p class="settings-description">A Minecraft-inspired chat interface built for friends, communities, and adventures.</p>
 
-        function showToast(text) {
-            toast.textContent = text;
-            toast.classList.add("show");
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove("show");
-            }, 2300);
-        }
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Version</strong>
+                <p>Web demo · 1.0.0</p>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Current limitations</strong>
+                <p>Messages, channels, and preferences are demo features. Shared messaging and authentication require a backend.</p>
+              </div>
+            </div>
+            <div class="setting-row">
+              <div class="setting-copy">
+                <strong>Direct Messages</strong>
+                <p>Open the dedicated Direct Messages page.</p>
+              </div>
+              <a class="primary-button" href="../dms/">Open DMs</a>
+            </div>
+          </section>
+        </div>
+      </div>
 
-        function currentTime() {
-            return new Date().toLocaleTimeString([], {
-                hour: "numeric",
-                minute: "2-digit"
-            });
-        }
+      <footer class="modal-footer">
+        <p id="settingsStatus">Settings are stored in this browser session.</p>
+        <button class="primary-button" id="saveSettings">Save changes</button>
+      </footer>
+    </section>
+  </div>
 
-        function addMessage(text) {
-            const article = document.createElement("article");
-            article.className = "message";
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-            const avatar = document.createElement("div");
-            avatar.className = "message-avatar";
-            avatar.textContent = "CB";
+  <script>
+    const messagesElement = document.getElementById("messages");
+    const messageForm = document.getElementById("messageForm");
+    const messageInput = document.getElementById("messageInput");
+    const channelTitle = document.getElementById("channelTitle");
+    const channelSubtitle = document.getElementById("channelSubtitle");
+    const titleSymbol = document.getElementById("titleSymbol");
+    const sidebar = document.getElementById("sidebar");
+    const toast = document.getElementById("toast");
+    const settingsBackdrop = document.getElementById("settingsBackdrop");
 
-            const content = document.createElement("div");
-            content.className = "message-content";
+    let toastTimer;
+    let lastFocusedElement = null;
 
-            const meta = document.createElement("div");
-            meta.className = "message-meta";
+    const channelDescriptions = {
+      "general": "The place for all things Minecraft",
+      "survival-chat": "Survive together, one block at a time",
+      "build-showcase": "Show off your latest creations",
+      "redstone-help": "Circuits, contraptions, and clever ideas"
+    };
 
-            const name = document.createElement("strong");
-            name.textContent = "CraftyBuilder";
+    function showToast(text) {
+      toast.textContent = text;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2300);
+    }
 
-            const time = document.createElement("time");
-            time.className = "timestamp";
-            time.textContent = "Today at " + currentTime();
+    function currentTime() {
+      return new Date().toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit"
+      });
+    }
 
-            const paragraph = document.createElement("p");
-            paragraph.className = "message-text";
-            paragraph.textContent = text;
+    function addMessage(text) {
+      const article = document.createElement("article");
+      article.className = "message";
 
-            meta.append(name, time);
-            content.append(meta, paragraph);
-            article.append(avatar, content);
-            messages.appendChild(article);
+      const avatar = document.createElement("div");
+      avatar.className = "message-avatar";
+      avatar.textContent = document.getElementById("profileAvatar").textContent;
 
-            messages.scrollTop = messages.scrollHeight;
-        }
+      const content = document.createElement("div");
+      content.className = "message-content";
 
-        messageForm.addEventListener("submit", function(event) {
-            event.preventDefault();
+      const meta = document.createElement("div");
+      meta.className = "message-meta";
 
-            const text = messageInput.value.trim();
+      const name = document.createElement("strong");
+      name.textContent = document.getElementById("profileName").textContent;
 
-            if (!text) return;
+      const time = document.createElement("time");
+      time.className = "timestamp";
+      time.textContent = "Today at " + currentTime();
 
-            addMessage(text);
-            messageInput.value = "";
-            messageInput.focus();
+      const paragraph = document.createElement("p");
+      paragraph.className = "message-text";
+      paragraph.textContent = text;
+
+      meta.append(name, time);
+      content.append(meta, paragraph);
+      article.append(avatar, content);
+      messagesElement.appendChild(article);
+      messagesElement.scrollTop = messagesElement.scrollHeight;
+    }
+
+    messageForm.addEventListener("submit", event => {
+      event.preventDefault();
+      const text = messageInput.value.trim();
+      if (!text) return;
+
+      addMessage(text);
+      messageInput.value = "";
+      messageInput.focus();
+    });
+
+    function setActiveItem(activeButton) {
+      document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
+        item.classList.remove("active");
+      });
+      activeButton.classList.add("active");
+      sidebar.classList.remove("mobile-open");
+    }
+
+    function openChannel(button, name) {
+      setActiveItem(button);
+      channelTitle.textContent = name;
+      channelSubtitle.textContent = channelDescriptions[name] || "Your MineDM channel";
+      titleSymbol.textContent = "#";
+      messageInput.placeholder = "Message #" + name;
+    }
+
+    function openDM(button, name) {
+      setActiveItem(button);
+      channelTitle.textContent = name;
+      channelSubtitle.textContent = "Direct message · Demo conversation";
+      titleSymbol.textContent = "@";
+      messageInput.placeholder = "Message " + name;
+    }
+
+    function attachChannelHandler(button) {
+      button.addEventListener("click", () => openChannel(button, button.dataset.channel));
+    }
+
+    function attachDMHandler(button) {
+      button.addEventListener("click", () => openDM(button, button.dataset.dm));
+    }
+
+    document.querySelectorAll("[data-channel]").forEach(attachChannelHandler);
+    document.querySelectorAll("[data-dm]").forEach(attachDMHandler);
+
+    document.getElementById("searchInput").addEventListener("input", event => {
+      const query = event.target.value.toLowerCase().trim();
+
+      document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(query) ? "flex" : "none";
+      });
+    });
+
+    document.getElementById("addChannel").addEventListener("click", () => {
+      const entered = prompt("Enter a channel name:");
+      if (!entered) return;
+
+      const name = entered.trim().toLowerCase()
+        .replace(/[^a-z0-9-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+
+      if (!name) {
+        showToast("Please enter a valid channel name.");
+        return;
+      }
+
+      const exists = [...document.querySelectorAll("[data-channel]")]
+        .some(item => item.dataset.channel === name);
+
+      if (exists) {
+        showToast("That channel already exists.");
+        return;
+      }
+
+      const button = document.createElement("button");
+      button.className = "nav-item";
+      button.dataset.channel = name;
+
+      const hash = document.createElement("span");
+      hash.className = "channel-hash";
+      hash.textContent = "#";
+
+      const label = document.createElement("span");
+      label.textContent = name;
+
+      button.append(hash, label);
+      document.getElementById("channelList").appendChild(button);
+      attachChannelHandler(button);
+      openChannel(button, name);
+      showToast("Demo channel created.");
+    });
+
+    document.getElementById("addDm").addEventListener("click", () => {
+      const entered = prompt("Enter your friend's username:");
+      if (!entered || !entered.trim()) return;
+
+      const name = entered.trim();
+      const exists = [...document.querySelectorAll("[data-dm]")]
+        .some(item => item.dataset.dm.toLowerCase() === name.toLowerCase());
+
+      if (exists) {
+        showToast("That conversation is already listed.");
+        return;
+      }
+
+      const button = document.createElement("button");
+      button.className = "nav-item";
+      button.dataset.dm = name;
+
+      const avatar = document.createElement("span");
+      avatar.className = "dm-avatar";
+      avatar.textContent = name.slice(0, 2).toUpperCase();
+
+      const label = document.createElement("span");
+      label.textContent = name;
+
+      button.append(avatar, label);
+      document.getElementById("dmList").appendChild(button);
+      attachDMHandler(button);
+      openDM(button, name);
+    });
+
+    /* Settings modal */
+
+    function openSettings() {
+      lastFocusedElement = document.activeElement;
+      settingsBackdrop.classList.add("open");
+      settingsBackdrop.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+      document.getElementById("closeSettings").focus();
+    }
+
+    function closeSettings() {
+      settingsBackdrop.classList.remove("open");
+      settingsBackdrop.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+      if (lastFocusedElement && typeof lastFocusedElement.focus === "function") {
+        lastFocusedElement.focus();
+      }
+    }
+
+    document.getElementById("settingsButton").addEventListener("click", openSettings);
+    document.getElementById("profileSettings").addEventListener("click", openSettings);
+    document.getElementById("closeSettings").addEventListener("click", closeSettings);
+
+    settingsBackdrop.addEventListener("click", event => {
+      if (event.target === settingsBackdrop) closeSettings();
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape" && settingsBackdrop.classList.contains("open")) {
+        closeSettings();
+      }
+    });
+
+    document.querySelectorAll("[data-settings-tab]").forEach(tab => {
+      tab.addEventListener("click", () => {
+        const target = tab.dataset.settingsTab;
+
+        document.querySelectorAll("[data-settings-tab]").forEach(item => {
+          item.classList.toggle("active", item === tab);
         });
 
-        function setActiveItem(activeButton) {
-            document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
-                item.classList.remove("active");
-            });
-
-            activeButton.classList.add("active");
-            sidebar.classList.remove("mobile-open");
-        }
-
-        function openChannel(button, name) {
-            setActiveItem(button);
-
-            channelTitle.textContent = name;
-            channelSubtitle.textContent =
-                channelDescriptions[name] || "Your MineDM channel";
-            titleSymbol.textContent = "#";
-            messageInput.placeholder = "Message #" + name;
-        }
-
-        function openDM(button, name) {
-            setActiveItem(button);
-
-            channelTitle.textContent = name;
-            channelSubtitle.textContent = "Direct message · Demo conversation";
-            titleSymbol.textContent = "@";
-            messageInput.placeholder = "Message " + name;
-        }
-
-        function attachChannelHandler(button) {
-            button.addEventListener("click", () => {
-                openChannel(button, button.dataset.channel);
-            });
-        }
-
-        function attachDMHandler(button) {
-            button.addEventListener("click", () => {
-                openDM(button, button.dataset.dm);
-            });
-        }
-
-        document.querySelectorAll("[data-channel]").forEach(attachChannelHandler);
-        document.querySelectorAll("[data-dm]").forEach(attachDMHandler);
-
-        document.getElementById("searchInput").addEventListener("input", event => {
-            const query = event.target.value.toLowerCase().trim();
-
-            document.querySelectorAll("[data-channel], [data-dm]").forEach(item => {
-                item.style.display = item.textContent.toLowerCase().includes(query)
-                    ? "flex"
-                    : "none";
-            });
+        document.querySelectorAll("[data-settings-panel]").forEach(panel => {
+          panel.classList.toggle("active", panel.dataset.settingsPanel === target);
         });
+      });
+    });
 
-        document.getElementById("addChannel").addEventListener("click", () => {
-            const entered = prompt("Enter a channel name:");
+    function setToggle(button, enabled) {
+      button.setAttribute("aria-checked", String(enabled));
+    }
 
-            if (!entered) return;
+    function toggleValue(button) {
+      return button.getAttribute("aria-checked") === "true";
+    }
 
-            const name = entered.trim()
-                .toLowerCase()
-                .replace(/[^a-z0-9-]+/g, "-")
-                .replace(/^-+|-+$/g, "");
+    document.querySelectorAll(".toggle").forEach(button => {
+      button.addEventListener("click", () => {
+        setToggle(button, !toggleValue(button));
+      });
+    });
 
-            if (!name) {
-                showToast("Please enter a valid channel name.");
-                return;
-            }
+    document.getElementById("compactToggle").addEventListener("click", event => {
+      document.querySelector(".messages").style.gap =
+        toggleValue(event.currentTarget) ? "12px" : "22px";
+    });
 
-            const existing = [...document.querySelectorAll("[data-channel]")]
-                .some(item => item.dataset.channel === name);
+    const accentColors = {
+      cyan: "#00f2fe",
+      blue: "#4facfe",
+      green: "#39ff14",
+      purple: "#a78bfa"
+    };
 
-            if (existing) {
-                showToast("That channel already exists.");
-                return;
-            }
+    document.getElementById("accentSelect").addEventListener("change", event => {
+      document.documentElement.style.setProperty("--neon-cyan", accentColors[event.target.value]);
+    });
 
-            const button = document.createElement("button");
-            button.className = "nav-item";
-            button.dataset.channel = name;
+    document.getElementById("motionToggle").addEventListener("click", event => {
+      document.documentElement.style.setProperty(
+        "--motion-duration",
+        toggleValue(event.currentTarget) ? "0s" : ".2s"
+      );
+      document.body.style.scrollBehavior =
+        toggleValue(event.currentTarget) ? "auto" : "smooth";
+    });
 
-            const hash = document.createElement("span");
-            hash.className = "channel-hash";
-            hash.textContent = "#";
+    document.getElementById("saveSettings").addEventListener("click", () => {
+      const displayName = document.getElementById("displayNameInput").value.trim();
+      if (!displayName) {
+        showToast("Please enter a display name.");
+        document.getElementById("displayNameInput").focus();
+        return;
+      }
 
-            const label = document.createElement("span");
-            label.textContent = name;
+      document.getElementById("profileName").textContent = displayName;
+      document.getElementById("profileAvatar").textContent = displayName.slice(0, 2).toUpperCase();
 
-            button.append(hash, label);
-            document.getElementById("channelList").appendChild(button);
-            attachChannelHandler(button);
+      const status = document.getElementById("statusSelect").value;
+      const statusLabel = document.querySelector(".profile-info > span");
+      statusLabel.innerHTML = "";
+      const dot = document.createElement("span");
+      dot.className = "online-dot";
+      statusLabel.append(dot, document.createTextNode(status));
 
-            openChannel(button, name);
-            showToast("Demo channel created.");
-        });
+      document.getElementById("settingsStatus").textContent = "Changes applied to this demo.";
+      closeSettings();
+      showToast("Settings updated.");
+    });
 
-        document.getElementById("addDm").addEventListener("click", () => {
-            const entered = prompt("Enter your friend's username:");
+    /* Other interface controls */
 
-            if (!entered || !entered.trim()) return;
+    document.getElementById("mobileMenu").addEventListener("click", () => {
+      sidebar.classList.toggle("mobile-open");
+    });
 
-            const name = entered.trim();
+    document.getElementById("searchButton").addEventListener("click", () => {
+      sidebar.classList.add("mobile-open");
+      document.getElementById("searchInput").focus();
+    });
 
-            const existing = [...document.querySelectorAll("[data-dm]")]
-                .some(item => item.dataset.dm.toLowerCase() === name.toLowerCase());
+    document.getElementById("attachButton").addEventListener("click", () => {
+      showToast("File uploads will be available when a backend is connected.");
+    });
 
-            if (existing) {
-                showToast("That conversation is already listed.");
-                return;
-            }
+    document.getElementById("membersButton").addEventListener("click", () => {
+      showToast("The member list is currently demo data.");
+    });
 
-            const button = document.createElement("button");
-            button.className = "nav-item";
-            button.dataset.dm = name;
+    document.getElementById("inboxButton").addEventListener("click", () => {
+      showToast("You're all caught up!");
+    });
 
-            const avatar = document.createElement("span");
-            avatar.className = "dm-avatar";
-            avatar.textContent = name.slice(0, 2).toUpperCase();
+    document.getElementById("addServer").addEventListener("click", () => {
+      showToast("Server creation is not connected yet.");
+    });
 
-            const label = document.createElement("span");
-            label.textContent = name;
-
-            button.append(avatar, label);
-            document.getElementById("dmList").appendChild(button);
-            attachDMHandler(button);
-
-            openDM(button, name);
-        });
-
-        document.getElementById("mobileMenu").addEventListener("click", () => {
-            sidebar.classList.toggle("mobile-open");
-        });
-
-        document.getElementById("searchButton").addEventListener("click", () => {
-            sidebar.classList.add("mobile-open");
-            document.getElementById("searchInput").focus();
-        });
-
-        document.getElementById("attachButton").addEventListener("click", () => {
-            showToast("File uploads will be available when a backend is connected.");
-        });
-
-        document.getElementById("membersButton").addEventListener("click", () => {
-            showToast("The member list is currently demo data.");
-        });
-
-        document.getElementById("inboxButton").addEventListener("click", () => {
-            showToast("You're all caught up!");
-        });
-
-        document.getElementById("addServer").addEventListener("click", () => {
-            showToast("Server creation is not connected yet.");
-        });
-
-        document.getElementById("settingsButton").addEventListener("click", () => {
-            showToast("Settings are coming soon.");
-        });
-
-        document.getElementById("profileSettings").addEventListener("click", () => {
-            showToast("Profile settings are coming soon.");
-        });
-
-        document.getElementById("serverMenu").addEventListener("click", () => {
-            showToast("Block Buddies server menu.");
-        });
-    </script>
+    document.getElementById("serverMenu").addEventListener("click", () => {
+      showToast("Block Buddies server menu.");
+    });
+  </script>
 </body>
 </html>
