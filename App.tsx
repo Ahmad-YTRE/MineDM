@@ -63,7 +63,7 @@ function App() {
   const [people, setPeople] = useState<Person[]>(saved?.people?.length ? saved.people : defaultPeople);
   const [messages, setMessages] = useState<Record<string, Message[]>>({ ...initialMessages, ...(saved?.messages || {}) });
   const [active, setActive] = useState(saved?.active || "general");
-  const [view, setView] = useState<"channel" | "dm" | "friends" | "home>(path.startsWith("/dms") ? "home" : saved?.view || "channel");
+  const [view, setView] = useState<"channel" | "dm" | "friends" | "home">(path.startsWith("/dms") ? "home" : saved?.view || "channel");
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
   const [modal, setModal] = useState<"dm" | "channel" | "settings" | "inbox" | null>(null);
