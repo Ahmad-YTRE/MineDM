@@ -15,7 +15,7 @@ export function AuthScreen() {
   async function signInWithDiscord() {
     setBusy(true); setError(""); setNotice("");
     try {
-      const { error } = await supabase.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin } });
+      const { error } = await supabase.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin, scopes: "identify email" } });
       if (error) throw error;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Discord sign-in couldn't start. Please try again.");
@@ -27,7 +27,7 @@ export function AuthScreen() {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim() || email.split("@")[0] } } });
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim().replace(/\s+/g," ").slice(0,32) || email.split("@")[0] } } });
         if (error) throw error;
         if (!data.session) setNotice("Account created. Check your email to confirm it, then sign in.");
       } else {
