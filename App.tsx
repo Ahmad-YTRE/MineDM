@@ -214,8 +214,23 @@ function App() {
   function switchToServer(server: Server = currentServer) { setActiveServer(server.id); setActive(channels.find(c => (c.serverId || "block-buddies") === server.id)?.id || ""); setView("channel"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function manageServer() {
     if (!currentServer) return;
-    const next = window.prompt("Server name", currentServer.name)?.trim();
-    if (next) { setServers(old => old.map(s => s.id === currentServer.id ? { ...s, name: next } : s)); notify("Server renamed in this browser."); }
+    const action = window.prompt("Type rename to rename this server, or delete to remove it.", "rename")?.toLowerCase();
+    if (action === "rename") {
+      const next = window.prompt("Server name", currentServer.name)?.trim();
+      if (next) {
+        if (servers.some(s => s.id !== currentServer.id && s.name.toLowerCase() === next.toLowerCase())) { notify("A server with that name already exists."); return; }
+        setServers(old => old.map(s => s.id === currentServer.id ? { ...s, name: next } : s)); notify("Server renamed in this browser.");
+      }
+    } else if (action === "delete") {
+      if (servers.length <= 1) { notify("Keep at least one server."); return; }
+      if (!window.confirm("Delete this server, its channels, and its local messages?")) return;
+      const removed = serverChannels;
+      setChannels(old => old.filter(c => (c.serverId || "block-buddies") !== currentServer.id));
+      setMessages(old => { const next = { ...old }; for (const channel of removed) { delete next[channel.id]; delete next[keyFor("channel", channel.id)]; } return next; });
+      setServers(old => old.filter(s => s.id !== currentServer.id));
+      const nextServer = servers.find(s => s.id !== currentServer.id)!;
+      setActiveServer(nextServer.id); setActive(channels.find(c => (c.serverId || "block-buddies") === nextServer.id)?.id || ""); setView("channel"); notify("Server deleted from this browser.");
+    }
   }
   function manageChannel(channel: Channel) {
     const action = window.prompt("Type rename to rename this channel, or delete to remove it.", "rename");
