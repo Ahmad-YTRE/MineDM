@@ -48,7 +48,7 @@ const paths: Record<string, React.ReactNode> = {
   bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></>,
   "bell-off": <><path d="m3 3 18 18M10 21h4M6 8c0-1 .2-2 .7-2.8M18 13c.3 2.4 2 2.8 2 4H8M12 2a6 6 0 0 1 6 6v2"/></>,
   block: <><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></>,
-  settings: <><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/><path d="m19.4 15 .1.1 1.4 1.1-1.5 2.6-1.7-.7a8 8 0 0 1-1.6.9l-.3 1.8h-3l-.3-1.8a8 8 0 0 1-1.6-.9l-1.7.7-1.5-2.6 1.4-1.1a7 7 0 0 1 0-1.9l-1.4-1.1 1.5-2.6 1.7.7a8 8 0 0 1 1.6-.9l.3-1.8h3l.3 1.8a8 8 0 0 1 1.6.9l1.7-.7 1.5 2.6-1.4 1.1a7 7 0 0 1 0 1.8z"/></>,
+  settings: <><path d="M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z"/><path d="m19.4 13.5 1.2.9-1.4 2.5-1.4-.6a7.8 7.8 0 0 1-1.8 1l-.2 1.5h-2.9l-.2-1.5a7.8 7.8 0 0 1-1.8-1l-1.4.6-1.4-2.5 1.2-.9a7.2 7.2 0 0 1 0-2.1l-1.2-.9 1.4-2.5 1.4.6a7.8 7.8 0 0 1 1.8-1l.2-1.5h2.9l.2 1.5a7.8 7.8 0 0 1 1.8 1l1.4-.6 1.4 2.5-1.2.9a7.2 7.2 0 0 1 0 2.1z" transform="translate(-0.7 -0.7) scale(1.06)"/></>,
   refresh: <><path d="M20 7v5h-5M4 17v-5h5"/><path d="M5.5 9a7 7 0 0 1 12-2L20 12M4 12l2.5 5a7 7 0 0 0 12-2"/></>,
   download: <><path d="M12 3v12M7 10l5 5 5-5M4 21h16"/></>,
   upload: <><path d="M12 16V4M7 9l5-5 5 5M4 21h16"/></>,
@@ -93,7 +93,7 @@ const animationByIcon: Record<string, string> = {
 
 export function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
   const key = aliases[name] || name;
-  const filledIcon = key === "settings";
+  const filledIcon = false;
   const animation = animationByIcon[key] || "pop";
   return <svg className={`ui-icon icon-${name} icon-${key} icon-motion-${animation} ${className}`} width={size} height={size} viewBox="0 0 24 24" fill={filledIcon ? "currentColor" : "none"} stroke={filledIcon ? "none" : "currentColor"} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{paths[key] || paths.sparkles}</svg>;
 }
