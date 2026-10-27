@@ -314,7 +314,7 @@ function App({ session }: { session: Session }) {
   function sendTyping(typing:boolean){const channel=typingChannelRef.current;if(!channel)return;void channel.send({type:"broadcast",event:"typing",payload:{userId:session.user.id,name,typing,activeKey}});}
   function startReply(message:Message){setReplyingTo(message);document.querySelector<HTMLInputElement>(".composer input")?.focus();}
   async function copyMessage(text:string){try{await navigator.clipboard.writeText(text);notify("Message copied.");}catch{notify("Clipboard access is blocked by this browser.");}}
-  function openApp(){window.history.pushState({},"","/app");setShowLanding(false);setView("channel");setActive(channels[0]?.id||"");}
+  function openApp(){window.history.pushState({},"","/app");setShowLanding(false);setView("channel");setActive(channels[0]?.id||"");if(channels[0])void markChannelRead(channels[0].id);}
   async function openDM(person:Person|string){
     const requestedName=typeof person==="string"?person.trim():person.name;
     let target:Person|null=typeof person==="string"?null:person;
