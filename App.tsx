@@ -6,10 +6,13 @@ import { supabase } from "./supabase";
 import { AuthScreen } from "./AuthScreen";
 import { Icon } from "./icons.filename";
 
-type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: string[]; replyTo?: { author: string; text: string } };
+type Reaction = { emoji: string; count: number; reacted: boolean };
+type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: Reaction[]; replyTo?: { author: string; text: string } };
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
 type Person = { id: string; name: string; online: boolean; status?: PresenceStatus; color: string; preview: string; avatarUrl?: string | null; isFriend?: boolean; hasConversation?: boolean };
-type Server = { id: string; name: string; description: string; createdBy?: string; inviteCode?: string };
+type Server = { id: string; name: string; description: string; createdBy?: string; inviteCode?: string; role?: "owner" | "admin" | "member" };
+type FriendRequest = { id: string; requester_id: string; addressee_id: string; name: string; avatarUrl?: string | null };
+type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string };
 type Channel = { id: string; name: string; description: string; serverId?: string };
 type SavedState = {
   name: string; status: string; active: string; view: "channel" | "dm" | "friends" | "home";
@@ -70,6 +73,12 @@ function App({ session }: { session: Session }) {
   const [microphoneEnabled, setMicrophoneEnabled] = useState(true);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [voiceConnected, setVoiceConnected] = useState(false);
+  const [friendRequests, setFriendRequests] = useState<FriendRequest[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [presenceByUser, setPresenceByUser] = useState<Record<string, PresenceStatus>>({});
+  const [serverMembersByServer, setServerMembersByServer] = useState<Record<string, string[]>>({});
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingTimeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify({ compact })); } catch { /* browser storage may be disabled */ }
@@ -148,7 +157,7 @@ function App({ session }: { session: Session }) {
   useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
   useEffect(()=>{
     let cancelled=false;
-    (async()=>{try{const p=await supabase.from("profiles").upsert({id:session.user.id,username:String(session.user.user_metadata?.username||session.user.email?.split("@")[0]||"Player").slice(0,32),status:"Online"},{onConflict:"id",ignoreDuplicates:true});if(p.error)throw p.error;const profile=await supabase.from("profiles").select("username,status,avatar_url").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;if(profile.data){setName(profile.data.username||"Player");setStatus((profile.data.status||"Online") as PresenceStatus);setAvatarUrl(profile.data.avatar_url||null);}await loadWorkspace();}catch(error){if(!cancelled)notify("Couldn't load your MineDM workspace: "+(error instanceof Error?error.message:"Please try again."));}})();
+    (async()=>{try{const p=await supabase.from("profiles").upsert({id:session.user.id,username:String(session.user.user_metadata?.username||session.user.user_metadata?.global_name||session.user.user_metadata?.full_name||session.user.user_metadata?.name||session.user.user_metadata?.preferred_username||session.user.email?.split("@")[0]||"Player").slice(0,32),status:"Online",avatar_url:session.user.user_metadata?.avatar_url||null},{onConflict:"id",ignoreDuplicates:true});if(p.error)throw p.error;const profile=await supabase.from("profiles").select("username,status,avatar_url").eq("id",session.user.id).maybeSingle();if(profile.error)throw profile.error;if(profile.data){setName(profile.data.username||"Player");setStatus((profile.data.status||"Online") as PresenceStatus);setAvatarUrl(profile.data.avatar_url||null);}await loadWorkspace();}catch(error){if(!cancelled)notify("Couldn't load your MineDM workspace: "+(error instanceof Error?error.message:"Please try again."));}})();
     return()=>{cancelled=true;};
   },[session.user.id]);
   useEffect(()=>{
