@@ -182,3 +182,168 @@ button,input,select{max-width:100%}
 :is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-slide-up{animation:icon-slide-up .25s ease-out}
 @media(hover:none){.ui-icon[class*="icon-motion-"]{animation:none!important}}
 @media(prefers-reduced-motion:reduce){.ui-icon[class*="icon-motion-"]{animation:none!important}}
+
+
+/* Discord-inspired conversation layout and member list */
+.app-shell.has-members {
+  grid-template-columns: clamp(52px,5vw,72px) clamp(190px,19vw,280px) minmax(0,1fr) 238px;
+}
+.member-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: #0e1219;
+  border-left: 1px solid var(--line);
+  color: #dbe2ee;
+}
+.member-panel-head {
+  height: 70px;
+  flex: 0 0 auto;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+.member-panel-head strong,
+.member-panel-head span { display: block; }
+.member-panel-head strong { color: #f2f5fc; font-size: 12px; }
+.member-panel-head span { margin-top: 4px; color: #78869a; font-size: 10px; }
+.member-group-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 19px 13px 9px;
+  color: #8995a8;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .7px;
+}
+.member-status-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+.member-status-dot.online { background: #23a55a; }
+.member-status-dot.offline { background: #747f91; }
+.member-list { min-height: 0; overflow-y: auto; padding: 0 7px; }
+.member-entry {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+button.member-entry { cursor: pointer; }
+.member-entry:hover { background: #ffffff09; }
+.member-entry > div:nth-child(2) { flex: 1; min-width: 0; }
+.member-entry strong, .member-entry small { display: block; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.member-entry strong { font-size: 11px; font-weight: 650; color: #e1e7f0; }
+.member-entry small { margin-top: 3px; font-size: 9px; color: #7d899d; }
+.member-avatar { width: 30px; height: 30px; border-radius: 50%; font-size: 9px; }
+.member-entry.offline { opacity: .56; }
+.member-you { color: var(--accent); font-size: 8px; font-weight: 850; letter-spacing: .6px; }
+.member-entry-action { opacity: 0; color: #aab6c8; display: grid; place-items: center; }
+.member-entry:hover .member-entry-action { opacity: 1; }
+.member-panel-note { margin-top: auto; padding: 12px 13px; border-top: 1px solid var(--line); color: #657187; font-size: 9px; }
+.member-toggle.active { color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.message-row-actionable .message-body { position: relative; }
+.message-actions {
+  position: absolute;
+  z-index: 2;
+  top: -13px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid #ffffff18;
+  border-radius: 8px;
+  background: #1b222e;
+  box-shadow: 0 5px 18px #0005;
+  opacity: 0;
+  transform: translateY(3px);
+  pointer-events: none;
+  transition: opacity .14s ease, transform .14s ease;
+}
+.message-row-actionable:hover .message-actions,
+.message-row-actionable:focus-within .message-actions {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+.message-actions button {
+  width: 27px;
+  height: 25px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #b8c3d4;
+  font-size: 13px;
+}
+.message-actions button:hover { background: #ffffff12; color: #fff; }
+.message-reactions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.reaction-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #ffffff1b;
+  border-radius: 7px;
+  padding: 4px 8px;
+  background: #ffffff08;
+  color: #d5deeb;
+  font-size: 12px;
+}
+.reaction-chip.selected { border-color: color-mix(in srgb, var(--accent) 45%, transparent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.reaction-chip span { color: #9ba8bb; font-size: 10px; }
+.reply-context {
+  margin: 5px 0 7px;
+  padding: 6px 9px;
+  border-left: 2px solid #66748a;
+  border-radius: 0 5px 5px 0;
+  background: #ffffff06;
+  color: #8997ac;
+  font-size: 10px;
+}
+.reply-context span { display: flex; gap: 4px; align-items: center; }
+.reply-context strong { color: #c9d3e2; }
+.reply-context p { margin: 3px 0 0 !important; color: #8592a6 !important; font-size: 10px !important; line-height: 1.45 !important; }
+.replying-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 7px;
+  padding: 8px 10px;
+  border: 1px solid #ffffff13;
+  border-left: 2px solid var(--accent);
+  border-radius: 7px;
+  background: #111720;
+  color: #9eacc0;
+  font-size: 10px;
+}
+.replying-banner > span { min-width: 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.replying-banner strong { color: #e8edf6; }
+.replying-banner small { flex-basis: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: #7f8ba0; padding-left: 20px; }
+@media (max-width: 1100px) {
+  .app-shell.has-members { grid-template-columns: 56px minmax(185px,230px) minmax(0,1fr) 205px; }
+}
+@media (max-width: 900px) {
+  .app-shell.has-members { grid-template-columns: 56px minmax(185px,230px) minmax(0,1fr); }
+  .app-shell.has-members .member-panel { display: none; }
+}
+@media (max-width: 650px) {
+  .app-shell.has-members { grid-template-columns: 52px minmax(0,1fr); }
+  .app-shell.has-members .member-panel { display: none; }
+  .message-actions { top: -12px; }
+  .message-row-actionable:hover .message-actions { opacity: 0; pointer-events: none; }
+  .message-row-actionable:focus-within .message-actions { opacity: 1; pointer-events: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .message-actions { transition: none; }
+}
