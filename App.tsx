@@ -92,7 +92,7 @@ function App() {
   function openDM(person: Person | string) {
     const personName = typeof person === "string" ? person : person.name;
     if (!people.some(p => p.name.toLowerCase() === personName.toLowerCase())) setPeople(old => [...old, { name: personName, online: false, color: "blue", preview: "New conversation" }]);
-    setActive(personName); setView("dm"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); setModal(null);
+    setActive(personName); setView("dm"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); setModal(null);
   }
   function openChannel(channel: Channel) { setActive(channel.id); setView("channel"); setSidebarOpen(false); }
   function sendMessage(e: FormEvent) {
@@ -115,6 +115,7 @@ function App() {
     setModal(null); setModalInput("");
   }
   function switchToDMHome() { setView("home"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); }
+  function switchToServer() { setView("channel"); setActive(channels[0]?.id || "general"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToChannel(channel: Channel) { openChannel(channel); window.history.pushState({}, "", "/app"); }
   function deleteCurrentDM() {
@@ -126,15 +127,11 @@ function App() {
 
   if (showLanding) return <Landing openApp={openApp} />;
   return <div className={`app-shell ${compact ? "compact" : ""}`}>
-    <aside className="server-rail"><button className={`brand-mark ${view === "home" ? "brand-active" : ""}`} title="Open direct messages" aria-label="Open direct messages" onClick={switchToDMHome}>M</button><div className="rail-separator"/><button className="server-icon selected" title="Block Buddies">⛏</button><button className="server-icon" title="Survival Squad" onClick={() => notify("More servers are coming soon.")}>🌲</button><button className="server-icon" title="Redstone Lab" onClick={() => notify("More servers are coming soon.")}>R</button><button className="server-icon add" title="Create channel" onClick={() => { setModal("channel"); setModalInput(""); }}>＋</button><div className="rail-spacer"/><button className="server-icon" title="Settings" onClick={() => setModal("settings")}>⚙</button></aside>
+    <aside className="server-rail"><button className={`brand-mark ${view === "home" ? "brand-active" : ""}`} title="Open direct messages" aria-label="Open direct messages" onClick={switchToDMHome}>M</button><div className="rail-separator"/><button className={`server-icon ${view !== "home" && view !== "dm" ? "selected" : ""}`} title="Block Buddies server" onClick={switchToServer}>⛏</button><button className="server-icon" title="Survival Squad" onClick={() => notify("More servers are coming soon.")}>🌲</button><button className="server-icon" title="Redstone Lab" onClick={() => notify("More servers are coming soon.")}>R</button><button className="server-icon add" title="Create channel" onClick={() => { setModal("channel"); setModalInput(""); }}>＋</button><div className="rail-spacer"/><button className="server-icon" title="Settings" onClick={() => setModal("settings")}>⚙</button></aside>
     <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
-      <div className="workspace-head"><div><strong>Block Buddies</strong><small><i className="online-dot"/> Community space</small></div><button className="icon-btn" onClick={() => setModal("channel")} title="Add channel">＋</button></div>
+      <div className="workspace-head"><div><strong>{view === "home" || view === "dm" ? "Direct Messages" : "Block Buddies"}</strong><small><i className="online-dot"/> {view === "home" || view === "dm" ? "Private conversations" : "Community space"}</small></div>{view !== "home" && view !== "dm" && <button className="icon-btn" onClick={() => setModal("channel")} title="Add channel">＋</button>}</div>
       <div className="search-wrap"><span>⌕</span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." aria-label="Search conversations"/></div>
-      <button className={`side-link ${view === "friends" ? "active" : ""}`} onClick={switchToFriends}><span>♧</span> Friends <span className="side-count">{people.length}</span></button>
-      <div className="side-heading"><span>TEXT CHANNELS</span><button onClick={() => { setModal("channel"); setModalInput(""); }} aria-label="Add channel">＋</button></div>
-      <div className="nav-list">{filteredChannels.map(c => <button key={c.id} className={`nav-item ${view === "channel" && active === c.id ? "active" : ""}`} onClick={() => switchToChannel(c)}><span className="hash">#</span><span>{c.name}</span></button>)}</div>
-      <div className="side-heading"><span>DIRECT MESSAGES</span><button onClick={() => { setModal("dm"); setModalInput(""); }} aria-label="New direct message">＋</button></div>
-      <div className="dm-list">{filteredPeople.map(p => <button key={p.name.toLowerCase()} className={`dm-item ${view === "dm" && active.toLowerCase() === p.name.toLowerCase() ? "active" : ""}`} onClick={() => openDM(p)}><span className={`avatar ${p.color}`}>{initials(p.name)}{p.online && <i/>}</span><span className="dm-label"><strong>{p.name}</strong><small>{p.preview}</small></span><span className={`presence ${p.online ? "online" : ""}`}/></button>)}</div>
+      <>{view !== "home" && view !== "dm" ? <><button className={`side-link ${view === "friends" ? "active" : ""}`} onClick={switchToFriends}><span>♧</span> Friends <span className="side-count">{people.length}</span></button><div className="side-heading"><span>TEXT CHANNELS</span><button onClick={() => { setModal("channel"); setModalInput(""); }} aria-label="Add channel">＋</button></div><div className="nav-list">{filteredChannels.map(c => <button key={c.id} className={`nav-item ${view === "channel" && active === c.id ? "active" : ""}`} onClick={() => switchToChannel(c)}><span className="hash">#</span><span>{c.name}</span></button>)}</div></> : <><div className="side-heading"><span>DIRECT MESSAGES</span><button onClick={() => { setModal("dm"); setModalInput(""); }} aria-label="New direct message">＋</button></div><div className="dm-list">{filteredPeople.map(p => <button key={p.name.toLowerCase()} className={`dm-item ${view === "dm" && active.toLowerCase() === p.name.toLowerCase() ? "active" : ""}`} onClick={() => openDM(p)}><span className={`avatar ${p.color}`}>{initials(p.name)}{p.online && <i/>}</span><span className="dm-label"><strong>{p.name}</strong><small>{p.preview}</small></span><span className={`presence ${p.online ? "online" : ""}`}/></button>)}</div></>}</>
       <div className="user-bar"><div className="avatar self">{initials(name)}</div><div className="user-label"><strong>{name}</strong><small>{status}</small></div><button className="icon-btn" title="User settings" onClick={() => setModal("settings")}>⚙</button></div>
     </aside>
     <main className="main-panel">
