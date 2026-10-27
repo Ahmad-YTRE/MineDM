@@ -187,6 +187,23 @@ function App({ session }: { session: Session }) {
       });
     return () => { cancelled = true; };
   }, [active, view, session.user.id]);
+
+  useEffect(() => {
+    if (view !== "channel" || !active) return;
+    const channelId = active;
+    const realtime = supabase.channel("minedm-" + channelId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "channel_messages", filter: "channel_id=eq." + channelId }, payload => {
+        const row = payload.new as { id: string; author_id: string; author_name: string; body: string; created_at: string };
+        const message: Message = { id: row.id, author: row.author_name, text: row.body, time: new Date(row.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), own: row.author_id === session.user.id };
+        setMessages(old => {
+          const list = old[keyFor("channel", channelId)] || [];
+          if (list.some(item => item.id === message.id)) return old;
+          const next = [...list, message];
+          return { ...old, [keyFor("channel", channelId)]: next, [channelId]: next };
+        });
+      }).subscribe();
+    return () => { void supabase.removeChannel(realtime); };
+  }, [active, view, session.user.id]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const visibleMessages = search.trim() && (view === "channel" || view === "dm")
     ? currentMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
