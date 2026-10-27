@@ -385,3 +385,51 @@ button.member-entry { cursor: pointer; }
   .user-voice-controls { gap: 1px; }
   .user-voice-controls .icon-btn { width: 27px; min-width: 27px; }
 }
+
+
+/* Loading skeletons: keep provider metadata and partial data out of the UI while it hydrates. */
+.skeleton-bar {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  position: relative;
+  border-radius: 7px;
+  background: linear-gradient(90deg, #1b2431 0%, #263343 45%, #1b2431 100%);
+  background-size: 220% 100%;
+  animation: mdm-skeleton-shimmer 1.35s ease-in-out infinite;
+}
+@keyframes mdm-skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -120% 0; }
+}
+.skeleton-line { height: 8px; }
+.skeleton-line.short { width: 38px; }
+.skeleton-line.medium { width: 76px; }
+.skeleton-line.wide { width: 130px; max-width: 100%; }
+.skeleton-square { width: 32px; height: 32px; border-radius: 9px; }
+.skeleton-server { width: 42px; height: 42px; border-radius: 13px; }
+.skeleton-avatar { width: 34px; height: 34px; border-radius: 11px; }
+.skeleton-stack { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.skeleton-nav-row, .skeleton-person-row { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+.skeleton-nav-row .skeleton-square { width: 15px; height: 15px; border-radius: 4px; }
+.skeleton-person-row { padding: 9px 12px; }
+.skeleton-message-list { gap: 26px; }
+.skeleton-message-row { display: flex; align-items: flex-start; gap: 12px; width: 100%; max-width: 760px; }
+.skeleton-message-row .skeleton-avatar { width: 38px; height: 38px; }
+.skeleton-message-row .skeleton-stack { flex: 1; padding-top: 3px; }
+.skeleton-message-row .message-line { width: 76%; height: 9px; margin-top: 4px; }
+.skeleton-message-row .message-line-short { width: 44%; height: 9px; }
+.skeleton-composer { height: 52px; width: 100%; border-radius: 11px; }
+.skeleton-member-panel { padding-bottom: 12px; }
+.skeleton-member-panel .skeleton-person-row { margin-top: 6px; }
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-bar { animation: none; background: #202b39; }
+}
+@media (max-width: 900px) {
+  .workspace-loading.has-members { grid-template-columns: 56px minmax(185px,230px) minmax(0,1fr); }
+  .workspace-loading .skeleton-member-panel { display: none; }
+}
+@media (max-width: 650px) {
+  .workspace-loading { grid-template-columns: 52px minmax(0,1fr); }
+  .workspace-loading .sidebar { display: none; }
+}

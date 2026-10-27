@@ -12,11 +12,22 @@ export function AuthScreen() {
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
 
+  async function signInWithDiscord() {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({ provider: "discord", options: { redirectTo: window.location.origin, scopes: "identify email" } });
+      if (error) throw error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Discord sign-in couldn't start. Please try again.");
+      setBusy(false);
+    }
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
       if (mode === "signup") {
-        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim() || email.split("@")[0] } } });
+        const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { username: username.trim().replace(/\s+/g," ").slice(0,32) || email.split("@")[0] } } });
         if (error) throw error;
         if (!data.session) setNotice("Account created. Check your email to confirm it, then sign in.");
       } else {
@@ -37,6 +48,12 @@ export function AuthScreen() {
         <label style={{display:"grid",gap:6,fontSize:12,color:"#aeb9ca"}}>Password<input type="password" autoComplete={mode==="login"?"current-password":"new-password"} minLength={6} required value={password} onChange={e=>setPassword(e.target.value)} placeholder="At least 6 characters" style={fieldStyle}/></label>
         {error && <p role="alert" style={{color:"#ff9292",fontSize:12,margin:0}}>{error}</p>}{notice && <p role="status" style={{color:"#5eead4",fontSize:12,margin:0}}>{notice}</p>}
         <button disabled={busy} className="btn primary large" style={{marginTop:4}}>{busy ? "Please wait…" : mode==="login" ? "Sign in" : "Create account"}</button>
+        <div style={{display:"flex",alignItems:"center",gap:12,color:"#66758b",fontSize:11,margin:"4px 0"}}>
+          <span style={{height:1,flex:1,background:"#ffffff18"}}/><span>OR</span><span style={{height:1,flex:1,background:"#ffffff18"}}/>
+        </div>
+        <button type="button" className="btn secondary large" style={{width:"100%"}} disabled={busy} onClick={signInWithDiscord}>
+          {busy ? "Please wait…" : "Continue with Discord"}
+        </button>
       </form>
       <p style={{fontSize:12,color:"#8792a5",margin:"20px 0 0",textAlign:"center"}}>{mode==="login" ? "New to MineDM?" : "Already have an account?"} <button type="button" onClick={()=>{setMode(mode==="login"?"signup":"login");setError("");setNotice("");}} style={{background:"none",border:0,color:"#5eead4",fontWeight:750,padding:4}}>{mode==="login"?"Create an account":"Sign in"}</button></p>
     </section>
