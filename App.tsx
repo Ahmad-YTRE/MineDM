@@ -121,11 +121,46 @@ function App() {
   }
   function openChannel(channel: Channel) { setActive(channel.id); setView("channel"); setSidebarOpen(false); }
   function sendMessage(e: FormEvent) {
-    e.preventDefault(); const text = draft.trim(); if (!text) return;
-    const item: Message = { id: crypto.randomUUID?.() || String(Date.now()), author: name, text, time: timeNow(), own: true };
-    setMessages(old => ({ ...old, [activeKey]: [...(old[activeKey] || old[active] || []), item] }));
-    setPeople(old => old.map(p => p.name.toLowerCase() === active.toLowerCase() && view === "dm" ? { ...p, preview: text } : p));
+    e.preventDefault();
+    const text = draft.trim();
+    if (!text) return;
+
+    const item: Message = {
+      id: typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      author: name,
+      text,
+      time: timeNow(),
+      own: true,
+    };
+    const nextMessages = {
+      ...messages,
+      [activeKey]: [...(messages[activeKey] || messages[active] || []), item],
+    };
+
+    // Write the message before acknowledging success. The effect below also
+    // persists subsequent app state changes, but a send should not rely on it.
+    let persisted = false;
+    try {
+      localStorage.setItem(KEY, JSON.stringify({
+        name, status, active, view, channels, people, messages: nextMessages, accent, compact,
+      } satisfies SavedState));
+      persisted = true;
+    } catch {
+      // Keep the message visible in this session, but never claim it was saved.
+    }
+
+    setMessages(nextMessages);
+    setPeople(old => old.map(p =>
+      p.name.toLowerCase() === active.toLowerCase() && view === "dm"
+        ? { ...p, preview: text }
+        : p
+    ));
     setDraft("");
+    notify(persisted
+      ? "Message sent and saved in this browser."
+      : "Message shown, but browser storage failed. It may not survive a refresh.");
   }
   function createItem(e: FormEvent) {
     e.preventDefault(); const value = modalInput.trim(); if (!value) return;
@@ -162,7 +197,7 @@ function App() {
     <main className="main-panel">
       <header className="topbar"><button className="mobile-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar"><Icon name="menu" size={20} /></button><div className="topbar-title"><span className="title-symbol">{view === "channel" ? <Icon name="hash" /> : view === "dm" ? <Icon name="at" /> : <Icon name="users" />}</span><div><strong>{view === "channel" ? activeChannel?.name || active : view === "dm" ? active : view === "home" ? "Direct Messages" : "Friends"}</strong><small>{view === "channel" ? activeChannel?.description : view === "dm" ? (activePerson?.online ? "Online · Direct message" : "Direct message · Local demo") : view === "home" ? "Your private conversations" : "Your people, all in one place"}</small></div></div><div className="topbar-actions"><span className="demo-pill"><i/> LOCAL DEMO</span><button className="icon-btn" title="Inbox" onClick={() => setModal("inbox")}><Icon name="inbox" size={18} /></button><button className="icon-btn" title="Settings" onClick={() => setModal("settings")}><Icon name="settings" size={18} /></button></div></header>
       {(view === "friends" || view === "home") ? <section className="friends-view"><div className="friends-intro"><span className="section-kicker">{view === "home" ? "YOUR INBOX" : "YOUR COMMUNITY"}</span><h1>{view === "home" ? "Direct Messages" : "Friends"}</h1><p>{view === "home" ? "Pick a conversation or start a new one with your crew." : "Find your people and pick up where you left off."}</p><button className="btn primary" onClick={() => { setModal("dm"); setModalInput(""); }}>＋ Start a conversation</button></div><div className="friend-tools"><div className="filter-tabs">{view === "friends" ? <><button className={filter === "all" ? "chosen" : ""} onClick={() => setFilter("all")}>All friends <span>{people.length}</span></button><button className={filter === "online" ? "chosen" : ""} onClick={() => setFilter("online")}>Online <span>{people.filter(p => p.online).length}</span></button></> : <button className="chosen">All conversations <span>{people.length}</span></button>}</div><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Find a friend..." aria-label="Find a friend"/></div><div className="friend-grid">{filteredPeople.map(p => <article className="friend-card" key={p.name}><div className={`avatar large ${p.color}`}>{initials(p.name)}<i className={p.online ? "online" : ""}/></div><div className="friend-info"><strong>{p.name}</strong><small>{p.online ? "Online now" : "Offline"}</small></div><button className="btn small primary" onClick={() => openDM(p)}>{view === "home" ? "Open DM" : "Message"}</button></article>)}</div>{!filteredPeople.length && <div className="empty-state">No friends match that search.</div>}</section> :
-      <><div className="message-scroll" key={activeKey}><div className="date-divider"><span>WELCOME TO {view === "channel" ? "#" + (activeChannel?.name || active) : "YOUR CONVERSATION"}</span></div>{currentMessages.length ? currentMessages.map(m => <article className={`message-row ${compact ? "tight" : ""}`} key={m.id}><div className={`avatar message-avatar ${m.own ? "self" : m.author === "MineDM" ? "bot" : "blue"}`}>{initials(m.author)}</div><div className="message-body"><div className="message-meta"><strong>{m.author}</strong>{m.author === "MineDM" && <span className="bot-tag">BOT</span>}<time>{m.time}</time></div><p>{m.text}</p></div></article>) : <div className="empty-state"><div className="empty-icon"><Icon name="sparkles" size={25} /></div><h3>This is the beginning.</h3><p>Send the first message to get the conversation going.</p></div>}</div><div className="composer-area"><form className="composer" onSubmit={sendMessage}><button type="button" className="attach-btn" title="Attachments are demo-only" onClick={() => notify("File uploads need a backend connection.")}><Icon name="plus" size={20} /></button><input value={draft} onChange={e => setDraft(e.target.value)} placeholder={view === "channel" ? `Message #${activeChannel?.name || active}` : `Message @${active}`} aria-label="Message" maxLength={4000}/><button className="send-btn" type="submit" disabled={!draft.trim()} aria-label="Send message"><Icon name="send" size={17} /></button></form><div className="composer-foot"><span>Keep it kind. Keep it crafty.</span><span><kbd>Enter</kbd> to send · Saved in this browser</span></div></div></>}
+      <><div className="message-scroll" key={activeKey}><div className="date-divider"><span>WELCOME TO {view === "channel" ? "#" + (activeChannel?.name || active) : "YOUR CONVERSATION"}</span></div>{currentMessages.length ? currentMessages.map(m => <article className={`message-row ${compact ? "tight" : ""}`} key={m.id}><div className={`avatar message-avatar ${m.own ? "self" : m.author === "MineDM" ? "bot" : "blue"}`}>{initials(m.author)}</div><div className="message-body"><div className="message-meta"><strong>{m.author}</strong>{m.author === "MineDM" && <span className="bot-tag">BOT</span>}<time>{m.time}</time></div><p>{m.text}</p></div></article>) : <div className="empty-state"><div className="empty-icon"><Icon name="sparkles" size={25} /></div><h3>This is the beginning.</h3><p>Send the first message to get the conversation going.</p></div>}</div><div className="composer-area"><form className="composer" onSubmit={sendMessage}><button type="button" className="attach-btn" title="Attachments are demo-only" onClick={() => notify("File uploads need a backend connection.")}><Icon name="plus" size={20} /></button><input value={draft} onChange={e => setDraft(e.target.value)} placeholder={view === "channel" ? `Message #${activeChannel?.name || active}` : `Message @${active}`} aria-label="Message" maxLength={4000}/><button className="send-btn" type="submit" disabled={!draft.trim()} aria-label="Send message"><Icon name="send" size={17} /></button></form><div className="composer-foot"><span>Keep it kind. Keep it crafty.</span><span><kbd>Enter</kbd> to send · Browser-only storage</span></div></div></>}
     </main>
     {modal && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) setModal(null); }}><section className="modal" role="dialog" aria-modal="true"><button className="modal-x" onClick={() => setModal(null)} aria-label="Close"><Icon name="close" size={18} /></button>
       {modal === "dm" && <><span className="section-kicker">DIRECT MESSAGES</span><h2>Start a conversation</h2><p>Enter a username to add a local demo conversation.</p><form onSubmit={createItem}><label htmlFor="modalInput">Username</label><input id="modalInput" autoFocus maxLength={32} value={modalInput} onChange={e => setModalInput(e.target.value)} placeholder="e.g. AlexTheBuilder" required/><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => setModal(null)}>Cancel</button><button className="btn primary">Create DM</button></div></form></>}
