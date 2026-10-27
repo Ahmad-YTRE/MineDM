@@ -1,4 +1,9 @@
 {
-
-  "cleanUrls": true
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/app", "destination": "/" },
+    { "source": "/app/:path*", "destination": "/" },
+    { "source": "/dms", "destination": "/" },
+    { "source": "/dms/:path*", "destination": "/" }
+  ]
 }

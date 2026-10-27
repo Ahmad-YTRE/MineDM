@@ -553,7 +553,7 @@ svg {
 
 <div class="app">
   <aside class="rail" aria-label="Servers">
-    <a class="rail-logo" href="./" title="Direct Messages" aria-label="Open Direct Messages">M</a>
+    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main MineDM app">M</a>
     <div class="rail-divider"></div>
     <button class="server active" title="Block Buddies">⛏</button>
     <button class="server" title="Survival Squad">🌲</button>
@@ -569,6 +569,9 @@ svg {
     </div>
     <a class="friends-link" href="#" id="friendsLink">
       <svg><use href="#i-friends"/></svg> Friends
+    </a>
+    <a class="friends-link main-app-link" href="../app/" title="Open the main MineDM app" aria-label="Open the main MineDM app">
+      <svg><use href="#i-message"/></svg> Main App
     </a>
     <div class="sidebar-heading">
       <span>Direct Messages</span>
@@ -879,6 +882,39 @@ $("panelSettings").addEventListener("click",openSettingsNotice);
 $("addServer").addEventListener("click",() => notify("Server creation is not connected yet."));
 
 showWelcome();
+</script>
+
+<script>
+/* Persist Direct Messages people and last selected view locally. */
+(() => {
+  const KEY = "minedm.v1";
+  const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
+  const state = read();
+  const persist = () => {
+    try {
+      state.dmPeople = people.filter(p => !["Alex","PixelPete","CreeperQueen","Steve","EnderGirl"].includes(p.name));
+      state.dmLastView = $("topTitle").textContent;
+      localStorage.setItem(KEY, JSON.stringify(state));
+    } catch { notify("Could not save changes in this browser."); }
+  };
+  (state.dmPeople || []).forEach(person => {
+    if (!person || typeof person.name !== "string" || !person.name.trim()) return;
+    if (people.some(p => p.name.toLowerCase() === person.name.toLowerCase())) return;
+    people.push({name:person.name.slice(0,32), initials:person.name.slice(0,2).toUpperCase(), color:"", online:false, preview:"New conversation"});
+    const button=document.createElement("button"); button.className="dm-item"; button.dataset.name=person.name;
+    const avatar=document.createElement("span"); avatar.className="avatar"; avatar.textContent=person.name.slice(0,2).toUpperCase();
+    const label=document.createElement("span"); label.className="dm-name"; label.append(document.createTextNode(person.name));
+    const preview=document.createElement("span"); preview.className="dm-preview"; preview.textContent="New conversation"; label.appendChild(preview);
+    button.append(avatar,label); button.addEventListener("click",()=>openDM(person.name)); dmList.appendChild(button);
+  });
+  const originalAddDM = addDM;
+  addDM = function(name) { originalAddDM(name); persist(); };
+  const originalOpenDM = openDM;
+  openDM = function(name) { originalOpenDM(name); persist(); };
+  const originalShowFriends = showFriends;
+  showFriends = function() { originalShowFriends(); persist(); };
+  $("searchInput").addEventListener("input", persist);
+})();
 </script>
 </body>
 </html>
