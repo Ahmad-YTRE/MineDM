@@ -137,3 +137,10 @@ button,input,select{max-width:100%}
 .wordmark { display: inline-flex; align-items: center; gap: 9px; }
 .brand-mark { background: transparent; color: var(--mdm-teal); padding: 0; }
 .brand-mark .logo-mark { --logo-size: 28px; }
+
+/* Keep channel controls quiet until the channel row is hovered or focused. */
+.channel-row{display:flex;align-items:center;min-width:0;border-radius:7px}
+.channel-row .nav-item{flex:1;min-width:0}
+.channel-settings{width:25px;height:30px;flex-shrink:0;opacity:0;pointer-events:none;transition:opacity .14s ease,background .14s ease,color .14s ease}
+.channel-row:hover .channel-settings,.channel-row:focus-within .channel-settings{opacity:1;pointer-events:auto}
+@media(hover:none){.channel-settings{opacity:1;pointer-events:auto}}
