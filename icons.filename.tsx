@@ -79,11 +79,7 @@ const paths: Record<string, React.ReactNode> = {
   at: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M16 12v2a2 2 0 0 0 4 0v-2"/></>,
 };
 
-const aliases: Record<string, string> = {
-  "volume-off": "volume-off", micOff: "micOff", headphonesOff: "headphonesOff",
-  "paperclip": "attach", "message": "emoji", "arrowUpRight": "forward", "arrowRight": "chevron",
-  "sparkles": "boost", "zap": "boost", "inbox": "grid", "send": "forward",
-};
+const aliases: Record<string, string> = {};
 
 const animationByIcon: Record<string, string> = {
   reply: "slide-left", forward: "slide-right", edit: "wiggle", delete: "shake", copy: "pop", pin: "tilt", bookmark: "hop", share: "spin",
