@@ -61,7 +61,6 @@ function App({ session }: { session: Session }) {
   const [modalInput, setModalInput] = useState("");
   const [toast, setToast] = useState("");
   const [compact, setCompact] = useState(saved?.compact || false);
-  const [compact, setCompact] = useState(saved?.compact || false);
   const [unread, setUnread] = useState<Record<string, number>>({});
   const [typingPerson, setTypingPerson] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
