@@ -1,6 +1,9 @@
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
+import { AuthScreen } from "./AuthScreen";
 import { Icon } from "./icons.filename";
 
 type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: string[]; replyTo?: { author: string; text: string } };
@@ -62,10 +65,10 @@ function Landing({ openApp }: { openApp: () => void }) {
   </div>;
 }
 
-function App() {
+function App({ session }: { session: Session }) {
   const path = window.location.pathname;
   const [showLanding, setShowLanding] = useState(path !== "/app" && path !== "/app/" && path !== "/dms" && path !== "/dms/");
-  const [name, setName] = useState(saved?.name || "CraftyBuilder");
+  const [name, setName] = useState(saved?.name || String(session.user.user_metadata?.username || session.user.email?.split("@")[0] || "Player"));
   const [status, setStatus] = useState(saved?.status || "Online");
   const [servers, setServers] = useState<Server[]>(saved?.servers?.length ? saved.servers : defaultServers);
   const [activeServer, setActiveServer] = useState(saved?.activeServer || "block-buddies");
@@ -166,6 +169,41 @@ function App() {
   const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
   const activeKeyRef = useRef(activeKey);
   useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
+  useEffect(() => {
+    if (view !== "channel" || !active) return;
+    let cancelled = false;
+    supabase.from("channel_messages").select("id, author_id, author_name, body, created_at, reply_to")
+      .eq("channel_id", active).order("created_at", { ascending: true }).limit(200)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) { notify("Could not load shared messages: " + error.message); return; }
+        const rows = (data || []).map(row => ({
+          id: row.id, author: row.author_name, text: row.body,
+          time: new Date(row.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          own: row.author_id === session.user.id,
+          ...(row.reply_to ? { replyTo: row.reply_to as { author: string; text: string } } : {}),
+        } satisfies Message));
+        setMessages(old => ({ ...old, [keyFor("channel", active)]: rows, [active]: rows }));
+      });
+    return () => { cancelled = true; };
+  }, [active, view, session.user.id]);
+
+  useEffect(() => {
+    if (view !== "channel" || !active) return;
+    const channelId = active;
+    const realtime = supabase.channel("minedm-" + channelId)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "channel_messages", filter: "channel_id=eq." + channelId }, payload => {
+        const row = payload.new as { id: string; author_id: string; author_name: string; body: string; created_at: string };
+        const message: Message = { id: row.id, author: row.author_name, text: row.body, time: new Date(row.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }), own: row.author_id === session.user.id };
+        setMessages(old => {
+          const list = old[keyFor("channel", channelId)] || [];
+          if (list.some(item => item.id === message.id)) return old;
+          const next = [...list, message];
+          return { ...old, [keyFor("channel", channelId)]: next, [channelId]: next };
+        });
+      }).subscribe();
+    return () => { void supabase.removeChannel(realtime); };
+  }, [active, view, session.user.id]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const visibleMessages = search.trim() && (view === "channel" || view === "dm")
     ? currentMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
@@ -196,7 +234,7 @@ function App() {
     setActive(personName); setView("dm"); setTypingPerson(null); setShowLanding(false); setSidebarOpen(false); setUnread(old => ({ ...old, [keyFor("dm", personName)]: 0 })); window.history.pushState({}, "", "/dms"); setModal(null);
   }
   function openChannel(channel: Channel) { setTypingPerson(null); setActive(channel.id); setView("channel"); setUnread(old => ({ ...old, [keyFor("channel", channel.id)]: 0 })); setSidebarOpen(false); }
-  function sendMessage(e: FormEvent) {
+  async function sendMessage(e: FormEvent) {
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
@@ -211,6 +249,25 @@ function App() {
       own: true,
       ...(replyingTo ? { replyTo: { author: replyingTo.author, text: replyingTo.text } } : {}),
     };
+    if (view === "channel") {
+      const { data, error } = await supabase.from("channel_messages").insert({
+        channel_id: active, author_id: session.user.id, author_name: name, body: text,
+        reply_to: replyingTo ? { author: replyingTo.author, text: replyingTo.text } : null,
+      }).select("id, author_id, author_name, body, created_at, reply_to").single();
+      if (error) { notify("Message not sent: " + error.message); return; }
+      const savedMessage: Message = {
+        id: data.id, author: data.author_name, text: data.body,
+        time: new Date(data.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        own: data.author_id === session.user.id,
+        ...(data.reply_to ? { replyTo: data.reply_to as { author: string; text: string } } : {}),
+      };
+      setMessages(old => {
+        const list = old[keyFor("channel", active)] || [];
+        const next = list.some(message => message.id === savedMessage.id) ? list : [...list, savedMessage];
+        return { ...old, [keyFor("channel", active)]: next, [active]: next };
+      });
+      setDraft(""); setReplyingTo(null); notify("Message sent to the shared channel."); return;
+    }
     const nextMessages = {
       ...messages,
       [activeKey]: [...(messages[activeKey] || messages[active] || []), item],
@@ -344,9 +401,9 @@ function App() {
       <div className="user-bar"><div className="avatar self">{initials(name)}</div><div className="user-account"><div className="user-account-top"><div className="user-label"><strong>{name}</strong><small>{status}</small></div><button className="icon-btn user-settings" title="User settings" aria-label="User settings" onClick={() => setModal("settings")}><Icon name="settings" size={17} /></button></div><div className="user-voice-controls"><button type="button" className={`icon-btn voice-toggle ${voiceConnected ? "voice-connected" : ""}`} title={voiceConnected ? "Disconnect demo voice" : "Connect demo voice"} aria-label={voiceConnected ? "Disconnect demo voice" : "Connect demo voice"} aria-pressed={voiceConnected} onClick={() => { setVoiceConnected(v => !v); notify(voiceConnected ? "Demo voice disconnected." : "Demo voice connected visually — live voice needs a backend."); }}><Icon name="voice" size={16} /></button><button type="button" className="icon-btn voice-toggle" title={microphoneEnabled ? "Mute microphone (demo)" : "Unmute microphone (demo)"} aria-label={microphoneEnabled ? "Mute microphone (demo)" : "Unmute microphone (demo)"} aria-pressed={microphoneEnabled} onClick={() => { setMicrophoneEnabled(v => !v); notify(microphoneEnabled ? "Microphone muted in the demo UI." : "Microphone unmuted in the demo UI."); }}><Icon name={microphoneEnabled ? "mic" : "micOff"} size={16} /></button><button type="button" className="icon-btn voice-toggle" title={audioEnabled ? "Turn audio off (demo)" : "Turn audio on (demo)"} aria-label={audioEnabled ? "Turn audio off (demo)" : "Turn audio on (demo)"} aria-pressed={audioEnabled} onClick={() => { setAudioEnabled(v => !v); notify(audioEnabled ? "Audio turned off in the demo UI." : "Audio turned on in the demo UI."); }}><Icon name={audioEnabled ? "headphones" : "headphonesOff"} size={16} /></button></div></div></div>
     </aside>
     <main className="main-panel">
-      <header className="topbar"><button className="mobile-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar"><Icon name="menu" size={20} /></button><div className="topbar-title"><span className="title-symbol">{view === "channel" ? <Icon name="hash" /> : view === "dm" ? <Icon name="at" /> : <Icon name="users" />}</span><div><strong>{view === "channel" ? activeChannel?.name || active : view === "dm" ? active : view === "home" ? "Direct Messages" : "Friends"}</strong><small>{view === "channel" ? activeChannel?.description : view === "dm" ? (typingPerson === active ? "Typing…" : `${activePerson?.status || (activePerson?.online ? "Online" : "Offline")} · Direct message · Demo`) : view === "home" ? "Your private conversations" : "Your people, all in one place"}</small></div></div><div className="topbar-actions"><span className="demo-pill"><i/> LOCAL DEMO</span>{view === "channel" && <button className={`icon-btn member-toggle ${showMembers ? "active" : ""}`} title={showMembers ? "Hide member list" : "Show member list"} aria-label={showMembers ? "Hide member list" : "Show member list"} aria-pressed={showMembers} onClick={() => setShowMembers(v => !v)}><Icon name="users" size={18} /></button>}<button className="icon-btn" title="Inbox" aria-label="Inbox" onClick={() => setModal("inbox")}><Icon name="inbox" size={18} /></button></div></header>
+      <header className="topbar"><button className="mobile-toggle" onClick={() => setSidebarOpen(v => !v)} aria-label="Toggle sidebar"><Icon name="menu" size={20} /></button><div className="topbar-title"><span className="title-symbol">{view === "channel" ? <Icon name="hash" /> : view === "dm" ? <Icon name="at" /> : <Icon name="users" />}</span><div><strong>{view === "channel" ? activeChannel?.name || active : view === "dm" ? active : view === "home" ? "Direct Messages" : "Friends"}</strong><small>{view === "channel" ? activeChannel?.description : view === "dm" ? (typingPerson === active ? "Typing…" : `${activePerson?.status || (activePerson?.online ? "Online" : "Offline")} · Direct message · Demo`) : view === "home" ? "Your private conversations" : "Your people, all in one place"}</small></div></div><div className="topbar-actions"><span className="demo-pill"><i/> {view === "channel" ? "SUPABASE LIVE" : "LOCAL DEMO"}</span>{view === "channel" && <button className={`icon-btn member-toggle ${showMembers ? "active" : ""}`} title={showMembers ? "Hide member list" : "Show member list"} aria-label={showMembers ? "Hide member list" : "Show member list"} aria-pressed={showMembers} onClick={() => setShowMembers(v => !v)}><Icon name="users" size={18} /></button>}<button className="icon-btn" title="Inbox" aria-label="Inbox" onClick={() => setModal("inbox")}><Icon name="inbox" size={18} /></button></div></header>
       {(view === "friends" || view === "home") ? <section className="friends-view"><div className="friends-intro"><span className="section-kicker">{view === "home" ? "YOUR INBOX" : "YOUR COMMUNITY"}</span><h1>{view === "home" ? "Direct Messages" : "Friends"}</h1><p>{view === "home" ? "Pick a conversation or start a new one with your crew." : "Find your people and pick up where you left off."}</p><button className="btn primary" onClick={() => { setModal("dm"); setModalInput(""); }}>＋ Start a conversation</button></div><div className="friend-tools"><div className="filter-tabs">{view === "friends" ? <><button className={filter === "all" ? "chosen" : ""} onClick={() => setFilter("all")}>All friends <span>{people.length}</span></button><button className={filter === "online" ? "chosen" : ""} onClick={() => setFilter("online")}>Online <span>{people.filter(p => p.online).length}</span></button></> : <button className="chosen">All conversations <span>{people.length}</span></button>}</div><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Find a friend..." aria-label="Find a friend"/></div><div className="friend-grid">{filteredPeople.map(p => <article className="friend-card" key={p.name}><div className={`avatar large ${p.color}`}>{initials(p.name)}<i className={p.online ? "online" : ""}/></div><div className="friend-info"><strong>{p.name}</strong><small>{p.online ? "Online now" : "Offline"}</small></div><button className="btn small primary" onClick={() => openDM(p)}>{view === "home" ? "Open DM" : "Message"}</button></article>)}</div>{!filteredPeople.length && <div className="empty-state">No friends match that search.</div>}</section> :
-      <><div className="message-scroll" key={activeKey}><div className="date-divider"><span>WELCOME TO {view === "channel" ? "#" + (activeChannel?.name || active) : "YOUR CONVERSATION"}</span></div>{visibleMessages.length ? visibleMessages.map(m => <article className={`message-row message-row-actionable ${compact ? "tight" : ""}`} key={m.id}><div className={`avatar message-avatar ${m.own ? "self" : m.author === "MineDM" ? "bot" : "blue"}`}>{initials(m.author)}</div><div className="message-body"><div className="message-meta"><strong>{m.author}</strong>{m.author === "MineDM" && <span className="bot-tag">BOT</span>}<time>{m.time}</time></div>{m.replyTo && <div className="reply-context"><span>↳ Replying to <strong>{m.replyTo.author}</strong></span><p>{m.replyTo.text}</p></div>}<p>{m.text}</p>{!!m.reactions?.length && <div className="message-reactions">{m.reactions.map(emoji => <button key={emoji} className="reaction-chip selected" onClick={() => toggleReaction(m.id, emoji)} aria-label={`Remove ${emoji} reaction`}>{emoji}<span>1</span></button>)}</div>}<div className="message-actions"><button onClick={() => toggleReaction(m.id, "👍")} title="Add reaction" aria-label="Add thumbs up reaction">👍</button><button onClick={() => startReply(m)} title="Reply" aria-label={`Reply to ${m.author}`}><Icon name="reply" size={14}/></button><button onClick={() => { void copyMessage(m.text); }} title="Copy message" aria-label="Copy message"><Icon name="copy" size={14}/></button></div></div></article>) : <div className="empty-state"><div className="empty-icon"><Icon name="sparkles" size={25} /></div><h3>{search.trim() ? "No matching messages" : "This is the beginning."}</h3><p>{search.trim() ? "Try another keyword or clear the search." : "Send the first message to get the conversation going."}</p></div>}{typingPerson && <div style={{ padding: "0 4vw 8px", color: "#8792a5", fontSize: 11 }} role="status">{typingPerson} is typing<span aria-hidden="true">…</span></div>}</div><div className="composer-area">{replyingTo && <div className="replying-banner"><span><Icon name="reply" size={14}/> Replying to <strong>{replyingTo.author}</strong><small>{replyingTo.text}</small></span><button type="button" className="icon-btn" onClick={() => setReplyingTo(null)} aria-label="Cancel reply"><Icon name="close" size={14}/></button></div>}<form className="composer" onSubmit={sendMessage}><button type="button" className="attach-btn" title="Attachments are demo-only" aria-label="Attach file" onClick={() => notify("File uploads need a backend connection.")}><Icon name="paperclip" size={18} /></button><input value={draft} onChange={e => setDraft(e.target.value)} placeholder={view === "channel" ? `Message #${activeChannel?.name || active}` : `Message @${active}`} aria-label="Message" maxLength={4000}/><button className="send-btn" type="submit" disabled={!draft.trim()} aria-label="Send message"><Icon name="send" size={17} /></button></form><div className="composer-foot"><span>Keep it kind. Keep it crafty.</span><span><kbd>Enter</kbd> to send · Browser-only storage</span></div></div></>}
+      <><div className="message-scroll" key={activeKey}><div className="date-divider"><span>WELCOME TO {view === "channel" ? "#" + (activeChannel?.name || active) : "YOUR CONVERSATION"}</span></div>{visibleMessages.length ? visibleMessages.map(m => <article className={`message-row message-row-actionable ${compact ? "tight" : ""}`} key={m.id}><div className={`avatar message-avatar ${m.own ? "self" : m.author === "MineDM" ? "bot" : "blue"}`}>{initials(m.author)}</div><div className="message-body"><div className="message-meta"><strong>{m.author}</strong>{m.author === "MineDM" && <span className="bot-tag">BOT</span>}<time>{m.time}</time></div>{m.replyTo && <div className="reply-context"><span>↳ Replying to <strong>{m.replyTo.author}</strong></span><p>{m.replyTo.text}</p></div>}<p>{m.text}</p>{!!m.reactions?.length && <div className="message-reactions">{m.reactions.map(emoji => <button key={emoji} className="reaction-chip selected" onClick={() => toggleReaction(m.id, emoji)} aria-label={`Remove ${emoji} reaction`}>{emoji}<span>1</span></button>)}</div>}<div className="message-actions"><button onClick={() => toggleReaction(m.id, "👍")} title="Add reaction" aria-label="Add thumbs up reaction">👍</button><button onClick={() => startReply(m)} title="Reply" aria-label={`Reply to ${m.author}`}><Icon name="reply" size={14}/></button><button onClick={() => { void copyMessage(m.text); }} title="Copy message" aria-label="Copy message"><Icon name="copy" size={14}/></button></div></div></article>) : <div className="empty-state"><div className="empty-icon"><Icon name="sparkles" size={25} /></div><h3>{search.trim() ? "No matching messages" : "This is the beginning."}</h3><p>{search.trim() ? "Try another keyword or clear the search." : "Send the first message to get the conversation going."}</p></div>}{typingPerson && <div style={{ padding: "0 4vw 8px", color: "#8792a5", fontSize: 11 }} role="status">{typingPerson} is typing<span aria-hidden="true">…</span></div>}</div><div className="composer-area">{replyingTo && <div className="replying-banner"><span><Icon name="reply" size={14}/> Replying to <strong>{replyingTo.author}</strong><small>{replyingTo.text}</small></span><button type="button" className="icon-btn" onClick={() => setReplyingTo(null)} aria-label="Cancel reply"><Icon name="close" size={14}/></button></div>}<form className="composer" onSubmit={sendMessage}><button type="button" className="attach-btn" title="Attachments are demo-only" aria-label="Attach file" onClick={() => notify("File uploads need a backend connection.")}><Icon name="paperclip" size={18} /></button><input value={draft} onChange={e => setDraft(e.target.value)} placeholder={view === "channel" ? `Message #${activeChannel?.name || active}` : `Message @${active}`} aria-label="Message" maxLength={4000}/><button className="send-btn" type="submit" disabled={!draft.trim()} aria-label="Send message"><Icon name="send" size={17} /></button></form><div className="composer-foot"><span>Keep it kind. Keep it crafty.</span><span><kbd>Enter</kbd> to send · {view === "channel" ? "Messages sync with Supabase" : "DMs are local demo"}</span></div></div></>}
     </main>
 
     {showMembers && view === "channel" && <aside className="member-panel" aria-label="Channel members"><div className="member-panel-head"><div><strong>Members</strong><span>{people.length + 1} members</span></div><button className="icon-btn" onClick={() => setShowMembers(false)} aria-label="Hide member list" title="Hide member list"><Icon name="close" size={16}/></button></div><div className="member-group-label"><span className="member-status-dot online"/>ONLINE — {people.filter(p => p.online).length + 1}</div><div className="member-list"><div className="member-entry"><div className="avatar member-avatar self">{initials(name)}<i className="online"/></div><div><strong>{name}</strong><small>{status} · You</small></div><span className="member-you">YOU</span></div>{people.filter(p => p.online).map(p => <button className="member-entry" key={p.name} onClick={() => openDM(p)} title={`Message ${p.name}`}><div className={`avatar member-avatar ${p.color}`}>{initials(p.name)}<i className="online"/></div><div><strong>{p.name}</strong><small>{p.status || "Online"}</small></div><span className="member-entry-action"><Icon name="message" size={15}/></span></button>)}</div><div className="member-group-label"><span className="member-status-dot offline"/>OFFLINE — {people.filter(p => !p.online).length}</div><div className="member-list">{people.filter(p => !p.online).map(p => <button className="member-entry offline" key={p.name} onClick={() => openDM(p)} title={`Message ${p.name}`}><div className={`avatar member-avatar ${p.color}`}>{initials(p.name)}<i/></div><div><strong>{p.name}</strong><small>{p.status || "Offline"}</small></div><span className="member-entry-action"><Icon name="message" size={15}/></span></button>)}</div><div className="member-panel-note">Member list · Local demo data</div></aside>}
@@ -357,7 +414,7 @@ function App() {
       {modal === "manageChannel" && <><span className="section-kicker">CHANNEL SETTINGS</span><h2>Manage channel</h2><p>Rename #{activeChannel?.name || "channel"} or delete it and its local message history.</p><form onSubmit={renameChannel}><label htmlFor="modalInput">Channel name</label><input id="modalInput" autoFocus maxLength={32} value={modalInput} onChange={e => setModalInput(e.target.value)} required/><div className="modal-actions"><button type="button" className="btn secondary" disabled={serverChannels.length <= 1} onClick={() => activeChannel && askDeleteChannel(activeChannel)}>Delete channel</button><button type="button" className="btn secondary" onClick={() => setModal(null)}>Cancel</button><button className="btn primary">Save changes</button></div></form></>}
       {modal === "confirmDelete" && <><span className="section-kicker">CONFIRM DELETION</span><h2>Delete {pendingDelete?.type === "server" ? "server" : "channel"}?</h2><p>{pendingDelete?.type === "server" ? `“${pendingDelete.name}” and all its channels and local messages will be removed from this browser.` : `#${pendingDelete?.name || "channel"} and its local message history will be removed from this browser.`} This cannot be undone.</p><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => { setModal(pendingDelete?.type === "server" ? "manageServer" : "manageChannel"); setPendingDelete(null); }}>Cancel</button><button type="button" className="btn primary" onClick={confirmDelete}>Delete permanently</button></div></>}
       {modal === "channel" && <><span className="section-kicker">{currentServer?.name || "SERVER"}</span><h2>Create a channel</h2><p>Add a text channel to this server.</p><form onSubmit={createItem}><label htmlFor="modalInput">Channel name</label><input id="modalInput" autoFocus maxLength={32} value={modalInput} onChange={e => setModalInput(e.target.value)} placeholder="build-plans" required/><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => setModal(null)}>Cancel</button><button className="btn primary">Create channel</button></div></form></>}
-      {modal === "settings" && <><span className="section-kicker">PERSONALIZE</span><h2>User settings</h2><p>These preferences are saved only in this browser.</p><form onSubmit={e => { e.preventDefault(); setModal(null); notify("Settings saved."); }}><label htmlFor="displayName">Display name</label><input id="displayName" maxLength={32} value={name} onChange={e => setName(e.target.value)} required/><label htmlFor="status">Status</label><select id="status" value={status} onChange={e => setStatus(e.target.value)}><option>Online</option><option>Idle</option><option>Do not disturb</option><option>Offline</option></select><label htmlFor="accent">Accent color</label><div className="color-row"><input id="accent" type="color" value={accent} onChange={e => setAccent(e.target.value)}/><span>Choose your glow</span></div><label className="check-row"><input type="checkbox" checked={compact} onChange={e => setCompact(e.target.checked)}/> Compact message spacing</label><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => { localStorage.removeItem(KEY); window.location.reload(); }}>Reset local data</button><button className="btn primary">Save settings</button></div></form></>}
+      {modal === "settings" && <><span className="section-kicker">PERSONALIZE</span><h2>User settings</h2><p>These preferences are saved only in this browser.</p><form onSubmit={e => { e.preventDefault(); setModal(null); notify("Settings saved."); }}><label htmlFor="displayName">Display name</label><input id="displayName" maxLength={32} value={name} onChange={e => setName(e.target.value)} required/><label htmlFor="status">Status</label><select id="status" value={status} onChange={e => setStatus(e.target.value)}><option>Online</option><option>Idle</option><option>Do not disturb</option><option>Offline</option></select><label htmlFor="accent">Accent color</label><div className="color-row"><input id="accent" type="color" value={accent} onChange={e => setAccent(e.target.value)}/><span>Choose your glow</span></div><label className="check-row"><input type="checkbox" checked={compact} onChange={e => setCompact(e.target.checked)}/> Compact message spacing</label><div className="modal-actions"><button type="button" className="btn secondary" onClick={async () => { await supabase.auth.signOut(); }}>Sign out</button><button type="button" className="btn secondary" onClick={() => { localStorage.removeItem(KEY); window.location.reload(); }}>Reset local data</button><button className="btn primary">Save settings</button></div></form></>}
       {modal === "inbox" && <><span className="section-kicker">NOTIFICATIONS</span><h2>You're all caught up</h2><p>This local prototype has no server inbox or real-time notifications yet.</p><div className="modal-actions"><button className="btn primary" onClick={() => setModal(null)}>Sounds good</button></div></>}
     </section></div>}
     {toast && <div className="toast" role="status">{toast}</div>}
@@ -370,6 +427,21 @@ function Root() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
-  return <App/>;
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) { setSession(data.session); setAuthReady(true); }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthReady(true);
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, []);
+  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to MineDM…</main>;
+  if (!session) return <AuthScreen />;
+  return <App session={session}/>;
 }
 createRoot(document.getElementById("root")!).render(<React.StrictMode><Root/></React.StrictMode>);
