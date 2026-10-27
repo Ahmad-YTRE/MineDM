@@ -168,8 +168,9 @@ function App({ session }: { session: Session }) {
       if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);return;}
       const rows=result.data||[],authorIds=[...new Set(rows.map(row=>row.author_id))];let profiles:any[]=[];
       if(authorIds.length){const p=await supabase.from("profiles").select("id,username").in("id",authorIds);if(p.error){notify("Couldn't load message authors: "+p.error.message);return;}profiles=p.data||[];}
-      const names=new Map(profiles.map(p=>[p.id,p.username||"Player"])),byId=new Map(rows.map(row=>[row.id,row])),reactionMap=new Map<string,string[]>();
-      if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,emoji").eq("user_id",session.user.id).in("message_id",rows.map(row=>row.id));if(rr.error){notify("Couldn't load your reactions: "+rr.error.message);return;}for(const r of rr.data||[])reactionMap.set(r.message_id,[...(reactionMap.get(r.message_id)||[]),r.emoji]);}
+      const names=new Map(profiles.map(p=>[p.id,p.username||"Player"])),byId=new Map(rows.map(row=>[row.id,row]));
+      const reactionMap=new Map<string,Reaction[]>();
+      if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));if(rr.error){notify("Unable to load reactions: "+rr.error.message);return;}for(const r of rr.data||[]){const list=reactionMap.get(r.message_id)||[];const existing=list.find(x=>x.emoji===r.emoji);if(existing){existing.count++;if(r.user_id===session.user.id)existing.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});reactionMap.set(r.message_id,list);}}
       const mapped:Message[]=rows.map(row=>{const reply=row.reply_to?byId.get(row.reply_to):null;return{id:row.id,author:names.get(row.author_id)||(row.author_id===session.user.id?name:"Member"),text:row.body,time:new Date(row.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),own:row.author_id===session.user.id,...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{})};});
       setMessages(old=>({...old,[activeKey]:mapped,[active]:mapped}));
     };
@@ -235,7 +236,7 @@ function App({ session }: { session: Session }) {
       if(sr.error)throw sr.error;if(cr.error)throw cr.error;if(mr.error)throw mr.error;
       serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];
     }
-    const {data:friendships,error:friendError}=await supabase.from("friendships").select("requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid);
+    const {data:friendships,error:friendError}=await supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid);
     if(friendError)throw friendError;
     const {data:ownConvs,error:convError}=await supabase.from("conversation_members").select("conversation_id").eq("user_id",uid);
     if(convError)throw convError;
@@ -253,19 +254,23 @@ function App({ session }: { session: Session }) {
     const convMap:Record<string,string>={};
     for(const row of convMembers)if(row.user_id!==uid&&convIds.includes(row.conversation_id)&&!convMap[row.user_id])convMap[row.user_id]=row.conversation_id;
     const colors=["green","purple","orange","blue","pink"];
-    setServers(serverRows.map(row=>({id:row.id,name:row.name,description:row.description||"Community server",createdBy:row.created_by,inviteCode:row.invite_code})));
+    setServers(serverRows.map(row=>({id:row.id,name:row.name,description:row.description||"Community server",createdBy:row.created_by,inviteCode:row.invite_code,role:ownMemberships?.find(m=>m.server_id===row.id)?.role||"member"})));
+    const membersByServer:Record<string,string[]>={};for(const row of serverMemberRows){(membersByServer[row.server_id] ||= []).push(row.user_id);}setServerMembersByServer(membersByServer);
+    setFriendRequests((friendships||[]).filter(row=>row.status==="pending"&&row.addressee_id===uid).map(row=>({id:row.id,requester_id:row.requester_id,addressee_id:row.addressee_id,name:profiles.find(p=>p.id===row.requester_id)?.username||"Player",avatarUrl:profiles.find(p=>p.id===row.requester_id)?.avatar_url||null})));
     setChannels(channelRows.map(row=>({id:row.id,serverId:row.server_id,name:row.name,description:row.description||""})));
-    setPeople(profiles.map((p,i)=>({id:p.id,name:p.username||"Player",status:(p.status||"Offline") as PresenceStatus,online:p.status==="Online",color:colors[i%colors.length],preview:"Start a conversation",avatarUrl:p.avatar_url||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
+    setPeople(profiles.map((p,i)=>({id:p.id,name:p.username||"Player",status:presenceByUser[p.id]||(p.status||"Offline") as PresenceStatus,online:Boolean(presenceByUser[p.id]&&presenceByUser[p.id]!=="Offline"),color:colors[i%colors.length],preview:"Start a conversation",avatarUrl:p.avatar_url||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
     setConversationIds(convMap);
     setActiveServer(prev=>serverIds.includes(prev)?prev:(serverRows[0]?.id||""));
     setActive(prev=>(view==="dm"||view==="home"||view==="friends")?prev:(channelRows.some(row=>row.id===prev)?prev:(channelRows[0]?.id||"")));
   }
   async function toggleReaction(messageId:string,emoji:string){
     const existing=(messages[activeKey]||messages[active]||[]).find(m=>m.id===messageId);if(!existing)return;
-    const selected=Boolean(existing.reactions?.includes(emoji));
+    const existingReaction=existing.reactions?.find(r=>r.emoji===emoji);const selected=Boolean(existingReaction?.reacted);
     const request=selected?supabase.from("message_reactions").delete().eq("message_id",messageId).eq("user_id",session.user.id).eq("emoji",emoji):supabase.from("message_reactions").insert({message_id:messageId,user_id:session.user.id,emoji});
-    const {error}=await request;if(error){notify("Couldn't update reaction: "+error.message);return;}
-    setMessages(old=>{const list=old[activeKey]||old[active]||[];return{...old,[activeKey]:list.map(m=>m.id!==messageId?m:{...m,reactions:selected?(m.reactions||[]).filter(x=>x!==emoji):[...(m.reactions||[]),emoji]})};});
+    const {error}=await request;if(error){notify("Unable to update reaction: "+error.message);return;}
+    const {data:allReactions,error:reloadError}=await supabase.from("message_reactions").select("user_id,emoji").eq("message_id",messageId);if(reloadError){notify("Reaction saved, but counts could not refresh.");return;}
+    const grouped:Reaction[]=[];for(const r of allReactions||[]){const item=grouped.find(x=>x.emoji===r.emoji);if(item){item.count++;if(r.user_id===session.user.id)item.reacted=true;}else grouped.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});}
+    setMessages(old=>{const list=old[activeKey]||old[active]||[];return{...old,[activeKey]:list.map(m=>m.id!==messageId?m:{...m,reactions:grouped})};});
   }
   function startReply(message:Message){setReplyingTo(message);document.querySelector<HTMLInputElement>(".composer input")?.focus();}
   async function copyMessage(text:string){try{await navigator.clipboard.writeText(text);notify("Message copied.");}catch{notify("Clipboard access is blocked by this browser.");}}
