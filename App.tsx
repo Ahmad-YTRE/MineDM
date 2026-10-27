@@ -1,4 +1,4 @@
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
 
@@ -110,7 +110,7 @@ function App() {
 
   const activeChannel = channels.find(c => c.id === active) || channels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
-  const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
+  const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);\n  const activeKeyRef = useRef(activeKey);\n  useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const filteredPeople = useMemo(() => people.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || p.online)), [people, search, filter]);
   const filteredChannels = channels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
@@ -122,7 +122,7 @@ function App() {
     if (!people.some(p => p.name.toLowerCase() === personName.toLowerCase())) setPeople(old => [...old, { name: personName, online: false, color: "blue", preview: "New conversation" }]);
     setActive(personName); setView("dm"); setTypingPerson(null); setShowLanding(false); setSidebarOpen(false); setUnread(old => ({ ...old, [keyFor("dm", personName)]: 0 })); window.history.pushState({}, "", "/dms"); setModal(null);
   }
-  function openChannel(channel: Channel) { setActive(channel.id); setView("channel"); setUnread(old => ({ ...old, [keyFor("channel", channel.id)]: 0 })); setSidebarOpen(false); }
+  function openChannel(channel: Channel) { setTypingPerson(null); setActive(channel.id); setView("channel"); setUnread(old => ({ ...old, [keyFor("channel", channel.id)]: 0 })); setSidebarOpen(false); }
   function sendMessage(e: FormEvent) {
     e.preventDefault();
     const text = draft.trim();
@@ -183,7 +183,7 @@ function App() {
         setMessages(old => ({ ...old, [replyKey]: [...(old[replyKey] || []), reply] }));
         setPeople(old => old.map(p => p.name === replyName ? { ...p, preview: reply.text } : p));
         setTypingPerson(null);
-        if (keyFor("dm", active) !== replyKey || view !== "dm") {
+        if (activeKeyRef.current !== replyKey) {
           setUnread(old => ({ ...old, [replyKey]: (old[replyKey] || 0) + 1 }));
         }
       }, 1800);
