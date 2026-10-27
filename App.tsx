@@ -5,19 +5,21 @@ import "./style.css";
 type Message = { id: string; author: string; text: string; time: string; own?: boolean };
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
 type Person = { name: string; online: boolean; status?: PresenceStatus; color: string; preview: string };
-type Channel = { id: string; name: string; description: string };
+type Server = { id: string; name: string; description: string };
+type Channel = { id: string; name: string; description: string; serverId?: string };
 type SavedState = {
   name: string; status: string; active: string; view: "channel" | "dm" | "friends" | "home";
-  channels: Channel[]; people: Person[]; messages: Record<string, Message[]>;
+  channels: Channel[]; servers?: Server[]; activeServer?: string; people: Person[]; messages: Record<string, Message[]>;
   accent: string; compact: boolean; unread?: Record<string, number>;
 };
 
 const KEY = "minedm.v2";
+const defaultServers: Server[] = [{ id: "block-buddies", name: "Block Buddies", description: "Community space" }];
 const defaultChannels: Channel[] = [
-  { id: "general", name: "general", description: "The place for everything" },
-  { id: "minecraft", name: "minecraft", description: "Minecraft chat and builds" },
-  { id: "screenshots", name: "screenshots", description: "Show off your latest builds" },
-  { id: "help", name: "help", description: "Ask the community" },
+  { id: "general", name: "general", description: "The place for everything", serverId: "block-buddies" },
+  { id: "minecraft", name: "minecraft", description: "Minecraft chat and builds", serverId: "block-buddies" },
+  { id: "screenshots", name: "screenshots", description: "Show off your latest builds", serverId: "block-buddies" },
+  { id: "help", name: "help", description: "Ask the community", serverId: "block-buddies" },
 ];
 const defaultPeople: Person[] = [
   { name: "Alex", online: true, color: "green", preview: "That castle looks awesome" },
@@ -85,7 +87,9 @@ function App() {
   const [showLanding, setShowLanding] = useState(path !== "/app" && path !== "/app/" && path !== "/dms" && path !== "/dms/");
   const [name, setName] = useState(saved?.name || "CraftyBuilder");
   const [status, setStatus] = useState(saved?.status || "Online");
-  const [channels, setChannels] = useState<Channel[]>(saved?.channels?.length ? saved.channels : defaultChannels);
+  const [servers, setServers] = useState<Server[]>(saved?.servers?.length ? saved.servers : defaultServers);
+  const [activeServer, setActiveServer] = useState(saved?.activeServer || "block-buddies");
+  const [channels, setChannels] = useState<Channel[]>(saved?.channels?.length ? saved.channels.map(c => ({ ...c, serverId: c.serverId || "block-buddies" })) : defaultChannels);
   const [people, setPeople] = useState<Person[]>(saved?.people?.length ? saved.people : defaultPeople);
   const [messages, setMessages] = useState<Record<string, Message[]>>({ ...initialMessages, ...(saved?.messages || {}) });
   const [active, setActive] = useState(saved?.active || "general");
@@ -103,19 +107,21 @@ function App() {
   const [filter, setFilter] = useState<"all" | "online">("all");
 
   useEffect(() => {
-    try { localStorage.setItem(KEY, JSON.stringify({ name, status, active, view, channels, people, messages, accent, compact, unread } satisfies SavedState)); } catch { /* browser storage may be disabled */ }
-  }, [name, status, active, view, channels, people, messages, accent, compact, unread]);
+    try { localStorage.setItem(KEY, JSON.stringify({ name, status, active, view, channels, servers, activeServer, people, messages, accent, compact, unread } satisfies SavedState)); } catch { /* browser storage may be disabled */ }
+  }, [name, status, active, view, channels, servers, activeServer, people, messages, accent, compact, unread]);
   useEffect(() => { document.documentElement.style.setProperty("--accent", accent); }, [accent]);
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(""), 2400); return () => window.clearTimeout(t); }, [toast]);
 
-  const activeChannel = channels.find(c => c.id === active) || channels[0];
+  const currentServer = servers.find(s => s.id === activeServer) || servers[0];
+  const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
+  const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
   const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
   const activeKeyRef = useRef(activeKey);
   useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const filteredPeople = useMemo(() => people.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || p.online)), [people, search, filter]);
-  const filteredChannels = channels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredChannels = serverChannels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
   function notify(text: string) { setToast(text); }
   function openApp() { window.history.pushState({}, "", "/app"); setShowLanding(false); setView("channel"); setActive(channels[0]?.id || "general"); }
@@ -149,7 +155,7 @@ function App() {
     let persisted = false;
     try {
       localStorage.setItem(KEY, JSON.stringify({
-        name, status, active, view, channels, people, messages: nextMessages, accent, compact, unread,
+        name, status, active, view, channels, servers, activeServer, people, messages: nextMessages, accent, compact, unread,
       } satisfies SavedState));
       persisted = true;
     } catch {
@@ -195,16 +201,43 @@ function App() {
     e.preventDefault(); const value = modalInput.trim(); if (!value) return;
     if (modal === "dm") { openDM(value); notify("Conversation created locally."); }
     if (modal === "channel") {
-      const id = value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-      if (!id) return;
-      if (channels.some(c => c.id === id)) { notify("That channel already exists."); return; }
-      const channel = { id, name: id, description: "A new community channel" };
+      const channelName = value.toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      if (!channelName) return;
+      if (serverChannels.some(c => c.name === channelName)) { notify("That channel already exists in this server."); return; }
+      const id = activeServer + "-" + channelName + "-" + Date.now().toString(36);
+      const channel = { id, name: channelName, description: "A new community channel", serverId: activeServer };
       setChannels(old => [...old, channel]); setMessages(old => ({ ...old, [id]: [] })); setActive(id); setView("channel"); setShowLanding(false); notify("Channel created locally.");
     }
     setModal(null); setModalInput("");
   }
   function switchToDMHome() { setView("home"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); }
-  function switchToServer() { setView("channel"); setActive(channels[0]?.id || "general"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
+  function switchToServer(server: Server = currentServer) { setActiveServer(server.id); setActive(channels.find(c => (c.serverId || "block-buddies") === server.id)?.id || ""); setView("channel"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
+  function manageServer() {
+    if (!currentServer) return;
+    const next = window.prompt("Server name", currentServer.name)?.trim();
+    if (next) { setServers(old => old.map(s => s.id === currentServer.id ? { ...s, name: next } : s)); notify("Server renamed in this browser."); }
+  }
+  function manageChannel(channel: Channel) {
+    const action = window.prompt("Type rename to rename this channel, or delete to remove it.", "rename");
+    if (action?.toLowerCase() === "rename") {
+      const next = window.prompt("Channel name", channel.name)?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
+      if (next) { setChannels(old => old.map(c => c.id === channel.id ? { ...c, name: next } : c)); notify("Channel renamed in this browser."); }
+    } else if (action?.toLowerCase() === "delete") {
+      if (serverChannels.length <= 1) { notify("Each server must keep at least one channel."); return; }
+      if (window.confirm("Delete this channel and its local messages?")) {
+        setChannels(old => old.filter(c => c.id !== channel.id)); setMessages(old => { const next = { ...old }; delete next[channel.id]; delete next[keyFor("channel", channel.id)]; return next; });
+        if (active === channel.id) setActive(serverChannels.find(c => c.id !== channel.id)?.id || ""); notify("Channel deleted in this browser.");
+      }
+    }
+  }
+  function createServer() {
+    const value = window.prompt("Name your new server")?.trim(); if (!value) return;
+    if (servers.some(s => s.name.toLowerCase() === value.toLowerCase())) { notify("A server with that name already exists."); return; }
+    const id = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
+    const server = { id, name: value, description: "Your community" };
+    const channel = { id: id + "-general", name: "general", description: "The place for everything", serverId: id };
+    setServers(old => [...old, server]); setChannels(old => [...old, channel]); setMessages(old => ({ ...old, [channel.id]: [] })); setActiveServer(id); setActive(channel.id); setView("channel"); setShowLanding(false); setSidebarOpen(false); notify("Server created in this browser.");
+  }
   function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToChannel(channel: Channel) { openChannel(channel); window.history.pushState({}, "", "/app"); }
   function deleteCurrentDM() {
