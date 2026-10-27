@@ -1,12 +1,7 @@
 /* MineDM profile cards: browser-only demo interaction */
+import "./profile-card.css";
+
 (() => {
-  const styleLink = document.querySelector('link[href="/profile-card.css"]');
-  if (!styleLink) {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "/profile-card.css";
-    document.head.appendChild(link);
-  }
 
   const initials = (name) => String(name || "?").trim().split(/\s+/).map(part => part[0]).join("").slice(0, 2).toUpperCase() || "?";
   const escapeHtml = (value) => String(value).replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
