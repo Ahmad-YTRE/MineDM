@@ -29,7 +29,7 @@ import "./profile-card.css";
     <div class="profile-banner"><button class="profile-close" type="button" aria-label="Close profile card">×</button></div>
     <div class="profile-main">
       <div class="profile-topline">
-        <div class="profile-avatar-wrap"><div class="profile-avatar" data-profile-avatar>?</div></div>
+        <div class="profile-avatar-wrap"><div class="profile-avatar" data-profile-avatar><svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"></use></svg></div></div>
         <div class="profile-status" data-status="offline"><span class="profile-status-dot"></span><span data-profile-status>Offline</span></div>
       </div>
       <div class="profile-identity">
@@ -104,7 +104,7 @@ import "./profile-card.css";
     activeName = String(name || "User").trim().slice(0, 48);
     const status = statusFrom(anchor);
     nameEl.textContent = activeName;
-    avatarEl.textContent = initials(activeName);
+    avatarEl.innerHTML = '<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"></use></svg>';
     handleEl.textContent = "@" + activeName.replace(/\s+/g, "").toLowerCase() + " · MineDM member";
     statusEl.dataset.status = status;
     statusText.textContent = status === "do not disturb" ? "Do not disturb" : status[0].toUpperCase() + status.slice(1);
