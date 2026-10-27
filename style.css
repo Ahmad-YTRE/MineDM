@@ -347,3 +347,20 @@ button.member-entry { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .message-actions { transition: none; }
 }
+
+
+/* People are circular; server and app icons remain rounded-square */
+.dm-item .avatar,
+.friend-card .avatar,
+.message-avatar,
+.member-avatar { border-radius: 50%; }
+.message-row-actionable {
+  margin: -5px -8px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  transition: background-color .14s ease;
+}
+.message-row-actionable:hover { background: #ffffff05; }
+@media (prefers-reduced-motion: reduce) {
+  .message-row-actionable { transition: none; }
+}
