@@ -1,6 +1,9 @@
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import type { Session } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
+import { AuthScreen } from "./AuthScreen";
 import { Icon } from "./icons.filename";
 
 type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: string[]; replyTo?: { author: string; text: string } };
