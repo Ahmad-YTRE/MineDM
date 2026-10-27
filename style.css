@@ -144,3 +144,41 @@ button,input,select{max-width:100%}
 .channel-settings{width:25px;height:30px;flex-shrink:0;opacity:0;pointer-events:none;transition:opacity .14s ease,background .14s ease,color .14s ease}
 .channel-row:hover .channel-settings,.channel-row:focus-within .channel-settings{opacity:1;pointer-events:auto}
 @media(hover:none){.channel-settings{opacity:1;pointer-events:auto}}
+
+
+/* Shared icon library: animations play on interaction, not continuously. */
+@keyframes icon-slide-left{to{transform:translateX(-3px)}}
+@keyframes icon-slide-right{to{transform:translateX(3px)}}
+@keyframes icon-wiggle{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg)}70%{transform:rotate(8deg)}}
+@keyframes icon-shake{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-2px) rotate(-4deg)}75%{transform:translateX(2px) rotate(4deg)}}
+@keyframes icon-pop{0%{transform:scale(.85)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+@keyframes icon-tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-12deg)}}
+@keyframes icon-hop{0%,100%{transform:translateY(0)}45%{transform:translateY(-4px)}70%{transform:translateY(1px)}}
+@keyframes icon-spin{to{transform:rotate(360deg)}}
+@keyframes icon-bounce-spin{0%{transform:rotate(0) scale(1)}65%{transform:rotate(200deg) scale(1.15)}100%{transform:rotate(360deg) scale(1)}}
+@keyframes icon-launch{0%{transform:translateY(0)}65%{transform:translateY(-6px)}100%{transform:translateY(-3px)}}
+@keyframes icon-beat{0%,100%{transform:scale(1)}25%{transform:scale(1.2)}45%{transform:scale(1)}65%{transform:scale(1.12)}}
+@keyframes icon-magnify{to{transform:scale(1.12)}}
+@keyframes icon-wave{0%,100%{transform:rotate(0)}30%{transform:rotate(10deg)}60%{transform:rotate(-7deg)}}
+@keyframes icon-ring{0%,100%{transform:rotate(0)}20%{transform:rotate(12deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-6deg)}}
+@keyframes icon-slide-down{to{transform:translateY(3px)}}
+@keyframes icon-slide-up{to{transform:translateY(-3px)}}
+.ui-icon{transform-origin:50% 50%}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-slide-left{animation:icon-slide-left .25s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-slide-right{animation:icon-slide-right .25s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-wiggle{animation:icon-wiggle .38s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-shake{animation:icon-shake .36s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-pop{animation:icon-pop .28s cubic-bezier(.2,.8,.2,1)}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-tilt{animation:icon-tilt .32s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-hop{animation:icon-hop .38s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-spin{animation:icon-spin .48s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-bounce-spin{animation:icon-bounce-spin .45s cubic-bezier(.2,.8,.2,1)}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-launch{animation:icon-launch .36s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-beat{animation:icon-beat .4s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-magnify{animation:icon-magnify .25s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-wave{animation:icon-wave .4s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-ring{animation:icon-ring .45s ease-in-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-slide-down{animation:icon-slide-down .25s ease-out}
+:is(button,a,.nav-item,.side-link,.dm-item,.feature-icon,.topbar-title,.icon-btn,.server-icon,.side-heading,.workspace-head,.user-bar,.attach-btn,.send-btn):hover>.ui-icon.icon-motion-slide-up{animation:icon-slide-up .25s ease-out}
+@media(hover:none){.ui-icon[class*="icon-motion-"]{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.ui-icon[class*="icon-motion-"]{animation:none!important}}
