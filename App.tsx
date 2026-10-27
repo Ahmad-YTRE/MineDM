@@ -149,6 +149,8 @@ function App({ session }: { session: Session }) {
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(""), 2400); return () => window.clearTimeout(t); }, [toast]);
 
   const currentServer = servers.find(s => s.id === activeServer) || servers[0];
+  const serverMemberIds = serverMembersByServer[activeServer] || [];
+  const canManageServer = currentServer?.role === "owner" || currentServer?.role === "admin";
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
