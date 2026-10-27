@@ -366,49 +366,22 @@ button.member-entry { cursor: pointer; }
 }
 
 
-/* Discord-style account controls live beside the username at the bottom of the sidebar. */
-.user-bar { gap: 7px; padding: 10px 9px; }
-.user-bar > .avatar { flex: 0 0 32px; }
-.user-label { flex: 1 1 auto; }
-.user-voice-controls {
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  flex: 0 0 auto;
-}
-.user-voice-controls .icon-btn {
-  width: 27px;
-  height: 30px;
-  min-width: 27px;
-  padding: 0;
-  border-radius: 6px;
-}
-.user-voice-controls .voice-toggle[aria-pressed="true"] {
-  color: #9aa8bc;
-  background: transparent;
-  border-color: transparent;
-}
-.user-voice-controls .voice-toggle[aria-pressed="true"]:hover {
-  color: #f1f5fb;
-  background: #ffffff0d;
-}
-.user-voice-controls .voice-toggle[aria-pressed="true"].voice-connected {
-  color: #5eead4;
-  background: #5eead410;
-}
-.user-voice-controls .voice-toggle[aria-pressed="false"] {
-  color: #ef7777;
-  background: #ef444410;
-  border-color: #ef444420;
-}
-.user-voice-controls .icon-btn[title="User settings"] { color: #9aa8bc; }
-.user-voice-controls .icon-btn[title="User settings"]:hover { color: #f1f5fb; }
-@media (max-width: 1150px) {
-  .user-bar { flex-wrap: wrap; }
-  .user-voice-controls { margin-left: 39px; }
-}
+/* Discord-style account controls: username/settings on top, voice controls directly below. */
+.user-bar { align-items: flex-start; gap: 9px; padding: 10px 9px; }
+.user-bar > .avatar { flex: 0 0 32px; margin-top: 2px; }
+.user-account { flex: 1 1 auto; min-width: 0; }
+.user-account-top { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.user-account-top .user-label { flex: 1 1 auto; min-width: 0; }
+.user-account-top .user-settings { flex: 0 0 28px; width: 28px; height: 28px; color: #9aa8bc; }
+.user-account-top .user-settings:hover { color: #f1f5fb; }
+.user-voice-controls { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
+.user-voice-controls .icon-btn { width: 29px; height: 27px; min-width: 29px; padding: 0; border-radius: 6px; }
+.user-voice-controls .voice-toggle[aria-pressed="true"] { color: #9aa8bc; background: transparent; border-color: transparent; }
+.user-voice-controls .voice-toggle[aria-pressed="true"]:hover { color: #f1f5fb; background: #ffffff0d; }
+.user-voice-controls .voice-toggle[aria-pressed="true"].voice-connected { color: #5eead4; background: #5eead410; }
+.user-voice-controls .voice-toggle[aria-pressed="false"] { color: #ef7777; background: #ef444410; border-color: #ef444420; }
 @media (max-width: 650px) {
-  .user-bar { flex-wrap: nowrap; }
-  .user-voice-controls { margin-left: 0; }
-  .user-voice-controls .icon-btn { width: 25px; min-width: 25px; }
+  .user-bar { gap: 7px; padding-inline: 7px; }
+  .user-voice-controls { gap: 1px; }
+  .user-voice-controls .icon-btn { width: 27px; min-width: 27px; }
 }
