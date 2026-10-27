@@ -373,6 +373,21 @@ function Root() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
-  return <App/>;
+  const [session, setSession] = useState<Session | null>(null);
+  const [authReady, setAuthReady] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (mounted) { setSession(data.session); setAuthReady(true); }
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setAuthReady(true);
+    });
+    return () => { mounted = false; subscription.unsubscribe(); };
+  }, []);
+  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to MineDM…</main>;
+  if (!session) return <AuthScreen />;
+  return <App session={session}/>;
 }
 createRoot(document.getElementById("root")!).render(<React.StrictMode><Root/></React.StrictMode>);
