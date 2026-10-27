@@ -217,7 +217,7 @@ function App({ session }: { session: Session }) {
     setActive(personName); setView("dm"); setTypingPerson(null); setShowLanding(false); setSidebarOpen(false); setUnread(old => ({ ...old, [keyFor("dm", personName)]: 0 })); window.history.pushState({}, "", "/dms"); setModal(null);
   }
   function openChannel(channel: Channel) { setTypingPerson(null); setActive(channel.id); setView("channel"); setUnread(old => ({ ...old, [keyFor("channel", channel.id)]: 0 })); setSidebarOpen(false); }
-  function sendMessage(e: FormEvent) {
+  async function sendMessage(e: FormEvent) {
     e.preventDefault();
     const text = draft.trim();
     if (!text) return;
@@ -232,6 +232,25 @@ function App({ session }: { session: Session }) {
       own: true,
       ...(replyingTo ? { replyTo: { author: replyingTo.author, text: replyingTo.text } } : {}),
     };
+    if (view === "channel") {
+      const { data, error } = await supabase.from("channel_messages").insert({
+        channel_id: active, author_id: session.user.id, author_name: name, body: text,
+        reply_to: replyingTo ? { author: replyingTo.author, text: replyingTo.text } : null,
+      }).select("id, author_id, author_name, body, created_at, reply_to").single();
+      if (error) { notify("Message not sent: " + error.message); return; }
+      const savedMessage: Message = {
+        id: data.id, author: data.author_name, text: data.body,
+        time: new Date(data.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        own: data.author_id === session.user.id,
+        ...(data.reply_to ? { replyTo: data.reply_to as { author: string; text: string } } : {}),
+      };
+      setMessages(old => {
+        const list = old[keyFor("channel", active)] || [];
+        const next = list.some(message => message.id === savedMessage.id) ? list : [...list, savedMessage];
+        return { ...old, [keyFor("channel", active)]: next, [active]: next };
+      });
+      setDraft(""); setReplyingTo(null); notify("Message sent to the shared channel."); return;
+    }
     const nextMessages = {
       ...messages,
       [activeKey]: [...(messages[activeKey] || messages[active] || []), item],
