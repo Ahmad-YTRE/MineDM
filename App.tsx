@@ -169,6 +169,24 @@ function App({ session }: { session: Session }) {
   const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
   const activeKeyRef = useRef(activeKey);
   useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
+  useEffect(() => {
+    if (view !== "channel" || !active) return;
+    let cancelled = false;
+    supabase.from("channel_messages").select("id, author_id, author_name, body, created_at, reply_to")
+      .eq("channel_id", active).order("created_at", { ascending: true }).limit(200)
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) { notify("Could not load shared messages: " + error.message); return; }
+        const rows = (data || []).map(row => ({
+          id: row.id, author: row.author_name, text: row.body,
+          time: new Date(row.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+          own: row.author_id === session.user.id,
+          ...(row.reply_to ? { replyTo: row.reply_to as { author: string; text: string } } : {}),
+        } satisfies Message));
+        setMessages(old => ({ ...old, [keyFor("channel", active)]: rows, [active]: rows }));
+      });
+    return () => { cancelled = true; };
+  }, [active, view, session.user.id]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const visibleMessages = search.trim() && (view === "channel" || view === "dm")
     ? currentMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
