@@ -110,7 +110,9 @@ function App() {
 
   const activeChannel = channels.find(c => c.id === active) || channels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
-  const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);\n  const activeKeyRef = useRef(activeKey);\n  useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
+  const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
+  const activeKeyRef = useRef(activeKey);
+  useEffect(() => { activeKeyRef.current = activeKey; }, [activeKey]);
   const currentMessages = messages[activeKey] || messages[active] || [];
   const filteredPeople = useMemo(() => people.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || p.online)), [people, search, filter]);
   const filteredChannels = channels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
