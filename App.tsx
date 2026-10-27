@@ -1,6 +1,7 @@
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { Icon } from "./icons.filename";
 
 type Message = { id: string; author: string; text: string; time: string; own?: boolean };
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
@@ -47,37 +48,6 @@ const saved = typeof window !== "undefined" ? readSaved() : null;
 function initials(name: string) { return name.trim().split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase() || "??"; }
 function timeNow() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
-
-const iconPaths: Record<string, React.ReactNode> = {
-  pickaxe: <><path d="M3.5 7.5 11 4l9.5 4.5-3 2.2-6.3-2.9-4.6 3z"/><path d="m10.7 8.1-5.2 12.6M13.1 12l4.6 8.5"/></>,
-  tree: <><path d="m12 3-5 7h3l-4 6h12l-4-6h3z"/><path d="M12 16v5"/></>,
-  flask: <><path d="M9 3h6"/><path d="M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M8 15h8"/></>,
-  plus: <><path d="M12 5v14M5 12h14"/></>,
-  settings: <><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></>,
-  search: <><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 4.5 4.5"/></>,
-  users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.9M16 3.2a4 4 0 0 1 0 7.6"/></>,
-  inbox: <><path d="M4 4.5h16v15H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></>,
-  menu: <><path d="M4 6h16M4 12h16M4 18h16"/></>,
-  send: <><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></>,
-  paperclip: <><path d="m21 11.5-8.5 8.5a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></>,
-  sparkles: <><path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-2-5.8L4 11l6-2.2z"/><path d="m19 14 1.1 2.9L23 18l-2.9 1.1L19 22l-1.1-2.9L15 18l2.9-1.1z"/></>,
-  message: <><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></>,
-  zap: <><path d="m13 2-3 9h7l-6 11 1-9H5z"/></>,
-  mic: <><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v4M8 22h8"/></>,
-  micOff: <><path d="m2 2 20 20"/><path d="M9 9v2a3 3 0 0 0 5.1 2.1M15 9.3V5a3 3 0 0 0-5.8-1M5 10v1a7 7 0 0 0 12 4.9M12 18v4M8 22h8"/></>,
-  headphones: <><path d="M3 14v-3a9 9 0 0 1 18 0v3"/><rect x="3" y="13" width="4" height="7" rx="2"/><rect x="17" y="13" width="4" height="7" rx="2"/></>,
-  headphonesOff: <><path d="m3 3 18 18"/><path d="M3 14v-3a9 9 0 0 1 15.5-6.2M21 14v-3a8.9 8.9 0 0 0-1.1-4.3"/><path d="M3 13h2v7H3zM19 13h2v7h-2z"/></>,
-  voice: <><path d="M2 10v4M6 6v12M10 3v18M14 8v8M18 5v14M22 10v4"/></>,
-  close: <><path d="m18 6-12 12M6 6l12 12"/></>,
-  arrowUpRight: <><path d="M7 17 17 7M7 7h10v10"/></>,
-  arrowRight: <><path d="M5 12h14M12 5l7 7-7 7"/></>,
-  hash: <><path d="M4 9h16M3 15h16M10 3 8 21M16 3l-2 18"/></>,
-  at: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M16 12v2a2 2 0 0 0 4 0v-2"/></>,
-};
-function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
-  const filledIcon = name === "settings";
-  return <svg className={`ui-icon icon-${name} ${className}`} width={size} height={size} viewBox="0 0 24 24" fill={filledIcon ? "currentColor" : "none"} stroke={filledIcon ? "none" : "currentColor"} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{iconPaths[name] || iconPaths.sparkles}</svg>;
-}
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
   return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use href="#logo-gem-bubble" /></svg></span>;
