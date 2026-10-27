@@ -110,6 +110,43 @@ function App() {
   useEffect(() => {
     try { localStorage.setItem(KEY, JSON.stringify({ name, status, active, view, channels, servers, activeServer, people, messages, accent, compact, unread } satisfies SavedState)); } catch { /* browser storage may be disabled */ }
   }, [name, status, active, view, channels, servers, activeServer, people, messages, accent, compact, unread]);
+  useEffect(() => {
+    const styleId = "minedm-micro-animations";
+    if (document.getElementById(styleId)) return;
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
+      @keyframes mdm-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes mdm-pop-in { 0% { opacity: 0; transform: translateY(7px) scale(.985); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes mdm-slide-up { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+      @keyframes mdm-soft-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent); } }
+      .landing-header, .hero .eyebrow, .hero h1, .hero > p, .hero-actions, .hero-note { animation: mdm-fade-up .55s cubic-bezier(.2,.7,.2,1) both; }
+      .hero h1 { animation-delay: .06s; } .hero > p { animation-delay: .12s; } .hero-actions { animation-delay: .18s; } .hero-note { animation-delay: .24s; }
+      .feature-grid article { transition: transform .22s ease, border-color .22s ease, background .22s ease; }
+      .feature-grid article:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 28%, transparent); background: #151e29; }
+      .btn, .icon-btn, .server-icon, .nav-item, .dm-item, .side-link, .filter-tabs button, .friend-card, .attach-btn, .send-btn { transition: transform .16s ease, color .16s ease, background-color .16s ease, border-color .16s ease, box-shadow .16s ease, filter .16s ease; }
+      .btn:active, .icon-btn:active, .server-icon:active, .nav-item:active, .dm-item:active, .side-link:active, .send-btn:active { transform: scale(.96); }
+      .server-icon:hover, .brand-mark:hover { transform: translateY(-2px); }
+      .nav-item:hover, .dm-item:hover, .side-link:hover { transform: translateX(2px); }
+      .icon-btn:hover, .attach-btn:hover { transform: scale(1.06); }
+      .send-btn:not(:disabled):hover { transform: translateY(-1px) scale(1.04); box-shadow: 0 5px 18px color-mix(in srgb, var(--accent) 28%, transparent); }
+      .message-row { animation: mdm-fade-up .24s ease-out both; }
+      .message-row:hover .message-avatar { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent); }
+      .composer { transition: border-color .2s ease, box-shadow .2s ease; }
+      .composer:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 7%, transparent); }
+      .modal-backdrop { animation: mdm-pop-in .18s ease-out both; }
+      .modal { animation: mdm-pop-in .22s cubic-bezier(.2,.8,.2,1) both; }
+      .toast { animation: mdm-slide-up .22s ease-out both; }
+      .pulse, .demo-pill i { animation: mdm-soft-pulse 2s ease-in-out infinite; }
+      .avatar { transition: transform .18s ease, box-shadow .18s ease; }
+      .friend-card:hover .avatar { transform: scale(1.05); }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => { document.getElementById(styleId)?.remove(); };
+  }, []);
   useEffect(() => { document.documentElement.style.setProperty("--accent", accent); }, [accent]);
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(""), 2400); return () => window.clearTimeout(t); }, [toast]);
 
