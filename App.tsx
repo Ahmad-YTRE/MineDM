@@ -53,7 +53,7 @@ const iconPaths: Record<string, React.ReactNode> = {
   tree: <><path d="m12 3-5 7h3l-4 6h12l-4-6h3z"/><path d="M12 16v5"/></>,
   flask: <><path d="M9 3h6"/><path d="M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M8 15h8"/></>,
   plus: <><path d="M12 5v14M5 12h14"/></>,
-  settings: <><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/></>,
+  settings: <><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.73 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.3-.06.62-.06.94s.02.64.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></>,
   search: <><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 4.5 4.5"/></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.9M16 3.2a4 4 0 0 1 0 7.6"/></>,
   inbox: <><path d="M4 4.5h16v15H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></>,
@@ -75,7 +75,8 @@ const iconPaths: Record<string, React.ReactNode> = {
   at: <><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M16 12v2a2 2 0 0 0 4 0v-2"/></>,
 };
 function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
-  return <svg className={`ui-icon icon-${name} ${className}`} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{iconPaths[name] || iconPaths.sparkles}</svg>;
+  const filledIcon = name === "settings";
+  return <svg className={`ui-icon icon-${name} ${className}`} width={size} height={size} viewBox="0 0 24 24" fill={filledIcon ? "currentColor" : "none"} stroke={filledIcon ? "none" : "currentColor"} strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">{iconPaths[name] || iconPaths.sparkles}</svg>;
 }
 
 function Landing({ openApp }: { openApp: () => void }) {
@@ -131,11 +132,11 @@ function App() {
       @keyframes mdm-icon-hop { 0%, 100% { transform: translateY(0); } 45% { transform: translateY(-4px); } 70% { transform: translateY(1px); } }
       @keyframes mdm-icon-nudge { 0%, 100% { transform: translateX(0); } 35% { transform: translateX(-2px); } 70% { transform: translateX(2px); } }
       @keyframes mdm-icon-wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-7deg); } 65% { transform: rotate(7deg); } }
-      @keyframes mdm-icon-spin { to { transform: rotate(360deg); } }
+      @keyframes mdm-icon-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       @keyframes mdm-icon-plus { 0% { transform: rotate(0) scale(1); } 60% { transform: rotate(100deg) scale(1.16); } 100% { transform: rotate(90deg) scale(1); } }
       @keyframes mdm-voice-ping { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
       @keyframes mdm-mic-wobble { 0%, 100% { transform: rotate(0); } 30% { transform: rotate(-8deg); } 70% { transform: rotate(8deg); } }
-      .icon-btn:hover .icon-settings, .workspace-head button:hover .icon-settings, .user-bar button:hover .icon-settings { animation: mdm-icon-spin .65s ease-in-out; }
+      .icon-btn:hover .icon-settings, .workspace-head button:hover .icon-settings, .user-bar button:hover .icon-settings { animation: mdm-icon-spin .9s cubic-bezier(.4, 0, .2, 1); }
       .server-icon:hover .icon-pickaxe, .server-icon:hover .icon-tree { animation: mdm-icon-hop .42s ease-out; }
       .server-icon.add:hover .icon-plus, .side-heading button:hover .icon-plus, .workspace-head button:hover .icon-plus { animation: mdm-icon-plus .4s cubic-bezier(.2,.8,.2,1); }
       .nav-item:hover .icon-hash { animation: mdm-icon-nudge .32s ease-in-out; }
