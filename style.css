@@ -60,3 +60,17 @@ button,input,select{max-width:100%}
   .friends-intro{padding:16px}
   .friends-intro h1{font-size:24px}
 }
+
+
+/* Consistent inline SVG icon styling */
+.ui-icon {
+  display: inline-block;
+  flex: 0 0 auto;
+  vertical-align: middle;
+}
+.feature-icon .ui-icon,
+.hero-note .ui-icon,
+.side-link .ui-icon,
+.title-symbol .ui-icon {
+  vertical-align: middle;
+}
