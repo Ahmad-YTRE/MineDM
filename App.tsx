@@ -49,14 +49,14 @@ function timeNow() { return new Date().toLocaleTimeString([], { hour: "2-digit",
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 
 const iconPaths: Record<string, React.ReactNode> = {
-  pickaxe: <><path d="m3 7 8-4 8 4-3 3-5-3-5 3z"/><path d="m10 8-5 13"/><path d="m12 11 5 10"/></>,
-  tree: <><path d="m12 3-5 8h3l-4 6h12l-4-6h3z"/><path d="M12 17v4"/></>,
+  pickaxe: <><path d="M3.5 7.5 11 4l9.5 4.5-3 2.2-6.3-2.9-4.6 3z"/><path d="m10.7 8.1-5.2 12.6M13.1 12l4.6 8.5"/></>,
+  tree: <><path d="m12 3-5 7h3l-4 6h12l-4-6h3z"/><path d="M12 16v5"/></>,
   flask: <><path d="M9 3h6"/><path d="M10 3v6l-5 9a2 2 0 0 0 2 3h10a2 2 0 0 0 2-3l-5-9V3"/><path d="M8 15h8"/></>,
   plus: <><path d="M12 5v14M5 12h14"/></>,
   settings: <><circle cx="12" cy="12" r="3"/><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.6a8 8 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8 8 0 0 1-1.7-1l-1.7.6-1.4-2.4 1.4-1.1a7 7 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.6a8 8 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8 8 0 0 1 1.7 1l1.7-.6 1.4 2.4-1.4 1.1a7 7 0 0 1 0 2z"/></>,
   search: <><circle cx="10.8" cy="10.8" r="6.5"/><path d="m16 16 4.5 4.5"/></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="10" cy="7" r="4"/><path d="M20 21v-2a4 4 0 0 0-3-3.9M16 3.2a4 4 0 0 1 0 7.6"/></>,
-  inbox: <><path d="M4 4h16v16H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></>,
+  inbox: <><path d="M4 4.5h16v15H4z"/><path d="M4 13h4l2 3h4l2-3h4"/></>,
   menu: <><path d="M4 6h16M4 12h16M4 18h16"/></>,
   send: <><path d="m22 2-7 20-4-9-9-4z"/><path d="M22 2 11 13"/></>,
   paperclip: <><path d="m21 11.5-8.5 8.5a5 5 0 0 1-7-7l9-9a3.5 3.5 0 0 1 5 5l-9 9a2 2 0 0 1-3-3l8-8"/></>,
