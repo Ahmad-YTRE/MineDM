@@ -205,6 +205,9 @@ function App({ session }: { session: Session }) {
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[session.user.id]);
   useEffect(()=>{
+    const channel=supabase.channel("minedm-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(view==="channel"&&active===row.channel_id))return;void(async()=>{const {data:readState,error:readError}=await supabase.from("channel_read_states").select("last_read_at").eq("user_id",session.user.id).eq("channel_id",row.channel_id).maybeSingle();if(readError||!readState)return;const {count,error}=await supabase.from("messages").select("id",{count:"exact",head:true}).eq("channel_id",row.channel_id).neq("author_id",session.user.id).gt("created_at",readState.last_read_at);if(!error)setUnread(old=>({...old,[keyFor("channel",row.channel_id!)]:count||0}));})();}).subscribe();return()=>{void supabase.removeChannel(channel);};
+  },[session.user.id,active,view]);
+  useEffect(()=>{
     if(typingTimeoutRef.current!==null)window.clearTimeout(typingTimeoutRef.current);
     const channel=supabase.channel("minedm-typing-"+activeKey);
     typingChannelRef.current=channel;
@@ -290,6 +293,7 @@ function App({ session }: { session: Session }) {
     const membersByServer:Record<string,string[]>={};for(const row of serverMemberRows){(membersByServer[row.server_id] ||= []).push(row.user_id);}setServerMembersByServer(membersByServer);
     setFriendRequests((friendships||[]).filter(row=>row.status==="pending"&&row.addressee_id===uid).map(row=>({id:row.id,requester_id:row.requester_id,addressee_id:row.addressee_id,name:profiles.find(p=>p.id===row.requester_id)?.username||"Player",avatarUrl:profiles.find(p=>p.id===row.requester_id)?.avatar_url||null})));
     setChannels(channelRows.map(row=>({id:row.id,serverId:row.server_id,name:row.name,description:row.description||""})));
+    if(channelRows.length){const channelIds=channelRows.map(row=>row.id);const {data:readRows,error:readError}=await supabase.from("channel_read_states").select("channel_id,last_read_at").eq("user_id",uid).in("channel_id",channelIds);if(readError)throw readError;const readMap:Record<string,string>={};for(const row of readRows||[])readMap[row.channel_id]=row.last_read_at;const missing=channelIds.filter(id=>!readMap[id]);if(missing.length){const now=new Date().toISOString();const {error:seedError}=await supabase.from("channel_read_states").upsert(missing.map(channel_id=>({user_id:uid,channel_id,last_read_at:now})),{onConflict:"user_id,channel_id"});if(seedError)throw seedError;for(const id of missing)readMap[id]=now;}const counts=await Promise.all(channelIds.map(async channelId=>{const {count,error}=await supabase.from("messages").select("id",{count:"exact",head:true}).eq("channel_id",channelId).neq("author_id",uid).gt("created_at",readMap[channelId]);if(error)throw error;return[keyFor("channel",channelId),count||0] as const;}));setUnread(old=>({...old,...Object.fromEntries(counts)}));}
     setPeople(profiles.map((p,i)=>({id:p.id,name:p.username||"Player",status:presenceByUser[p.id]||(p.status||"Offline") as PresenceStatus,online:Boolean(presenceByUser[p.id]&&presenceByUser[p.id]!=="Offline"),color:colors[i%colors.length],preview:"Start a conversation",avatarUrl:p.avatar_url||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
     setConversationIds(convMap);
     setActiveServer(prev=>serverIds.includes(prev)?prev:(serverRows[0]?.id||""));
@@ -340,7 +344,8 @@ function App({ session }: { session: Session }) {
     setActive(target.name);setView("dm");setTypingPerson(null);setShowLanding(false);setSidebarOpen(false);
     setUnread(old=>({...old,[keyFor("dm",target!.name)]:0}));const readAt=new Date().toISOString();void supabase.from("notifications").update({read_at:readAt}).eq("recipient_id",session.user.id).eq("entity_id",conversationId).is("read_at",null).then(({error})=>{if(!error)setNotifications(old=>old.map(n=>n.entity_id===conversationId&&!n.read_at?{...n,read_at:readAt}:n));});window.history.pushState({},"","/dms");setModal(null);
   }
-  function openChannel(channel:Channel){setTypingPerson(null);setActive(channel.id);setView("channel");setUnread(old=>({...old,[keyFor("channel",channel.id)]:0}));setSidebarOpen(false);}
+  async function markChannelRead(channelId:string){const readAt=new Date().toISOString();const {error}=await supabase.from("channel_read_states").upsert({user_id:session.user.id,channel_id:channelId,last_read_at:readAt},{onConflict:"user_id,channel_id"});if(error){notify("Unable to mark channel as read: "+error.message);return;}setUnread(old=>({...old,[keyFor("channel",channelId)]:0}));}
+  function openChannel(channel:Channel){setTypingPerson(null);setActive(channel.id);setView("channel");void markChannelRead(channel.id);setSidebarOpen(false);}
   async function sendMessage(e:FormEvent){
     e.preventDefault();const body=draft.trim();if(!body)return;
     if(view==="channel"&&!activeChannel){notify("Create a server and channel before sending messages.");return;}
@@ -410,7 +415,7 @@ function App({ session }: { session: Session }) {
     setPendingDelete(null);setModal(null);
   }
   function switchToDMHome(){setView("home");setShowLanding(false);setSidebarOpen(false);window.history.pushState({},"","/dms");}
-  function switchToServer(server?:Server){const target=server||currentServer;if(!target)return;setActiveServer(target.id);setActive(channels.find(c=>c.serverId===target.id)?.id||"");setView("channel");setShowLanding(false);setSidebarOpen(false);window.history.pushState({},"","/app");}
+  function switchToServer(server?:Server){const target=server||currentServer;if(!target)return;const targetChannel=channels.find(c=>c.serverId===target.id);setActiveServer(target.id);setActive(targetChannel?.id||"");setView("channel");if(targetChannel)void markChannelRead(targetChannel.id);setShowLanding(false);setSidebarOpen(false);window.history.pushState({},"","/app");}
 
   function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToChannel(channel: Channel) { openChannel(channel); window.history.pushState({}, "", "/app"); }
