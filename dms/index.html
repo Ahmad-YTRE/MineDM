@@ -6,9 +6,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0c10">
 <title>Direct Messages — MineDM</title>
-<link rel="icon" type="image/png" href="/favicon.png?v=5">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%235eead4' fill-rule='evenodd' clip-rule='evenodd' d='M6.5 2.25 H17.5 A4.25 4.25 0 0 1 21.75 6.5 V13.5 A4.25 4.25 0 0 1 17.5 17.75 H10.75 L6 22.25 V17.75 H6.5 A4.25 4.25 0 0 1 2.25 13.5 V6.5 A4.25 4.25 0 0 1 6.5 2.25 Z M12 5.75 L16.25 10 L12 14.25 L7.75 10 Z'/%3E%3C/svg%3E">
   <style>
 :root {
+  --mdm-teal: #5eead4;
+  --mdm-sky: #38bdf8;
+  --mdm-indigo: #818cf8;
+  --mdm-gold: #facc15;
   --rail: #090a0e;
   --sidebar: #11151c;
   --main: #0b0c10;
@@ -78,14 +82,68 @@ svg {
   transition: background .2s, border-radius .2s, color .2s;
 }
 .rail-logo {
-  background: linear-gradient(135deg,var(--cyan),var(--blue));
-  color: #071014;
-  box-shadow: 0 0 18px #00f2fe26;
+  background: transparent;
+  color: var(--mdm-teal);
+  box-shadow: none;
 }
-.rail-logo:hover {
-  background: linear-gradient(135deg,var(--blue),var(--cyan));
-  color: #071014;
+.rail-logo:hover { background: transparent; color: var(--mdm-teal); }
+
+.logo-mark {
+  --logo-size: 40px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  color: var(--mdm-teal);
+  flex: none;
 }
+.logo-mark svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+  stroke: none;
+  transition: transform 450ms cubic-bezier(.2,.8,.2,1), filter 450ms ease;
+  filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%));
+}
+.logo-mark:hover svg {
+  transform: rotate(-8deg) scale(1.06);
+  filter: drop-shadow(0 0 14px rgb(94 234 212 / 70%));
+}
+.logo-mark::after {
+  content: "";
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 45%, rgb(255 255 255 / 85%), transparent 45%);
+  opacity: 0;
+  transform: scale(.4);
+  pointer-events: none;
+}
+.logo-mark:hover::after {
+  animation: mdm-logo-sparkle 700ms ease-out;
+}
+@keyframes mdm-logo-sparkle {
+  0% { opacity: 0; transform: scale(.4); }
+  35% { opacity: .9; transform: scale(.95); }
+  100% { opacity: 0; transform: scale(1.45); }
+}
+.logo-mark.is-hero svg {
+  animation: mdm-logo-breathe 4.5s ease-in-out infinite;
+}
+@keyframes mdm-logo-breathe {
+  0%, 100% { filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%)); }
+  50% { filter: drop-shadow(0 0 16px rgb(94 234 212 / 65%)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-mark svg,
+  .logo-mark::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 .server:hover, .server.active {
   border-color: #00f2fe55;
   border-radius: 11px;
@@ -536,7 +594,20 @@ svg {
 </style>
 </head>
 <body>
-<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <symbol id="logo-gem-bubble" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="
+      M6.5 2.25 H17.5
+      A4.25 4.25 0 0 1 21.75 6.5
+      V13.5
+      A4.25 4.25 0 0 1 17.5 17.75
+      H10.75 L6 22.25 V17.75 H6.5
+      A4.25 4.25 0 0 1 2.25 13.5
+      V6.5
+      A4.25 4.25 0 0 1 6.5 2.25 Z
+      M12 5.75 L16.25 10 L12 14.25 L7.75 10 Z
+    "/>
+  </symbol>
   <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></symbol>
   <symbol id="i-friends" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2M9.5 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM17 3.2a4 4 0 0 1 0 7.6M21 21v-2a4 4 0 0 0-3-3.9"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
@@ -553,7 +624,7 @@ svg {
 
 <div class="app">
   <aside class="rail" aria-label="Servers">
-    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main MineDM app">M</a>
+    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main MineDM app"><span class="logo-mark" style="--logo-size: 28px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></a>
     <div class="rail-divider"></div>
     <button class="server active" title="Block Buddies">⛏</button>
     <button class="server" title="Survival Squad">🌲</button>
@@ -647,7 +718,7 @@ svg {
       <aside class="profile-panel" id="profilePanel">
         <div class="profile-banner"></div>
         <div class="profile-card">
-          <div class="profile-large-avatar" id="largeAvatar">M</div>
+          <div class="profile-large-avatar" id="largeAvatar"><span class="logo-mark" style="--logo-size: 58px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></div>
           <h3>MineDM</h3>
           <p class="username">Your Minecraft community</p>
           <hr>
