@@ -153,9 +153,9 @@
     if (card.contains(target)) return;
     const clicked = getClickableName(target);
     if (clicked) {
-      event.preventDefault();
-      event.stopPropagation();
-      if (!card.hidden && activeName.toLowerCase() === clicked.name.toLowerCase() && card.contains(document.activeElement)) {
+      // Keep React's delegated click handlers working. Profile cards should open
+      // without cancelling the DM-row / other app interactions.
+      if (!card.hidden && activeName.toLowerCase() === clicked.name.toLowerCase()) {
         closeCard();
       } else {
         openCard(clicked.anchor, clicked.name);
@@ -163,7 +163,7 @@
       return;
     }
     if (!card.hidden) closeCard();
-  }, true);
+  });
 
   card.querySelector(".profile-close").addEventListener("click", closeCard);
   card.querySelector(".profile-message").addEventListener("click", () => {
