@@ -33,7 +33,7 @@ import "./profile-card.css";
         <div class="profile-status" data-status="offline"><span class="profile-status-dot"></span><span data-profile-status>Offline</span></div>
       </div>
       <div class="profile-identity">
-        <div class="profile-name-line"><h2 class="profile-name" data-profile-name>User</h2><span class="profile-badge" aria-label="MineDM community member" title="MineDM community member">✦</span></div>
+        <div class="profile-name-line"><h2 class="profile-name" data-profile-name>User</h2><span class="profile-badge" tabindex="0" aria-label="MineDM community member" title="MineDM community member" data-tooltip="MineDM community member">✦</span></div>
         <div class="profile-handle" data-profile-handle>@user · MineDM member</div>
       </div>
       <div class="profile-divider"></div>
@@ -41,7 +41,7 @@ import "./profile-card.css";
       <div class="profile-divider"></div>
       <section><h3 class="profile-section-label">Member</h3><div class="profile-member"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span>MineDM community</span></div></section>
       <div class="profile-divider"></div>
-      <section><h3 class="profile-section-label">Mutual spaces</h3><div class="profile-mutuals"><span class="profile-mutual-dot">M</span><span class="profile-mutual-dot">C</span><span class="profile-mutual-dot">D</span><span class="profile-mutual-caption">MineDM demo spaces</span></div></section>
+      <section><h3 class="profile-section-label">Mutual spaces</h3><div class="profile-mutuals"><span class="profile-mutual-dot" tabindex="0" title="MineDM" data-tooltip="MineDM">M</span><span class="profile-mutual-dot" tabindex="0" title="Community Hub" data-tooltip="Community Hub">C</span><span class="profile-mutual-dot" tabindex="0" title="Dev Space" data-tooltip="Dev Space">D</span><span class="profile-mutual-caption">MineDM demo spaces</span></div></section>
       <div class="profile-actions">
         <button class="profile-message" type="button" data-action="message"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8A8.5 8.5 0 0 1 8.7 3.9a8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg>Message</button>
         <div class="profile-more-wrap">
@@ -95,17 +95,10 @@ import "./profile-card.css";
     card.hidden = true;
     document.querySelectorAll(".profile-trigger").forEach(el => el.classList.remove("profile-trigger"));
   };
-  const positionCard = (anchor) => {
-    const rect = anchor.getBoundingClientRect();
-    const width = Math.min(340, window.innerWidth - 24);
-    const height = Math.min(card.offsetHeight || 500, window.innerHeight - 24);
-    let left = rect.left + rect.width / 2 - width / 2;
-    left = Math.max(12, Math.min(left, window.innerWidth - width - 12));
-    let top = rect.bottom + 10;
-    if (top + height > window.innerHeight - 12) top = rect.top - height - 10;
-    top = Math.max(12, Math.min(top, window.innerHeight - height - 12));
-    card.style.left = left + "px";
-    card.style.top = top + "px";
+  // CSS keeps the profile card centered in the viewport.
+  const positionCard = () => {
+    card.style.left = "50%";
+    card.style.top = "50%";
   };
   const openCard = (anchor, name) => {
     activeName = String(name || "User").trim().slice(0, 48);
