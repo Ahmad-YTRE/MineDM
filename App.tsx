@@ -65,10 +65,10 @@ function Landing({ openApp }: { openApp: () => void }) {
   </div>;
 }
 
-function App() {
+function App({ session }: { session: Session }) {
   const path = window.location.pathname;
   const [showLanding, setShowLanding] = useState(path !== "/app" && path !== "/app/" && path !== "/dms" && path !== "/dms/");
-  const [name, setName] = useState(saved?.name || "CraftyBuilder");
+  const [name, setName] = useState(saved?.name || String(session.user.user_metadata?.username || session.user.email?.split("@")[0] || "Player"));
   const [status, setStatus] = useState(saved?.status || "Online");
   const [servers, setServers] = useState<Server[]>(saved?.servers?.length ? saved.servers : defaultServers);
   const [activeServer, setActiveServer] = useState(saved?.activeServer || "block-buddies");
