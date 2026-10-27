@@ -238,7 +238,7 @@ function App({ session }: { session: Session }) {
     const displayName=name.trim().replace(/\s+/g," ");
     if(displayName.length<2){notify("Your display name must be at least 2 characters.");return;}
     const {error}=await supabase.from("profiles").update({username:displayName,status,avatar_url:avatarUrl}).eq("id",session.user.id);
-    if(error){notify("Couldn't save your profile: "+error.message);return;}
+    if(error){if(error.code==="23505"||error.message.includes("profiles_username_lower_unique")){notify("That display name is already taken. Please choose another.");return;}notify("Couldn't save your profile: "+error.message);return;}
     setName(displayName);setModal(null);notify("Profile saved.");
   }
   async function uploadAvatar(file:File|null){
