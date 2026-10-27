@@ -96,7 +96,8 @@ function App() {
   const [view, setView] = useState<"channel" | "dm" | "friends" | "home">(path.startsWith("/dms") ? "home" : saved?.view || "channel");
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
-  const [modal, setModal] = useState<"dm" | "channel" | "settings" | "inbox" | null>(null);
+  const [modal, setModal] = useState<"dm" | "channel" | "server" | "manageServer" | "manageChannel" | "confirmDelete" | "settings" | "inbox" | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<{ type: "server" | "channel"; id: string; name: string } | null>(null);
   const [modalInput, setModalInput] = useState("");
   const [toast, setToast] = useState("");
   const [accent, setAccent] = useState(saved?.accent || "#00e5ff");
@@ -212,46 +213,51 @@ function App() {
   }
   function switchToDMHome() { setView("home"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); }
   function switchToServer(server: Server = currentServer) { setActiveServer(server.id); setActive(channels.find(c => (c.serverId || "block-buddies") === server.id)?.id || ""); setView("channel"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
-  function manageServer() {
-    if (!currentServer) return;
-    const action = window.prompt("Type rename to rename this server, or delete to remove it.", "rename")?.toLowerCase();
-    if (action === "rename") {
-      const next = window.prompt("Server name", currentServer.name)?.trim();
-      if (next) {
-        if (servers.some(s => s.id !== currentServer.id && s.name.toLowerCase() === next.toLowerCase())) { notify("A server with that name already exists."); return; }
-        setServers(old => old.map(s => s.id === currentServer.id ? { ...s, name: next } : s)); notify("Server renamed in this browser.");
-      }
-    } else if (action === "delete") {
-      if (servers.length <= 1) { notify("Keep at least one server."); return; }
-      if (!window.confirm("Delete this server, its channels, and its local messages?")) return;
-      const removed = serverChannels;
-      setChannels(old => old.filter(c => (c.serverId || "block-buddies") !== currentServer.id));
-      setMessages(old => { const next = { ...old }; for (const channel of removed) { delete next[channel.id]; delete next[keyFor("channel", channel.id)]; } return next; });
-      setServers(old => old.filter(s => s.id !== currentServer.id));
-      const nextServer = servers.find(s => s.id !== currentServer.id)!;
-      setActiveServer(nextServer.id); setActive(channels.find(c => (c.serverId || "block-buddies") === nextServer.id)?.id || ""); setView("channel"); notify("Server deleted from this browser.");
-    }
-  }
-  function manageChannel(channel: Channel) {
-    const action = window.prompt("Type rename to rename this channel, or delete to remove it.", "rename");
-    if (action?.toLowerCase() === "rename") {
-      const next = window.prompt("Channel name", channel.name)?.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
-      if (next) { setChannels(old => old.map(c => c.id === channel.id ? { ...c, name: next } : c)); notify("Channel renamed in this browser."); }
-    } else if (action?.toLowerCase() === "delete") {
-      if (serverChannels.length <= 1) { notify("Each server must keep at least one channel."); return; }
-      if (window.confirm("Delete this channel and its local messages?")) {
-        setChannels(old => old.filter(c => c.id !== channel.id)); setMessages(old => { const next = { ...old }; delete next[channel.id]; delete next[keyFor("channel", channel.id)]; return next; });
-        if (active === channel.id) setActive(serverChannels.find(c => c.id !== channel.id)?.id || ""); notify("Channel deleted in this browser.");
-      }
-    }
-  }
-  function createServer() {
-    const value = window.prompt("Name your new server")?.trim(); if (!value) return;
+  function createServer(e: FormEvent) {
+    e.preventDefault(); const value = modalInput.trim().replace(/\\s+/g, " "); if (!value) return;
     if (servers.some(s => s.name.toLowerCase() === value.toLowerCase())) { notify("A server with that name already exists."); return; }
     const id = value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") + "-" + Date.now().toString(36);
     const server = { id, name: value, description: "Your community" };
     const channel = { id: id + "-general", name: "general", description: "The place for everything", serverId: id };
-    setServers(old => [...old, server]); setChannels(old => [...old, channel]); setMessages(old => ({ ...old, [channel.id]: [] })); setActiveServer(id); setActive(channel.id); setView("channel"); setShowLanding(false); setSidebarOpen(false); notify("Server created in this browser.");
+    setServers(old => [...old, server]); setChannels(old => [...old, channel]); setMessages(old => ({ ...old, [channel.id]: [] })); setActiveServer(id); setActive(channel.id); setView("channel"); setShowLanding(false); setSidebarOpen(false); setModal(null); setModalInput(""); notify("Server created in this browser.");
+  }
+  function renameServer(e: FormEvent) {
+    e.preventDefault(); const value = modalInput.trim().replace(/\\s+/g, " "); if (!value || !currentServer) return;
+    if (servers.some(s => s.id !== currentServer.id && s.name.toLowerCase() === value.toLowerCase())) { notify("A server with that name already exists."); return; }
+    setServers(old => old.map(s => s.id === currentServer.id ? { ...s, name: value } : s)); setModal(null); setModalInput(""); notify("Server renamed in this browser.");
+  }
+  function renameChannel(e: FormEvent) {
+    e.preventDefault(); const value = modalInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, ""); if (!value || !activeChannel) return;
+    if (serverChannels.some(ch => ch.id !== activeChannel.id && ch.name.toLowerCase() === value)) { notify("That channel already exists in this server."); return; }
+    setChannels(old => old.map(ch => ch.id === activeChannel.id ? { ...ch, name: value } : ch)); setModal(null); setModalInput(""); notify("Channel renamed in this browser.");
+  }
+  function askDeleteServer() {
+    if (!currentServer) return;
+    if (servers.length <= 1) { notify("Keep at least one server."); return; }
+    setPendingDelete({ type: "server", id: currentServer.id, name: currentServer.name }); setModal("confirmDelete");
+  }
+  function askDeleteChannel(channel: Channel) {
+    if (serverChannels.length <= 1) { notify("Each server must keep at least one channel."); return; }
+    setPendingDelete({ type: "channel", id: channel.id, name: channel.name }); setModal("confirmDelete");
+  }
+  function confirmDelete() {
+    if (!pendingDelete) return;
+    if (pendingDelete.type === "channel") {
+      const id = pendingDelete.id;
+      setChannels(old => old.filter(ch => ch.id !== id)); setMessages(old => { const next = { ...old }; delete next[id]; delete next[keyFor("channel", id)]; return next; });
+      setUnread(old => { const next = { ...old }; delete next[keyFor("channel", id)]; return next; });
+      if (active === id) setActive(serverChannels.find(ch => ch.id !== id)?.id || "");
+      notify("Channel deleted from this browser.");
+    } else {
+      const id = pendingDelete.id;
+      const removed = channels.filter(ch => (ch.serverId || "block-buddies") === id);
+      const remaining = servers.filter(s => s.id !== id);
+      setChannels(old => old.filter(ch => (ch.serverId || "block-buddies") !== id));
+      setMessages(old => { const next = { ...old }; for (const ch of removed) { delete next[ch.id]; delete next[keyFor("channel", ch.id)]; } return next; });
+      setServers(remaining); setActiveServer(remaining[0].id); setActive(channels.find(ch => (ch.serverId || "block-buddies") === remaining[0].id)?.id || ""); setView("channel");
+      notify("Server deleted from this browser.");
+    }
+    setPendingDelete(null); setModal(null);
   }
   function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToChannel(channel: Channel) { openChannel(channel); window.history.pushState({}, "", "/app"); }
@@ -264,11 +270,11 @@ function App() {
 
   if (showLanding) return <Landing openApp={openApp} />;
   return <div className={`app-shell ${compact ? "compact" : ""}`}>
-    <aside className="server-rail"><button className={`brand-mark ${view === "home" ? "brand-active" : ""}`} title="Open direct messages" aria-label="Open direct messages" onClick={switchToDMHome}>M</button><div className="rail-separator"/>{servers.map((server, index) => <button key={server.id} className={`server-icon ${activeServer === server.id && view !== "home" && view !== "dm" ? "selected" : ""}`} title={server.name} aria-label={`Open ${server.name}`} onClick={() => switchToServer(server)}>{index === 0 ? <Icon name="pickaxe" size={23} /> : index === 1 ? <Icon name="tree" size={22} /> : <span style={{fontWeight:900,fontSize:12}}>{initials(server.name)}</span>}</button>)}<button className="server-icon add" title="Create server" aria-label="Create server" onClick={createServer}><Icon name="plus" size={20} /></button><div className="rail-spacer"/><button className="server-icon" title="Settings" onClick={() => setModal("settings")}><Icon name="settings" size={18} /></button></aside>
+    <aside className="server-rail"><button className={`brand-mark ${view === "home" ? "brand-active" : ""}`} title="Open direct messages" aria-label="Open direct messages" onClick={switchToDMHome}>M</button><div className="rail-separator"/>{servers.map((server, index) => <button key={server.id} className={`server-icon ${activeServer === server.id && view !== "home" && view !== "dm" ? "selected" : ""}`} title={server.name} aria-label={`Open ${server.name}`} onClick={() => switchToServer(server)}>{index === 0 ? <Icon name="pickaxe" size={23} /> : index === 1 ? <Icon name="tree" size={22} /> : <span style={{fontWeight:900,fontSize:12}}>{initials(server.name)}</span>}</button>)}<button className="server-icon add" title="Create server" aria-label="Create server" onClick={() => { setModalInput(""); setModal("server"); }}><Icon name="plus" size={20} /></button><div className="rail-spacer"/><button className="server-icon" title="Settings" onClick={() => setModal("settings")}><Icon name="settings" size={18} /></button></aside>
     <aside className={`sidebar ${sidebarOpen ? "sidebar-open" : ""}`}>
-      <div className="workspace-head"><div><strong>{view === "home" || view === "dm" ? "Direct Messages" : currentServer?.name || "Server"}</strong><small><i className="online-dot"/> {view === "home" || view === "dm" ? "Private conversations" : currentServer?.description || "Community space"}</small></div>{view !== "home" && view !== "dm" && <div style={{display:"flex",gap:2}}><button className="icon-btn" onClick={manageServer} title="Rename server"><Icon name="settings" size={17} /></button><button className="icon-btn" onClick={() => { setModal("channel"); setModalInput(""); }} title="Add channel"><Icon name="plus" size={20} /></button></div>}</div>
+      <div className="workspace-head"><div><strong>{view === "home" || view === "dm" ? "Direct Messages" : currentServer?.name || "Server"}</strong><small><i className="online-dot"/> {view === "home" || view === "dm" ? "Private conversations" : currentServer?.description || "Community space"}</small></div>{view !== "home" && view !== "dm" && <div style={{display:"flex",gap:2}}><button className="icon-btn" onClick={() => { setModalInput(currentServer?.name || ""); setModal("manageServer"); }} title="Rename server"><Icon name="settings" size={17} /></button><button className="icon-btn" onClick={() => { setModal("channel"); setModalInput(""); }} title="Add channel"><Icon name="plus" size={20} /></button></div>}</div>
       <div className="search-wrap"><span><Icon name="search" size={17} /></span><input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search conversations..." aria-label="Search conversations"/></div>
-      <>{view !== "home" && view !== "dm" ? <><button className={`side-link ${view === "friends" ? "active" : ""}`} onClick={switchToFriends}><span><Icon name="users" size={17} /></span> Friends <span className="side-count">{people.length}</span></button><div className="side-heading"><span>TEXT CHANNELS</span><button onClick={() => { setModal("channel"); setModalInput(""); }} aria-label="Add channel"><Icon name="plus" size={20} /></button></div><div className="nav-list">{filteredChannels.map(c => <div key={c.id} style={{display:"flex",alignItems:"center",minWidth:0}}><button className={`nav-item ${view === "channel" && active === c.id ? "active" : ""}`} style={{flex:1,minWidth:0}} onClick={() => switchToChannel(c)}><span className="hash"><Icon name="hash" size={15} /></span><span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</span>{(unread[keyFor("channel", c.id)] || 0) > 0 && <span style={{ marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#ed4245", color: "#fff", fontSize: 10, fontWeight: 800, display: "grid", placeItems: "center" }}>{unread[keyFor("channel", c.id)]}</span>}</button><button className="icon-btn" style={{width:25,height:30,flexShrink:0}} title={"Manage #" + c.name} aria-label={"Manage #" + c.name} onClick={() => manageChannel(c)}><Icon name="settings" size={14}/></button></div>)}</div></> : <><div className="side-heading"><span>DIRECT MESSAGES</span><button onClick={() => { setModal("dm"); setModalInput(""); }} aria-label="New direct message"><Icon name="plus" size={20} /></button></div><div className="dm-list">{filteredPeople.map(p => <button key={p.name.toLowerCase()} className={`dm-item ${view === "dm" && active.toLowerCase() === p.name.toLowerCase() ? "active" : ""}`} onClick={() => openDM(p)}><span className={`avatar ${p.color}`}>{initials(p.name)}{p.online && <i/>}</span><span className="dm-label"><strong>{p.name}</strong><small>{p.preview}</small></span><span className={`presence ${((p.status || (p.online ? "Online" : "Offline")) === "Online") ? "online" : ""}`} title={p.status || (p.online ? "Online" : "Offline")} style={{ background: (p.status || (p.online ? "Online" : "Offline")) === "Do not disturb" ? "#ed4245" : (p.status || (p.online ? "Online" : "Offline")) === "Idle" ? "#f0b232" : (p.status || (p.online ? "Online" : "Offline")) === "Offline" ? "#667184" : undefined }}/>{(unread[keyFor("dm", p.name)] || 0) > 0 && <span style={{ marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#ed4245", color: "#fff", fontSize: 10, fontWeight: 800, display: "grid", placeItems: "center" }}>{unread[keyFor("dm", p.name)]}</span>}</button>)}</div></>}</>
+      <>{view !== "home" && view !== "dm" ? <><button className={`side-link ${view === "friends" ? "active" : ""}`} onClick={switchToFriends}><span><Icon name="users" size={17} /></span> Friends <span className="side-count">{people.length}</span></button><div className="side-heading"><span>TEXT CHANNELS</span><button onClick={() => { setModal("channel"); setModalInput(""); }} aria-label="Add channel"><Icon name="plus" size={20} /></button></div><div className="nav-list">{filteredChannels.map(c => <div key={c.id} style={{display:"flex",alignItems:"center",minWidth:0}}><button className={`nav-item ${view === "channel" && active === c.id ? "active" : ""}`} style={{flex:1,minWidth:0}} onClick={() => switchToChannel(c)}><span className="hash"><Icon name="hash" size={15} /></span><span style={{overflow:"hidden",textOverflow:"ellipsis"}}>{c.name}</span>{(unread[keyFor("channel", c.id)] || 0) > 0 && <span style={{ marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#ed4245", color: "#fff", fontSize: 10, fontWeight: 800, display: "grid", placeItems: "center" }}>{unread[keyFor("channel", c.id)]}</span>}</button><button className="icon-btn" style={{width:25,height:30,flexShrink:0}} title={"Manage #" + c.name} aria-label={"Manage #" + c.name} onClick={() => { setActive(c.id); setModalInput(c.name); setModal("manageChannel"); }}><Icon name="settings" size={14}/></button></div>)}</div></> : <><div className="side-heading"><span>DIRECT MESSAGES</span><button onClick={() => { setModal("dm"); setModalInput(""); }} aria-label="New direct message"><Icon name="plus" size={20} /></button></div><div className="dm-list">{filteredPeople.map(p => <button key={p.name.toLowerCase()} className={`dm-item ${view === "dm" && active.toLowerCase() === p.name.toLowerCase() ? "active" : ""}`} onClick={() => openDM(p)}><span className={`avatar ${p.color}`}>{initials(p.name)}{p.online && <i/>}</span><span className="dm-label"><strong>{p.name}</strong><small>{p.preview}</small></span><span className={`presence ${((p.status || (p.online ? "Online" : "Offline")) === "Online") ? "online" : ""}`} title={p.status || (p.online ? "Online" : "Offline")} style={{ background: (p.status || (p.online ? "Online" : "Offline")) === "Do not disturb" ? "#ed4245" : (p.status || (p.online ? "Online" : "Offline")) === "Idle" ? "#f0b232" : (p.status || (p.online ? "Online" : "Offline")) === "Offline" ? "#667184" : undefined }}/>{(unread[keyFor("dm", p.name)] || 0) > 0 && <span style={{ marginLeft: "auto", minWidth: 18, height: 18, padding: "0 5px", borderRadius: 9, background: "#ed4245", color: "#fff", fontSize: 10, fontWeight: 800, display: "grid", placeItems: "center" }}>{unread[keyFor("dm", p.name)]}</span>}</button>)}</div></>}</>
       <div className="user-bar"><div className="avatar self">{initials(name)}</div><div className="user-label"><strong>{name}</strong><small>{status}</small></div><button className="icon-btn" title="User settings" onClick={() => setModal("settings")}><Icon name="settings" size={18} /></button></div>
     </aside>
     <main className="main-panel">
