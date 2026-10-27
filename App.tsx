@@ -114,7 +114,8 @@ function App() {
     }
     setModal(null); setModalInput("");
   }
-  function switchToDMHome() { setView("home"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); }\n  function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
+  function switchToDMHome() { setView("home"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/dms"); }
+  function switchToFriends() { setView("friends"); setShowLanding(false); setSidebarOpen(false); window.history.pushState({}, "", "/app"); }
   function switchToChannel(channel: Channel) { openChannel(channel); window.history.pushState({}, "", "/app"); }
   function deleteCurrentDM() {
     if (!activePerson) return;
