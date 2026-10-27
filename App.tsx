@@ -9,7 +9,7 @@ type Channel = { id: string; name: string; description: string };
 type SavedState = {
   name: string; status: string; active: string; view: "channel" | "dm" | "friends" | "home";
   channels: Channel[]; people: Person[]; messages: Record<string, Message[]>;
-  accent: string; compact: boolean;
+  accent: string; compact: boolean; unread?: Record<string, number>;
 };
 
 const KEY = "minedm.v2";
@@ -96,7 +96,9 @@ function App() {
   const [modalInput, setModalInput] = useState("");
   const [toast, setToast] = useState("");
   const [accent, setAccent] = useState(saved?.accent || "#00e5ff");
-  const [compact, setCompact] = useState(saved?.compact || false);\n  const [unread, setUnread] = useState<Record<string, number>>(saved?.unread || {});\n  const [typingPerson, setTypingPerson] = useState<string | null>(null);
+  const [compact, setCompact] = useState(saved?.compact || false);
+  const [unread, setUnread] = useState<Record<string, number>>(saved?.unread || {});
+  const [typingPerson, setTypingPerson] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [filter, setFilter] = useState<"all" | "online">("all");
 
