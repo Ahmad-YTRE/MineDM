@@ -104,7 +104,7 @@ function MessageContent({ text, onJoinInvite }: { text: string; onJoinInvite: (c
   const urls = [...new Set((text.match(/https?:\/\/[^\s<>()]+/gi) || []).map(value => value.replace(/[.,!?;:]+$/, "")))].filter(value => !/\/invite\//i.test(value));
   return <div className="message-content"><p>{tokens.map((token, index) => {
     const invite = token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
-    if (invite) return <a key={index} href={"/invite/" + invite[1]} onClick={event => { event.preventDefault(); window.history.pushState({}, "", "/invite/" + invite[1]); onJoinInvite(invite[1]); }}>voax invite: {invite[1]}</a>;
+    if (invite) return <a key={index} href={"/invite/" + invite[1]} onClick={event => { event.preventDefault(); window.location.assign("/invite/" + invite[1]); }}>voax invite: {invite[1]}</a>;
     if (/^https?:\/\//i.test(token)) return <a key={index} href={token} target="_blank" rel="noopener noreferrer">{token}</a>;
     return <React.Fragment key={index}>{token}</React.Fragment>;
   })}</p>
