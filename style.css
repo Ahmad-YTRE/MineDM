@@ -768,3 +768,38 @@ button.member-entry { cursor: pointer; }
   .invite-preview-card { flex-wrap: wrap; }
   .invite-join-button { width: 100%; }
 }
+
+
+/* Discord-style custom server roles */
+.custom-roles-section { margin: 16px 0 22px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 65%, transparent); }
+.custom-roles-section h3, .role-member-list h3 { margin: 0 0 10px; font-size: 13px; font-weight: 750; letter-spacing: .02em; }
+.custom-role-row { display: flex; align-items: center; gap: 9px; min-height: 38px; padding: 5px 0; border-bottom: 1px solid color-mix(in srgb, var(--line) 55%, transparent); }
+.custom-role-row:last-of-type { border-bottom: 0; }
+.custom-role-dot { width: 10px; height: 10px; border-radius: 50%; flex: 0 0 10px; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 10%, transparent); }
+.custom-role-row strong { font-size: 12px; }
+.custom-role-row small { flex: 1; min-width: 0; color: var(--muted); font-size: 10px; text-transform: capitalize; overflow-wrap: anywhere; }
+.custom-role-form { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; padding-top: 13px; border-top: 1px solid var(--line); }
+.custom-role-form > label { font-size: 11px; color: var(--muted); font-weight: 700; }
+.custom-role-create-row { display: flex; align-items: center; gap: 8px; }
+.custom-role-create-row input:not([type="color"]) { flex: 1; min-width: 0; }
+.custom-role-create-row input[type="color"] { width: 38px; height: 38px; padding: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer; }
+.custom-role-create-row .btn { flex: 0 0 auto; padding: 10px 12px; font-size: 12px; }
+.role-permission-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 5px 0; }
+.role-permission-option { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text, #e6edf7); }
+.role-permission-option input { accent-color: var(--accent); }
+.custom-role-form > small { color: var(--muted); font-size: 10px; }
+.role-member-list { display: flex; flex-direction: column; gap: 7px; }
+.role-member-row { flex-wrap: wrap; }
+.role-member-row select { max-width: 145px; }
+@media (max-width: 560px) {
+  .custom-role-create-row { flex-wrap: wrap; }
+  .custom-role-create-row input:not([type="color"]) { flex-basis: 100%; }
+  .custom-role-create-row .btn { flex: 1; }
+  .role-permission-options { grid-template-columns: 1fr; }
+}
+
+.assigned-custom-role { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; }
+.assigned-custom-role .custom-role-dot { width: 7px; height: 7px; flex-basis: 7px; box-shadow: none; }
+
+.role-kick-button { flex: 0 0 30px; width: 30px; height: 30px; color: var(--muted); }
+.role-kick-button:hover { color: #ed4245; border-color: color-mix(in srgb, #ed4245 40%, var(--line)); }
