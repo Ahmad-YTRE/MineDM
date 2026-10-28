@@ -144,6 +144,10 @@ function App({ session }: { session: Session }) {
     style.id = styleId;
     style.textContent = `
       @keyframes mdm-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes mdm-button-spinner { to { transform: rotate(360deg); } }
+      .button-spinner { display: inline-block; width: 12px; height: 12px; flex: 0 0 12px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; vertical-align: -2px; animation: mdm-button-spinner .7s linear infinite; margin-left: 5px; }
+      .btn:disabled, .send-btn:disabled { cursor: wait; opacity: .72; }
+      @media (prefers-reduced-motion: reduce) { .button-spinner { animation-duration: 1.8s; } }
       @keyframes mdm-pop-in { 0% { opacity: 0; transform: translateY(7px) scale(.985); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
       @keyframes mdm-slide-up { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
       @keyframes mdm-soft-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 0%, transparent); } 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 10%, transparent); } }
