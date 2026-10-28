@@ -32,13 +32,12 @@ function decodeHtml(value: string): string {
   return value.replace(/&amp;/gi, "&").replace(/&quot;/gi, '"').replace(/&#39;|&apos;/gi, "'").replace(/&lt;/gi, "<").replace(/&gt;/gi, ">").replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16))).replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
 }
 function meta(html: string, key: string): string | undefined {
-  const patterns = [
-    new RegExp('<meta[^>]+(?:property|name|itemprop)=["\\']' + key + '["\\'][^>]+content=["\\']([^"\\']*)["\\'][^>]*>', "i"),
-    new RegExp('<meta[^>]+content=["\\']([^"\\']*)["\\'][^>]+(?:property|name|itemprop)=["\\']' + key + '["\\'][^>]*>', "i")
-  ];
-  for (const pattern of patterns) {
-    const match = html.match(pattern);
-    if (match?.[1]) return decodeHtml(match[1]).trim();
+  for (const tag of html.match(/<meta\\b[^>]*>/gi) || []) {
+    const attrs: Record<string, string> = {};
+    for (const match of tag.matchAll(/([:\\w-]+)\\s*=\\s*(?:"([^"]*)"|'([^']*)'|([^\\s>]+))/g)) {
+      attrs[match[1].toLowerCase()] = match[2] ?? match[3] ?? match[4] ?? "";
+    }
+    if ([attrs.property, attrs.name, attrs.itemprop].some(value => value?.toLowerCase() === key.toLowerCase()) && attrs.content) return decodeHtml(attrs.content).trim();
   }
   return undefined;
 }
