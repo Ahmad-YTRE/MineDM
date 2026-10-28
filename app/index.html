@@ -10,10 +10,10 @@
 
   <style>
     :root {
-      --mdm-teal: #5eead4;
-      --mdm-sky: #38bdf8;
-      --mdm-indigo: #818cf8;
-      --mdm-gold: #facc15;
+      --voax-teal: #5eead4;
+      --voax-sky: #38bdf8;
+      --voax-indigo: #818cf8;
+      --voax-gold: #facc15;
       --bg-dark: #0b0c10;
       --bg-card: #1f2833;
       --bg-sidebar: #11151c;
@@ -743,11 +743,11 @@
       margin-bottom: 15px;
       border-radius: 15px;
       background: transparent;
-      color: var(--mdm-teal);
+      color: var(--voax-teal);
       font-size: 27px;
       font-weight: 900;
     }
-    .brand { background: transparent; color: var(--mdm-teal); box-shadow: none; }
+    .brand { background: transparent; color: var(--voax-teal); box-shadow: none; }
 
 .logo-mark {
   --logo-size: 40px;
@@ -756,7 +756,7 @@
   place-items: center;
   width: var(--logo-size);
   height: var(--logo-size);
-  color: var(--mdm-teal);
+  color: var(--voax-teal);
   flex: none;
 }
 .logo-mark svg {
@@ -783,17 +783,17 @@
   pointer-events: none;
 }
 .logo-mark:hover::after {
-  animation: mdm-logo-sparkle 700ms ease-out;
+  animation: voax-logo-sparkle 700ms ease-out;
 }
-@keyframes mdm-logo-sparkle {
+@keyframes voax-logo-sparkle {
   0% { opacity: 0; transform: scale(.4); }
   35% { opacity: .9; transform: scale(.95); }
   100% { opacity: 0; transform: scale(1.45); }
 }
 .logo-mark.is-hero svg {
-  animation: mdm-logo-breathe 4.5s ease-in-out infinite;
+  animation: voax-logo-breathe 4.5s ease-in-out infinite;
 }
-@keyframes mdm-logo-breathe {
+@keyframes voax-logo-breathe {
   0%, 100% { filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%)); }
   50% { filter: drop-shadow(0 0 16px rgb(94 234 212 / 65%)); }
 }
@@ -1687,7 +1687,7 @@
 <script>
 /* Voax local-first prototype persistence */
 (() => {
-  const KEY = "minedm.v1";
+  const KEY = "voax.v1";
   const safeRead = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
   const state = safeRead();
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch { showToast("Browser storage is full. Some changes may not persist."); } };

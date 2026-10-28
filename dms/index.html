@@ -5,14 +5,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0c10">
-<title>Direct Messages — VoaxDM</title>
+<title>Direct Messages — Voax</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%235eead4' fill-rule='evenodd' clip-rule='evenodd' d='M6.5 2.25 H17.5 A4.25 4.25 0 0 1 21.75 6.5 V13.5 A4.25 4.25 0 0 1 17.5 17.75 H10.75 L6 22.25 V17.75 H6.5 A4.25 4.25 0 0 1 2.25 13.5 V6.5 A4.25 4.25 0 0 1 6.5 2.25 Z M12 5.75 L16.25 10 L12 14.25 L7.75 10 Z'/%3E%3C/svg%3E">
   <style>
 :root {
-  --mdm-teal: #5eead4;
-  --mdm-sky: #38bdf8;
-  --mdm-indigo: #818cf8;
-  --mdm-gold: #facc15;
+  --voax-teal: #5eead4;
+  --voax-sky: #38bdf8;
+  --voax-indigo: #818cf8;
+  --voax-gold: #facc15;
   --rail: #090a0e;
   --sidebar: #11151c;
   --main: #0b0c10;
@@ -83,10 +83,10 @@ svg {
 }
 .rail-logo {
   background: transparent;
-  color: var(--mdm-teal);
+  color: var(--voax-teal);
   box-shadow: none;
 }
-.rail-logo:hover { background: transparent; color: var(--mdm-teal); }
+.rail-logo:hover { background: transparent; color: var(--voax-teal); }
 
 .logo-mark {
   --logo-size: 40px;
@@ -95,7 +95,7 @@ svg {
   place-items: center;
   width: var(--logo-size);
   height: var(--logo-size);
-  color: var(--mdm-teal);
+  color: var(--voax-teal);
   flex: none;
 }
 .logo-mark svg {
@@ -122,17 +122,17 @@ svg {
   pointer-events: none;
 }
 .logo-mark:hover::after {
-  animation: mdm-logo-sparkle 700ms ease-out;
+  animation: voax-logo-sparkle 700ms ease-out;
 }
-@keyframes mdm-logo-sparkle {
+@keyframes voax-logo-sparkle {
   0% { opacity: 0; transform: scale(.4); }
   35% { opacity: .9; transform: scale(.95); }
   100% { opacity: 0; transform: scale(1.45); }
 }
 .logo-mark.is-hero svg {
-  animation: mdm-logo-breathe 4.5s ease-in-out infinite;
+  animation: voax-logo-breathe 4.5s ease-in-out infinite;
 }
-@keyframes mdm-logo-breathe {
+@keyframes voax-logo-breathe {
   0%, 100% { filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%)); }
   50% { filter: drop-shadow(0 0 16px rgb(94 234 212 / 65%)); }
 }
@@ -958,7 +958,7 @@ showWelcome();
 <script>
 /* Persist Direct Messages people and last selected view locally. */
 (() => {
-  const KEY = "minedm.v1";
+  const KEY = "voax.v1";
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY) || "{}"); } catch { return {}; } };
   const state = read();
   const persist = () => {
