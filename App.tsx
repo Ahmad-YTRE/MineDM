@@ -607,7 +607,33 @@ function App({ session }: { session: Session }) {
     const grouped:Reaction[]=(existing.reactions||[]).map(reaction=>reaction.emoji!==emoji?reaction:{...reaction,count:reaction.count+(selected?-1:1),reacted:!selected}).filter(reaction=>reaction.count>0);if(!selected&&!existingReaction)grouped.push({emoji,count:1,reacted:true});
     setMessages(old=>{const list=old[activeKey]||old[active]||[];return{...old,[activeKey]:list.map(m=>m.id!==messageId?m:{...m,reactions:grouped})};});
   }
-  async function sendFriendRequest(e:FormEvent){e.preventDefault();const requested=modalInput.trim();if(!requested)return;const {data:target,error:lookupError}=await supabase.from("profiles").select("id,username").ilike("username",requested).maybeSingle();if(lookupError||!target){notify(lookupError?"Unable to find player: "+lookupError.message:"No Voax player named "+requested+" was found.");return;}if(target.id===session.user.id){notify("You cannot add yourself as a friend.");return;}const {data:existing,error:existingError}=await supabase.from("friendships").select("id,requester_id,addressee_id,status").or("and(requester_id.eq."+session.user.id+",addressee_id.eq."+target.id+"),and(requester_id.eq."+target.id+",addressee_id.eq."+session.user.id+")").maybeSingle();if(existingError){notify("Unable to check friendship: "+existingError.message);return;}if(existing?.status==="accepted"){notify("You are already friends.");return;}if(existing?.status==="pending"){notify(existing.addressee_id===session.user.id?"That player already sent you a request. Accept it from Friends.":"You already sent a request to that player.");return;}const {error}=await supabase.from("friendships").insert({requester_id:session.user.id,addressee_id:target.id,status:"pending"});if(error){notify("Unable to send friend request: "+error.message);return;}setModal(null);setModalInput("");notify("Friend request sent to "+(target.username||"Player")+".");await loadWorkspace();}
+  async function sendFriendRequest(e:FormEvent){
+    e.preventDefault();
+    const requested=modalInput.trim();
+    if(!requested)return;
+    const {data:target,error:lookupError}=await supabase.from("profiles").select("id,username").ilike("username",requested).maybeSingle();
+    if(lookupError||!target){notify(lookupError?"Unable to find player: "+lookupError.message:"No Voax username \""+requested+"\" was found.");return;}
+    if(target.id===session.user.id){notify("You cannot add yourself as a friend.");return;}
+
+    const pairFilter="and(requester_id.eq."+session.user.id+",addressee_id.eq."+target.id+"),and(requester_id.eq."+target.id+",addressee_id.eq."+session.user.id+")";
+    const {data:activeRequest,error:activeError}=await supabase.from("friendships").select("id,requester_id,addressee_id,status").in("status",["pending","accepted"]).or(pairFilter).maybeSingle();
+    if(activeError){notify("Unable to check friendship: "+activeError.message);return;}
+    if(activeRequest?.status==="accepted"){notify("You are already friends.");return;}
+    if(activeRequest?.status==="pending"){notify(activeRequest.addressee_id===session.user.id?"That player already sent you a request. Accept it from Friends.":"You already sent a request to that player.");return;}
+
+    // Reuse a rejected row from this same requester/recipient pair. The DB unique
+    // constraint intentionally keeps one row per direction, so inserting again fails.
+    const {data:rejected,error:rejectedError}=await supabase.from("friendships").select("id").eq("requester_id",session.user.id).eq("addressee_id",target.id).eq("status","rejected").maybeSingle();
+    if(rejectedError){notify("Unable to check previous request: "+rejectedError.message);return;}
+    if(rejected){
+      const {error}=await supabase.from("friendships").update({status:"pending",updated_at:new Date().toISOString()}).eq("id",rejected.id).eq("requester_id",session.user.id).eq("status","rejected");
+      if(error){notify("Unable to resend friend request: "+error.message);return;}
+    }else{
+      const {error}=await supabase.from("friendships").insert({requester_id:session.user.id,addressee_id:target.id,status:"pending"});
+      if(error){notify("Unable to send friend request: "+error.message);return;}
+    }
+    setModal(null);setModalInput("");notify("Friend request sent to "+(target.username||"Player")+".");await loadWorkspace();
+  }
   async function respondToFriendRequest(request:FriendRequest,accept:boolean){const {error}=await supabase.from("friendships").update({status:accept?"accepted":"rejected"}).eq("id",request.id).eq("addressee_id",session.user.id).eq("status","pending");if(error){notify("Unable to update friend request: "+error.message);return;}notify(accept?"Friend request accepted.":"Friend request declined.");await loadWorkspace();}
   async function markNotificationRead(id:string){const readAt=new Date().toISOString();const {error}=await supabase.from("notifications").update({read_at:readAt}).eq("id",id);if(error){notify("Unable to update notification: "+error.message);return;}setNotifications(old=>old.map(n=>n.id===id?{...n,read_at:readAt}:n));}
   function sendTyping(typing:boolean){const channel=typingChannelRef.current;if(!channel)return;void channel.send({type:"broadcast",event:"typing",payload:{userId:session.user.id,name,typing,activeKey}});}
