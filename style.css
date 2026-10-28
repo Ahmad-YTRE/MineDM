@@ -433,3 +433,26 @@ button.member-entry { cursor: pointer; }
   .workspace-loading { grid-template-columns: 52px minmax(0,1fr); }
   .workspace-loading .sidebar { display: none; }
 }
+
+/* Server customization, member roles, and channel categories */
+.server-icon{overflow:hidden;position:relative}
+.server-icon-image{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
+.channel-category-label{padding:17px 10px 5px;color:#75839a;font-size:9px;font-weight:900;letter-spacing:1.15px;text-transform:uppercase;overflow-wrap:anywhere}
+.channel-category-label:first-child{padding-top:7px}
+.server-icon-upload-row{display:flex;align-items:center;gap:14px;margin:10px 0 6px}
+.server-icon-preview{width:64px;height:64px;flex-shrink:0;display:grid;place-items:center;overflow:hidden;border:1px solid #ffffff20;border-radius:16px;background:linear-gradient(135deg,#142c38,#1d2440);color:#e8faff;font-size:16px;font-weight:900}
+.server-icon-preview img{width:100%;height:100%;object-fit:cover}
+.server-icon-upload-control{min-width:0;flex:1}
+.server-icon-upload-control input{width:100%;max-width:100%;font-size:11px;color:#cbd5e1}
+.server-icon-upload-control small{display:block;margin-top:7px;color:#8792a5;font-size:10px}
+.role-member-list{display:grid;gap:7px;max-height:48vh;overflow:auto;padding:2px}
+.role-member-row{display:flex;align-items:center;gap:10px;padding:10px;border:1px solid #ffffff12;border-radius:10px;background:#ffffff03;min-width:0}
+.role-member-avatar{width:34px;height:34px;border-radius:10px;overflow:hidden}
+.role-member-info{min-width:0;flex:1}
+.role-member-info strong,.role-member-info small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.role-member-info strong{font-size:12px;color:#edf3fc}
+.role-member-info small{font-size:10px;color:#8792a5;margin-top:3px}
+.role-member-row select{max-width:110px;padding:7px 8px;border:1px solid #ffffff20;border-radius:7px;background:#0c1119;color:#e8effb;font-size:11px}
+.role-member-row select:disabled{opacity:.65}
+.role-owner-pill{padding:5px 7px;border:1px solid #facc1533;border-radius:6px;background:#facc1510;color:#facc15;font-size:9px;font-weight:900;letter-spacing:.7px}
+@media(max-width:650px){.server-icon-upload-row{align-items:flex-start}.role-member-row{gap:8px;padding:8px}.role-member-row select{max-width:92px}}
