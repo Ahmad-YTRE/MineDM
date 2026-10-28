@@ -1,7 +1,7 @@
 const PROFANITY_TERMS = [
   "motherfucker", "motherfuck", "bullshit", "asshole", "bastard",
   "bitch", "fuck", "shit", "cunt", "dick", "pussy", "whore",
-  "slut", "crap", "damn", "piss", "ass"
+  "slut", "crap", "damn", "piss", "ass", "dickhead"
 ];
 
 function termPattern(term: string): RegExp {
