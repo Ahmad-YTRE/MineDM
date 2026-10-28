@@ -1,5 +1,5 @@
 const CACHE_NAME = "voax-shell-v1";
-const PRECACHE_URLS = ["/", "/index.html", "/manifest.json", "/logo.png"];
+const PRECACHE_URLS = ["/", "/index.html", "/manifest.webmanifest", "/logo.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
@@ -38,7 +38,7 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  if (/\.(?:js|css|png|jpe?g|webp|svg|ico|woff2?)$/i.test(url.pathname) || url.pathname === "/manifest.json") {
+  if (/\.(?:js|css|png|jpe?g|webp|svg|ico|woff2?)$/i.test(url.pathname) || url.pathname === "/manifest.webmanifest") {
     event.respondWith(
       caches.match(request).then(cached => cached || fetch(request).then(response => {
         if (response.ok) {
