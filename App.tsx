@@ -932,7 +932,8 @@ function DocsPage() {
       <footer className="docs-footer"><span>© 2026 Voax</span><span>Built for your people, your space.</span><a href="/">Back to home ↑</a></footer></div></div>
   </main>;
 }
-\nfunction Root() {
+
+function Root() {
   useEffect(() => {
     const onPop = () => window.location.pathname === "/" ? window.location.reload() : window.location.reload();
     window.addEventListener("popstate", onPop);
@@ -951,7 +952,8 @@ function DocsPage() {
     });
     return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
-  if (window.location.pathname === "/docs" || window.location.pathname === "/docs/") return <DocsPage />;\n  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to Voax…</main>;
+  if (window.location.pathname === "/docs" || window.location.pathname === "/docs/") return <DocsPage />;
+  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to Voax…</main>;
   if (!session) return <AuthScreen />;
   return <App session={session}/>;
 }
