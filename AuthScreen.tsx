@@ -55,7 +55,7 @@ export function AuthScreen() {
           {busy ? "Please wait…" : "Continue with Discord"}
         </button>
       </form>
-      <p style={{fontSize:12,color:"#8792a5",margin:"20px 0 0",textAlign:"center"}}>{mode==="login" ? "New to MineDM?" : "Already have an account?"} <button type="button" onClick={()=>{setMode(mode==="login"?"signup":"login");setError("");setNotice("");}} style={{background:"none",border:0,color:"#5eead4",fontWeight:750,padding:4}}>{mode==="login"?"Create an account":"Sign in"}</button></p>
+      <p style={{fontSize:12,color:"#8792a5",margin:"20px 0 0",textAlign:"center"}}>{mode==="login" ? "New to Voax?" : "Already have an account?"} <button type="button" onClick={()=>{setMode(mode==="login"?"signup":"login");setError("");setNotice("");}} style={{background:"none",border:0,color:"#5eead4",fontWeight:750,padding:4}}>{mode==="login"?"Create an account":"Sign in"}</button></p>
     </section>
   </main>;
 }

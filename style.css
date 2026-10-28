@@ -88,7 +88,7 @@ button,input,select{max-width:100%}
   color: var(--mdm-teal);
   flex: none;
 }
-.logo-mark svg {
+.logo-mark img {
   width: 100%;
   height: 100%;
   display: block;
@@ -97,7 +97,7 @@ button,input,select{max-width:100%}
   transition: transform 450ms cubic-bezier(.2,.8,.2,1), filter 450ms ease;
   filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%));
 }
-.logo-mark:hover svg {
+.logo-mark:hover img {
   transform: rotate(-8deg) scale(1.06);
   filter: drop-shadow(0 0 14px rgb(94 234 212 / 70%));
 }
@@ -119,7 +119,7 @@ button,input,select{max-width:100%}
   35% { opacity: .9; transform: scale(.95); }
   100% { opacity: 0; transform: scale(1.45); }
 }
-.logo-mark.is-hero svg {
+.logo-mark.is-hero img {
   animation: mdm-logo-breathe 4.5s ease-in-out infinite;
 }
 @keyframes mdm-logo-breathe {
@@ -127,7 +127,7 @@ button,input,select{max-width:100%}
   50% { filter: drop-shadow(0 0 16px rgb(94 234 212 / 65%)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-mark svg,
+  .logo-mark img,
   .logo-mark::after {
     animation: none !important;
     transition: none !important;
@@ -628,3 +628,119 @@ button.member-entry { cursor: pointer; }
 .settings-skeleton-save .skeleton-line{width:118px;height:36px;border-radius:8px}
 @media(max-width:900px){.loading-dm-home{grid-template-columns:56px minmax(185px,230px) minmax(0,1fr)}}
 @media(max-width:650px){.loading-dm-home{grid-template-columns:52px minmax(0,1fr)}.loading-dm-home .sidebar{display:none}.dm-home-skeleton-content{padding:20px 16px}.settings-skeleton{min-height:0;max-height:calc(100dvh - 16px)}.settings-skeleton .discord-settings-nav{padding-top:48px}}
+
+/* MineDM custom scrollbar */
+:root {
+  scrollbar-color: #2a4554 #090b10;
+  scrollbar-width: thin;
+}
+
+* {
+  scrollbar-color: #2a4554 #090b10;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #090b10;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #245568 0%, #17313f 100%);
+  border: 2px solid #090b10;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00e5ff 0%, #38bdf8 100%);
+}
+
+*::-webkit-scrollbar-corner {
+  background: #090b10;
+}
+
+
+/* Light appearance theme */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --accent: #087f9b;
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --card: #edf2f8;
+  --line: #17203320;
+  --muted: #5d6b7d;
+  --green: #168a57;
+  color: #172033;
+  background: #f4f7fb;
+  scrollbar-color: #a9bac9 #edf2f8;
+}
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root { background: #f4f7fb; color: #172033; }
+:root[data-theme="light"] .app-shell,
+:root[data-theme="light"] .main-panel,
+:root[data-theme="light"] .chat-panel,
+:root[data-theme="light"] .friends-view,
+:root[data-theme="light"] .home-view,
+:root[data-theme="light"] .discord-settings-layout,
+:root[data-theme="light"] .discord-settings-content { background-color: #f4f7fb; color: #172033; }
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .server-rail,
+:root[data-theme="light"] .member-sidebar,
+:root[data-theme="light"] .discord-settings-nav,
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .composer-area,
+:root[data-theme="light"] .settings-preference-row,
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .profile-popout { background-color: #ffffff; color: #172033; border-color: #d8e1eb; }
+:root[data-theme="light"] .message-scroll,
+:root[data-theme="light"] .channel-list,
+:root[data-theme="light"] .dm-list { background-color: #f4f7fb; }
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3,
+:root[data-theme="light"] strong,
+:root[data-theme="light"] .topbar-title,
+:root[data-theme="light"] .settings-profile-banner strong,
+:root[data-theme="light"] .discord-settings-heading h2,
+:root[data-theme="light"] .message-meta strong,
+:root[data-theme="light"] .user-label strong { color: #172033; }
+:root[data-theme="light"] p,
+:root[data-theme="light"] small,
+:root[data-theme="light"] label,
+:root[data-theme="light"] .message-body p,
+:root[data-theme="light"] .discord-settings-heading p,
+:root[data-theme="light"] .settings-help { color: #5d6b7d; }
+:root[data-theme="light"] input:not([type="checkbox"]):not([type="file"]),
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select { background: #ffffff; color: #172033; border-color: #cbd6e2; }
+:root[data-theme="light"] .nav-item,
+:root[data-theme="light"] .discord-settings-nav button,
+:root[data-theme="light"] .icon-btn,
+:root[data-theme="light"] .btn.secondary { color: #334155; }
+:root[data-theme="light"] .nav-item:hover,
+:root[data-theme="light"] .discord-settings-nav button:hover,
+:root[data-theme="light"] .icon-btn:hover,
+:root[data-theme="light"] .channel-row:hover,
+:root[data-theme="light"] .dm-row:hover { background: #e8eef5; }
+:root[data-theme="light"] .settings-profile-banner { background: #eaf4f8; border-color: #c8e2e9; }
+:root[data-theme="light"] .btn.secondary { background: #f8fafc; border-color: #cbd6e2; }
+:root[data-theme="light"] .landing { background: radial-gradient(ellipse at 50% 4%, #d8f2f7 0, transparent 48%), #f4f7fb; }
+:root[data-theme="light"] .landing-header { border-color: #17203316; }
+:root[data-theme="light"] .hero h1 { color: #172033; }
+:root[data-theme="light"] .hero > p { color: #526174; }
+:root[data-theme="light"] .hero-note { color: #66758a; }
+:root[data-theme="light"] .profile-popout-backdrop,
+:root[data-theme="light"] .modal-backdrop { background: #23304766; }
+:root[data-theme="light"] * { scrollbar-color: #a9bac9 #edf2f8; }
+:root[data-theme="light"] *::-webkit-scrollbar-track,
+:root[data-theme="light"] *::-webkit-scrollbar-corner { background: #edf2f8; }
+:root[data-theme="light"] *::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#b4c7d7 0%,#8da7bb 100%); border-color: #edf2f8; }
+.theme-choice-group { display: flex; gap: 8px; }
+
+:root[data-theme="light"] textarea { background: #ffffff; color: #172033; border-color: #cbd6e2; }
+.discord-settings-content textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #ffffff20; border-radius: 8px; resize: vertical; font: inherit; font-size: 12px; }
