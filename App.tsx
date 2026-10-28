@@ -559,13 +559,25 @@ function App({ session }: { session: Session }) {
       if(sr.error)throw sr.error;if(cr.error)throw cr.error;if(mr.error)throw mr.error;
       serverRows=sr.data||[];channelRows=cr.data||[];serverMemberRows=mr.data||[];
     }
-    const {data:friendships,error:friendError}=await supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid);
-    if(friendError)throw friendError;
-    const {data:ownConvs,error:convError}=await supabase.from("conversation_members").select("conversation_id,hidden_at").eq("user_id",uid);
-    if(convError)throw convError;
+    const [friendResult,ownConvResult]=await Promise.all([
+      supabase.from("friendships").select("id,requester_id,addressee_id,status").or("requester_id.eq."+uid+",addressee_id.eq."+uid),
+      supabase.from("conversation_members").select("conversation_id,hidden_at").eq("user_id",uid)
+    ]);
+    const {data:friendships,error:friendError}=friendResult;
+    const {data:ownConvs,error:convError}=ownConvResult;
+    if(friendError)throw friendError;if(convError)throw convError;
     const convIds=[...new Set((ownConvs||[]).filter(row=>!row.hidden_at).map(row=>row.conversation_id))];
-    let convMembers:any[]=[];
-    if(convIds.length){const {data,error}=await supabase.from("conversation_members").select("conversation_id,user_id").in("conversation_id",convIds);if(error)throw error;convMembers=data||[];}
+    const convMembersPromise=convIds.length
+      ?supabase.from("conversation_members").select("conversation_id,user_id").in("conversation_id",convIds)
+      :Promise.resolve({data:[],error:null});
+    const unreadCountsPromise=channelRows.length
+      ?supabase.rpc("get_unread_channel_counts")
+      :Promise.resolve({data:[],error:null});
+    const [convMembersResult,unreadCountsResult]=await Promise.all([convMembersPromise,unreadCountsPromise]);
+    if(convMembersResult.error)throw convMembersResult.error;
+    if(unreadCountsResult.error)throw unreadCountsResult.error;
+    const convMembers:any[]=convMembersResult.data||[];
+    const unreadByChannel:Record<string,number>=Object.fromEntries((unreadCountsResult.data||[]).map((row:{channel_id:string;unread_count:number|string})=>[keyFor("channel",row.channel_id),Number(row.unread_count)||0]));
     const related=new Set<string>();
     for(const row of serverMemberRows)if(row.user_id!==uid)related.add(row.user_id);
     for(const row of friendships||[]){const id=row.requester_id===uid?row.addressee_id:row.requester_id;if(id!==uid)related.add(id);}
@@ -581,7 +593,7 @@ function App({ session }: { session: Session }) {
     const membersByServer:Record<string,string[]>={},rolesByServer:Record<string,Record<string,"owner"|"admin"|"member">>={};for(const row of serverMemberRows){(membersByServer[row.server_id] ||= []).push(row.user_id);(rolesByServer[row.server_id] ||= {})[row.user_id]=row.role;}setServerMembersByServer(membersByServer);setServerMemberRoles(rolesByServer);
     setFriendRequests((friendships||[]).filter(row=>row.status==="pending"&&row.addressee_id===uid).map(row=>({id:row.id,requester_id:row.requester_id,addressee_id:row.addressee_id,name:profiles.find(p=>p.id===row.requester_id)?.username||"Player",avatarUrl:profiles.find(p=>p.id===row.requester_id)?.avatar_url||null})));
     setChannels(channelRows.map(row=>({id:row.id,publicId:row.public_id,serverId:row.server_id,name:row.name,description:row.description||"",category:row.category||"Text Channels"})));
-    if(channelRows.length){const {data:counts,error:countsError}=await supabase.rpc("get_unread_channel_counts");if(countsError)throw countsError;const unreadByChannel=Object.fromEntries((counts||[]).map((row:{channel_id:string;unread_count:number|string})=>[keyFor("channel",row.channel_id),Number(row.unread_count)||0]));setUnread(old=>({...old,...unreadByChannel}));}
+    if(channelRows.length)setUnread(old=>({...old,...unreadByChannel}));
     setPeople(profiles.map((p,i)=>({id:p.id,publicId:p.public_id,name:p.username||"Player",status:presenceByUser[p.id]||(p.status||"Offline") as PresenceStatus,online:Boolean(presenceByUser[p.id]&&presenceByUser[p.id]!=="Offline"),color:colors[i%colors.length],preview:"",avatarUrl:p.avatar_url||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
     setConversationIds(convMap);
     setActiveServer(prev=>serverIds.includes(prev)?prev:(serverRows[0]?.id||""));
