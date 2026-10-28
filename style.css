@@ -744,3 +744,27 @@ button.member-entry { cursor: pointer; }
 
 :root[data-theme="light"] textarea { background: #ffffff; color: #172033; border-color: #cbd6e2; }
 .discord-settings-content textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #ffffff20; border-radius: 8px; resize: vertical; font: inherit; font-size: 12px; }
+
+
+/* Chat URL embeds and Voax invite cards */
+.message-content { min-width: 0; }
+.message-content > p { margin: 4px 0 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; }
+.message-content > p a { color: var(--voax-sky); text-decoration: none; overflow-wrap: anywhere; }
+.message-content > p a:hover { text-decoration: underline; }
+.link-preview-card { display: flex; flex-direction: column; width: min(100%, 480px); margin-top: 10px; overflow: hidden; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 10px; background: color-mix(in srgb, var(--card) 92%, #000); color: inherit; text-decoration: none; transition: border-color .16s ease, transform .16s ease; }
+.link-preview-card:hover { border-color: color-mix(in srgb, var(--accent) 48%, var(--line)); transform: translateY(-1px); }
+.link-preview-image { display: block; width: 100%; max-height: 210px; object-fit: cover; background: var(--panel); }
+.link-preview-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; padding: 12px 14px; min-width: 0; }
+.link-preview-site, .link-preview-url { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.link-preview-copy strong { font-size: 14px; line-height: 1.35; color: var(--text, #e6edf7); overflow-wrap: anywhere; }
+.link-preview-description { color: #a9b5c7; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
+.invite-preview-card { display: flex; align-items: center; gap: 12px; width: min(100%, 480px); margin-top: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
+.invite-preview-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); }
+.invite-preview-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.invite-preview-copy strong { font-size: 13px; }
+.invite-preview-copy span, .invite-preview-copy small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.invite-join-button { flex: 0 0 auto; white-space: nowrap; padding: 9px 12px; font-size: 12px; }
+@media (max-width: 560px) {
+  .invite-preview-card { flex-wrap: wrap; }
+  .invite-join-button { width: 100%; }
+}
