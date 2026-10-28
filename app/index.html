@@ -1415,7 +1415,7 @@
       let result = text.normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "");
       for (const term of terms) {
         const pattern = [...term].map(char => char + "+").join("[^\\p{L}\\p{N}]*");
-        result = result.replace(new RegExp("(^|[^\\p{L}\\p{N}])(" + pattern + ")(?=$|[^\\p{L}\\p{N}])", "giu"), (match, prefix, word) => prefix + word.replace(/\\p{L}/gu, "*"));
+        result = result.replace(new RegExp("(^|[^\\p{L}\\p{N}])(" + pattern + ")(?=$|[^\\p{L}\\p{N}])", "giu"), (match, prefix, word) => prefix + word.replace(/\p{L}/gu, "*"));
       }
       return result;
     }
