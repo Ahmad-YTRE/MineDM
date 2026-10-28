@@ -4,6 +4,7 @@ import "./style.css";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
 import { AuthScreen } from "./AuthScreen";
+import { censorProfanity } from "./profanity";
 import { Icon } from "./icons.filename";
 
 type Reaction = { emoji: string; count: number; reacted: boolean };
@@ -72,10 +73,10 @@ function SettingsSkeleton() {
 
 function Landing({ openApp }: { openApp: () => void }) {
   return <div className="landing">
-    <header className="landing-header"><a className="wordmark" href="/"><Logo size={28} />Mine<span>DM</span></a><nav><a href="#features">Features</a><a href="#community">Community</a></nav><button className="btn primary" onClick={openApp}>Open web app <Icon name="arrowUpRight" size={15} /></button></header>
+    <header className="landing-header"><a className="wordmark" href="/"><Logo size={28} />Voax</a><nav><a href="#features">Features</a><a href="#community">Community</a></nav><button className="btn primary" onClick={openApp}>Open web app <Icon name="arrowUpRight" size={15} /></button></header>
     <section className="hero"><Logo size={96} className="is-hero" /><div className="eyebrow"><span className="pulse"/> THE HANGOUT FOR YOUR MINECRAFT CREW</div><h1>Chat. Play.<br/><span>Build together.</span></h1><p>A familiar, lightweight place to chat with your Minecraft friends, organize your crew, and share your next big idea.</p><div className="hero-actions"><button className="btn primary large" onClick={openApp}>Open Voax <Icon name="arrowRight" size={16} /></button><a className="btn secondary large" href="#features">Explore features</a></div><div className="hero-note"><Icon name="sparkles" size={15} /> A Minecraft-inspired chat community</div></section>
     <section className="landing-features" id="features"><div className="section-kicker">MADE FOR YOUR CREW</div><h2>Everything your squad needs.</h2><div className="feature-grid"><article><div className="feature-icon"><Icon name="message" size={24} /></div><h3>Channels & DMs</h3><p>Keep server conversations organized and jump into private chats whenever you need.</p></article><article><div className="feature-icon"><Icon name="pickaxe" size={24} /></div><h3>Built for builders</h3><p>Talk builds, share ideas, and plan your next adventure with your crew.</p></article><article><div className="feature-icon"><Icon name="zap" size={24} /></div><h3>Lightweight by design</h3><p>A clean, responsive interface that works on desktop, tablet, and mobile.</p></article></div></section>
-    <footer className="landing-footer" id="community"><span className="wordmark"><Logo size={20} />Mine<span>DM</span></span><span>© 2026 Voax · An independent community demo, not affiliated with Mojang.</span></footer>
+    <footer className="landing-footer" id="community"><span className="wordmark"><Logo size={20} />Voax</span><span>© 2026 Voax · An independent community demo, not affiliated with Mojang.</span></footer>
   </div>;
 }
 
@@ -573,7 +574,7 @@ function App({ session }: { session: Session }) {
     setPendingAttachments(old=>old.filter(item=>item.path!==attachment.path));
   }
   async function sendMessage(e:FormEvent){
-    e.preventDefault();const body=draft.trim();if(!body&&!pendingAttachments.length)return;
+    e.preventDefault();const body=censorProfanity(draft.trim());if(!body&&!pendingAttachments.length)return;
     if(view==="channel"&&!activeChannel){notify("Create a server and channel before sending messages.");return;}
     const conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
     if(view==="dm"&&!conversationId){notify("Open a conversation with a Voax player before sending a message.");return;}
