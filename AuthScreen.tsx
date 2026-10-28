@@ -41,7 +41,7 @@ export function AuthScreen() {
   return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",padding:24,background:"radial-gradient(ellipse at 50% 0%,#132b3c 0,transparent 50%),#090b10",color:"#e5ebf5",fontFamily:"Inter,system-ui,sans-serif"}}>
     <section style={{width:"min(100%,420px)",padding:32,border:"1px solid #ffffff18",borderRadius:18,background:"#10151eee",boxShadow:"0 24px 80px #0006"}}>
       <div style={{fontWeight:950,letterSpacing:2,fontSize:22,color:"#fff",marginBottom:8}}>Mine<span style={{color:"#00e5ff"}}>DM</span></div>
-      <p style={{color:"#9aa8bc",lineHeight:1.6,margin:"0 0 24px"}}>{mode === "login" ? "Sign in to join your crew. Your channels and messages sync across devices." : "Create your account to start chatting with your crew."}</p>
+      
       <form onSubmit={submit} style={{display:"grid",gap:13}}>
         {mode === "signup" && <label style={{display:"grid",gap:6,fontSize:12,color:"#aeb9ca"}}>Username<input value={username} onChange={e=>setUsername(e.target.value)} maxLength={32} placeholder="CraftyBuilder" style={fieldStyle}/></label>}
         <label style={{display:"grid",gap:6,fontSize:12,color:"#aeb9ca"}}>Email<input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)} placeholder="you@example.com" style={fieldStyle}/></label>
