@@ -1,3 +1,6 @@
+revoke all on function public.has_server_permission(uuid,text) from anon;
+revoke all on function public.has_server_permission(uuid,text) from public;
+grant execute on function public.has_server_permission(uuid,text) to authenticated;
 drop policy if exists "admins assign server roles" on public.server_member_roles;
 create policy "admins assign server roles" on public.server_member_roles for insert to authenticated with check (
   public.has_server_permission(server_member_roles.server_id,'manage_roles')
