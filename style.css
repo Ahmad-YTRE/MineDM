@@ -797,3 +797,6 @@ button.member-entry { cursor: pointer; }
   .custom-role-create-row .btn { flex: 1; }
   .role-permission-options { grid-template-columns: 1fr; }
 }
+
+.assigned-custom-role { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; }
+.assigned-custom-role .custom-role-dot { width: 7px; height: 7px; flex-basis: 7px; box-shadow: none; }
