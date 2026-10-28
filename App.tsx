@@ -251,7 +251,7 @@ function App({ session }: { session: Session }) {
     };
     void loadMessages().catch(error=>{if(!cancelled){notify("Couldn't load messages: "+(error instanceof Error?error.message:"Please try again."));setMessagesLoading(false);}});
     return()=>{cancelled=true;};
-  },[active,activeKey,view,session.user.id,conversationIds,activePerson?.id,people,name]);
+  },[active,activeKey,view,session.user.id,conversationIds,activePerson?.id,name]);
   useEffect(()=>{
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
     if(!channelId&&!conversationId)return;
