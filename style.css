@@ -628,3 +628,38 @@ button.member-entry { cursor: pointer; }
 .settings-skeleton-save .skeleton-line{width:118px;height:36px;border-radius:8px}
 @media(max-width:900px){.loading-dm-home{grid-template-columns:56px minmax(185px,230px) minmax(0,1fr)}}
 @media(max-width:650px){.loading-dm-home{grid-template-columns:52px minmax(0,1fr)}.loading-dm-home .sidebar{display:none}.dm-home-skeleton-content{padding:20px 16px}.settings-skeleton{min-height:0;max-height:calc(100dvh - 16px)}.settings-skeleton .discord-settings-nav{padding-top:48px}}
+
+/* MineDM custom scrollbar */
+:root {
+  scrollbar-color: #2a4554 #090b10;
+  scrollbar-width: thin;
+}
+
+* {
+  scrollbar-color: #2a4554 #090b10;
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #090b10;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #245568 0%, #17313f 100%);
+  border: 2px solid #090b10;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00e5ff 0%, #38bdf8 100%);
+}
+
+*::-webkit-scrollbar-corner {
+  background: #090b10;
+}
