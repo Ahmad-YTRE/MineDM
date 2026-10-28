@@ -1,9 +1,37 @@
 {
   "cleanUrls": true,
   "rewrites": [
-    { "source": "/app", "destination": "/" },
-    { "source": "/app/:path*", "destination": "/" },
-    { "source": "/dms", "destination": "/" },
-    { "source": "/dms/:path*", "destination": "/" }
+    {
+      "source": "/app",
+      "destination": "/"
+    },
+    {
+      "source": "/app/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/dms",
+      "destination": "/"
+    },
+    {
+      "source": "/dms/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/channel/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/channels/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/invite/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/dm/:path*",
+      "destination": "/"
+    }
   ]
 }
