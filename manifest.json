@@ -1,17 +1,24 @@
 {
-  "short_name": "Voax PWA",
-  "name": "Voax - App",
+  "id": "/",
+  "name": "Voax — Chat. Play. Build together!",
+  "short_name": "Voax",
+  "description": "Voax is a Minecraft-inspired community chat app.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#090b10",
+  "theme_color": "#00008B",
   "icons": [
     {
-      "src": "public/logo.svg",
-      "sizes": "1000x1000",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/logo.png",
+      "sizes": "400x400",
+      "type": "image/png",
+      "purpose": "any"
     }
-  ],
-  "start_url": "/index.html",
-  "background_color": "#040c06",
-  "theme_color": "#10b981",
-  "display": "standalone",
-  "orientation": "landscape"
+  ]
 }
