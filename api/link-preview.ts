@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
 
@@ -74,7 +73,7 @@ async function fetchHtml(start: URL): Promise<{ url: URL; html: string }> {
   }
   throw new Error("Preview unavailable");
 }
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+export default async function handler(req: any, res: any) {
   res.setHeader("Cache-Control", "public, s-maxage=3600, stale-while-revalidate=86400");
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
