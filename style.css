@@ -663,3 +663,81 @@ button.member-entry { cursor: pointer; }
 *::-webkit-scrollbar-corner {
   background: #090b10;
 }
+
+
+/* Light appearance theme */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --accent: #087f9b;
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --card: #edf2f8;
+  --line: #17203320;
+  --muted: #5d6b7d;
+  --green: #168a57;
+  color: #172033;
+  background: #f4f7fb;
+  scrollbar-color: #a9bac9 #edf2f8;
+}
+:root[data-theme="light"] body,
+:root[data-theme="light"] #root { background: #f4f7fb; color: #172033; }
+:root[data-theme="light"] .app-shell,
+:root[data-theme="light"] .main-panel,
+:root[data-theme="light"] .chat-panel,
+:root[data-theme="light"] .friends-view,
+:root[data-theme="light"] .home-view,
+:root[data-theme="light"] .discord-settings-layout,
+:root[data-theme="light"] .discord-settings-content { background-color: #f4f7fb; color: #172033; }
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .server-rail,
+:root[data-theme="light"] .member-sidebar,
+:root[data-theme="light"] .discord-settings-nav,
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .composer-area,
+:root[data-theme="light"] .settings-preference-row,
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .profile-popout { background-color: #ffffff; color: #172033; border-color: #d8e1eb; }
+:root[data-theme="light"] .message-scroll,
+:root[data-theme="light"] .channel-list,
+:root[data-theme="light"] .dm-list { background-color: #f4f7fb; }
+:root[data-theme="light"] h1,
+:root[data-theme="light"] h2,
+:root[data-theme="light"] h3,
+:root[data-theme="light"] strong,
+:root[data-theme="light"] .topbar-title,
+:root[data-theme="light"] .settings-profile-banner strong,
+:root[data-theme="light"] .discord-settings-heading h2,
+:root[data-theme="light"] .message-meta strong,
+:root[data-theme="light"] .user-label strong { color: #172033; }
+:root[data-theme="light"] p,
+:root[data-theme="light"] small,
+:root[data-theme="light"] label,
+:root[data-theme="light"] .message-body p,
+:root[data-theme="light"] .discord-settings-heading p,
+:root[data-theme="light"] .settings-help { color: #5d6b7d; }
+:root[data-theme="light"] input:not([type="checkbox"]):not([type="file"]),
+:root[data-theme="light"] textarea,
+:root[data-theme="light"] select { background: #ffffff; color: #172033; border-color: #cbd6e2; }
+:root[data-theme="light"] .nav-item,
+:root[data-theme="light"] .discord-settings-nav button,
+:root[data-theme="light"] .icon-btn,
+:root[data-theme="light"] .btn.secondary { color: #334155; }
+:root[data-theme="light"] .nav-item:hover,
+:root[data-theme="light"] .discord-settings-nav button:hover,
+:root[data-theme="light"] .icon-btn:hover,
+:root[data-theme="light"] .channel-row:hover,
+:root[data-theme="light"] .dm-row:hover { background: #e8eef5; }
+:root[data-theme="light"] .settings-profile-banner { background: #eaf4f8; border-color: #c8e2e9; }
+:root[data-theme="light"] .btn.secondary { background: #f8fafc; border-color: #cbd6e2; }
+:root[data-theme="light"] .landing { background: radial-gradient(ellipse at 50% 4%, #d8f2f7 0, transparent 48%), #f4f7fb; }
+:root[data-theme="light"] .landing-header { border-color: #17203316; }
+:root[data-theme="light"] .hero h1 { color: #172033; }
+:root[data-theme="light"] .hero > p { color: #526174; }
+:root[data-theme="light"] .hero-note { color: #66758a; }
+:root[data-theme="light"] .profile-popout-backdrop,
+:root[data-theme="light"] .modal-backdrop { background: #23304766; }
+:root[data-theme="light"] * { scrollbar-color: #a9bac9 #edf2f8; }
+:root[data-theme="light"] *::-webkit-scrollbar-track,
+:root[data-theme="light"] *::-webkit-scrollbar-corner { background: #edf2f8; }
+:root[data-theme="light"] *::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#b4c7d7 0%,#8da7bb 100%); border-color: #edf2f8; }
+.theme-choice-group { display: flex; gap: 8px; }
