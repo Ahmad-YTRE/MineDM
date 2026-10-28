@@ -800,3 +800,6 @@ button.member-entry { cursor: pointer; }
 
 .assigned-custom-role { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; }
 .assigned-custom-role .custom-role-dot { width: 7px; height: 7px; flex-basis: 7px; box-shadow: none; }
+
+.role-kick-button { flex: 0 0 30px; width: 30px; height: 30px; color: var(--muted); }
+.role-kick-button:hover { color: #ed4245; border-color: color-mix(in srgb, #ed4245 40%, var(--line)); }
