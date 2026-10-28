@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b0c10">
 <title>Direct Messages — Voax</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%235eead4' fill-rule='evenodd' clip-rule='evenodd' d='M6.5 2.25 H17.5 A4.25 4.25 0 0 1 21.75 6.5 V13.5 A4.25 4.25 0 0 1 17.5 17.75 H10.75 L6 22.25 V17.75 H6.5 A4.25 4.25 0 0 1 2.25 13.5 V6.5 A4.25 4.25 0 0 1 6.5 2.25 Z M12 5.75 L16.25 10 L12 14.25 L7.75 10 Z'/%3E%3C/svg%3E">
+<link rel="icon" type="image/png" href="/logo.png">
   <style>
 :root {
   --voax-teal: #5eead4;
@@ -98,7 +98,7 @@ svg {
   color: var(--voax-teal);
   flex: none;
 }
-.logo-mark svg {
+.logo-mark img {
   width: 100%;
   height: 100%;
   display: block;
@@ -107,7 +107,7 @@ svg {
   transition: transform 450ms cubic-bezier(.2,.8,.2,1), filter 450ms ease;
   filter: drop-shadow(0 2px 10px rgb(94 234 212 / 25%));
 }
-.logo-mark:hover svg {
+.logo-mark:hover img {
   transform: rotate(-8deg) scale(1.06);
   filter: drop-shadow(0 0 14px rgb(94 234 212 / 70%));
 }
@@ -129,7 +129,7 @@ svg {
   35% { opacity: .9; transform: scale(.95); }
   100% { opacity: 0; transform: scale(1.45); }
 }
-.logo-mark.is-hero svg {
+.logo-mark.is-hero img {
   animation: voax-logo-breathe 4.5s ease-in-out infinite;
 }
 @keyframes voax-logo-breathe {
@@ -137,7 +137,7 @@ svg {
   50% { filter: drop-shadow(0 0 16px rgb(94 234 212 / 65%)); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .logo-mark svg,
+  .logo-mark img,
   .logo-mark::after {
     animation: none !important;
     transition: none !important;
@@ -624,7 +624,7 @@ svg {
 
 <div class="app">
   <aside class="rail" aria-label="Servers">
-    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main Voax app"><span class="logo-mark" style="--logo-size: 28px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></a>
+    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main Voax app"><span class="logo-mark" style="--logo-size: 28px"><img src="/logo.png" alt="Voax" /></span></a>
     <div class="rail-divider"></div>
     <button class="server active" title="Block Buddies">⛏</button>
     <button class="server" title="Survival Squad">🌲</button>
@@ -718,7 +718,7 @@ svg {
       <aside class="profile-panel" id="profilePanel">
         <div class="profile-banner"></div>
         <div class="profile-card">
-          <div class="profile-large-avatar" id="largeAvatar"><span class="logo-mark" style="--logo-size: 58px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></div>
+          <div class="profile-large-avatar" id="largeAvatar"><span class="logo-mark" style="--logo-size: 58px"><img src="/logo.png" alt="Voax" /></span></div>
           <h3>Voax</h3>
           <p class="username">Your Minecraft community</p>
           <hr>
