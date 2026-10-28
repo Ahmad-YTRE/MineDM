@@ -20,5 +20,5 @@ Voax was created by the power team of Shahadah Studios Elite and BloxdLabs. We b
 
 Start chatting, building, and playing together today!
 
- **Visit us at: https://voax.vercel.app**
+ **Start your DM at: https://voax.vercel.app**
 
