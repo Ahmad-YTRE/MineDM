@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Voax — Chat. Play. Build together!",
   "short_name": "Voax",
-  "description": "Voax is a Minecraft-inspired community chat app.",
+  "description": "Voax is a community chat app for everyone.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
