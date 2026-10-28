@@ -40,7 +40,7 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
-  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><use href="#logo-gem-bubble" /></svg></span>;
+  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src="/logo.svg" alt="" /></span>;
 }
 
 function SkeletonBar({ className = "" }: { className?: string }) {
