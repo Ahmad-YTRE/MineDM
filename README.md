@@ -1,1 +1,4 @@
-# BloxdLabs and Shahadah_Studios_Elite Presents : Voax | The Better Discord
+# Shahadah Studios Elite and  BloxdLabs Presents : Voax
+
+
+-# @Ahmad-ytre I my studio name has 0 Underscores!
