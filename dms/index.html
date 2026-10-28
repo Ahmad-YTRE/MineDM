@@ -624,7 +624,7 @@ svg {
 
 <div class="app">
   <aside class="rail" aria-label="Servers">
-    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main MineDM app"><span class="logo-mark" style="--logo-size: 28px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></a>
+    <a class="rail-logo" href="../app/" title="Main App" aria-label="Open the main Voax app"><span class="logo-mark" style="--logo-size: 28px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></a>
     <div class="rail-divider"></div>
     <button class="server active" title="Block Buddies">⛏</button>
     <button class="server" title="Survival Squad">🌲</button>
@@ -641,7 +641,7 @@ svg {
     <a class="friends-link" href="#" id="friendsLink">
       <svg><use href="#i-friends"/></svg> Friends
     </a>
-    <a class="friends-link main-app-link" href="../app/" title="Open the main MineDM app" aria-label="Open the main MineDM app">
+    <a class="friends-link main-app-link" href="../app/" title="Open the main Voax app" aria-label="Open the main Voax app">
       <svg><use href="#i-message"/></svg> Main App
     </a>
     <div class="sidebar-heading">
@@ -719,10 +719,10 @@ svg {
         <div class="profile-banner"></div>
         <div class="profile-card">
           <div class="profile-large-avatar" id="largeAvatar"><span class="logo-mark" style="--logo-size: 58px"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><use href="#logo-gem-bubble"/></svg></span></div>
-          <h3>MineDM</h3>
+          <h3>Voax</h3>
           <p class="username">Your Minecraft community</p>
           <hr>
-          <h4>About MineDM</h4>
+          <h4>About Voax</h4>
           <p>A place to hang out, chat with friends, and plan your next adventure.</p>
           <hr>
           <h4>Made for gamers</h4>
@@ -941,11 +941,11 @@ $("mobileMenu").addEventListener("click",() => dmSidebar.classList.toggle("mobil
 
 $("showInbox").addEventListener("click",() => notify("Your inbox is up to date."));
 $("inboxButton").addEventListener("click",() => notify("Your inbox is up to date."));
-$("helpButton").addEventListener("click",() => notify("MineDM Direct Messages demo."));
+$("helpButton").addEventListener("click",() => notify("Voax Direct Messages demo."));
 $("muteButton").addEventListener("click",() => notify("Voice controls are not connected yet."));
 
 function openSettingsNotice() {
-  notify("Settings can be opened from the main MineDM app.");
+  notify("Settings can be opened from the main Voax app.");
 }
 $("userSettings").addEventListener("click",openSettingsNotice);
 $("railSettings").addEventListener("click",openSettingsNotice);
