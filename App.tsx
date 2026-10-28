@@ -33,15 +33,16 @@ function initials(name: string) { return name.trim().split(/\s+/).map(x => x[0])
 function timeNow() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
 async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   const attachments = Array.isArray(value) ? value as Omit<Attachment, "url">[] : [];
-  return Promise.all(attachments.map(async attachment => {
-    const { data } = await supabase.storage.from("message-attachments").createSignedUrl(attachment.path, 3600);
-    return { ...attachment, url: data?.signedUrl };
-  }));
+  if (!attachments.length) return [];
+  const paths = [...new Set(attachments.map(attachment => attachment.path))];
+  const { data } = await supabase.storage.from("message-attachments").createSignedUrls(paths, 3600);
+  const urls = new Map((data || []).map(item => [item.path, item.signedUrl]));
+  return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) }));
 }
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
-  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src="/logo.svg" alt="" /></span>;
+  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src="/logo.png" alt="" /></span>;
 }
 
 function SkeletonBar({ className = "" }: { className?: string }) {
