@@ -37,7 +37,7 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   const paths = [...new Set(attachments.map(attachment => attachment.path))];
   const { data } = await supabase.storage.from("message-attachments").createSignedUrls(paths, 3600);
   const urls = new Map((data || []).map(item => [item.path, item.signedUrl] as const));
-  return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) }));
+  return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) ?? undefined }));
 }
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 
