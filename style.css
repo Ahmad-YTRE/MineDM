@@ -741,3 +741,6 @@ button.member-entry { cursor: pointer; }
 :root[data-theme="light"] *::-webkit-scrollbar-corner { background: #edf2f8; }
 :root[data-theme="light"] *::-webkit-scrollbar-thumb { background: linear-gradient(180deg,#b4c7d7 0%,#8da7bb 100%); border-color: #edf2f8; }
 .theme-choice-group { display: flex; gap: 8px; }
+
+:root[data-theme="light"] textarea { background: #ffffff; color: #172033; border-color: #cbd6e2; }
+.discord-settings-content textarea { width: 100%; min-height: 84px; padding: 10px 12px; border: 1px solid #ffffff20; border-radius: 8px; resize: vertical; font: inherit; font-size: 12px; }
