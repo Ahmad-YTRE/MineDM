@@ -575,6 +575,8 @@ button.member-entry { cursor: pointer; }
 .profile-about p{margin:0;color:#dbdee1;font-size:12px;line-height:1.55}
 .profile-mutual{margin-top:16px}
 .profile-mutual-row{display:flex;align-items:center;gap:10px;padding:9px;border-radius:8px;background:#1b1d24}
+.profile-mutual-icons{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding:0;background:transparent}
+.profile-mutual-icons>img,.profile-mutual-icons>span{width:42px;height:42px;flex:0 0 42px;border-radius:13px;cursor:default}
 .profile-mutual-row>img,.profile-mutual-row>span{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;object-fit:cover;border-radius:10px;background:#263344;color:#eafaff;font-size:10px;font-weight:900}
 .profile-mutual-row>div{display:grid;gap:3px;min-width:0}
 .profile-mutual-row strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;color:#f2f3f5}
