@@ -77,7 +77,7 @@ export default async function handler(req: any, res: any) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   if (req.method !== "GET") return res.status(405).json({ error: "Method not allowed" });
   const raw = typeof req.query.url === "string" ? req.query.url : "";
-  if (!raw || raw.length > 2048) return res.status(400).json({ error: "A valid URL is required" });
+  if (!raw || raw.length > 2048) return res.status(400).json({ error: "A valid URL is required..." });
   try {
     const start = await validatePublicUrl(raw);
     const { url, html } = await fetchHtml(start);
