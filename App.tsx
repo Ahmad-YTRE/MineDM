@@ -7,7 +7,8 @@ import { AuthScreen } from "./AuthScreen";
 import { Icon } from "./icons.filename";
 
 type Reaction = { emoji: string; count: number; reacted: boolean };
-type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: Reaction[]; replyTo?: { author: string; text: string } };
+type Attachment = { path: string; name: string; mimeType: string; size: number; url?: string };
+type Message = { id: string; author: string; text: string; time: string; own?: boolean; reactions?: Reaction[]; replyTo?: { author: string; text: string }; attachments?: Attachment[] };
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
 type Person = { id: string; name: string; online: boolean; status?: PresenceStatus; color: string; preview: string; avatarUrl?: string | null; isFriend?: boolean; hasConversation?: boolean };
 type Server = { id: string; name: string; description: string; createdBy?: string; inviteCode?: string; iconUrl?: string | null; role?: "owner" | "admin" | "member" };
@@ -27,6 +28,13 @@ function readSaved(): SavedState | null {
 const saved = typeof window !== "undefined" ? readSaved() : null;
 function initials(name: string) { return name.trim().split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase() || "??"; }
 function timeNow() { return new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); }
+async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
+  const attachments = Array.isArray(value) ? value as Omit<Attachment, "url">[] : [];
+  return Promise.all(attachments.map(async attachment => {
+    const { data } = await supabase.storage.from("message-attachments").createSignedUrl(attachment.path, 3600);
+    return { ...attachment, url: data?.signedUrl };
+  }));
+}
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
@@ -80,6 +88,9 @@ function App({ session }: { session: Session }) {
   const [workspaceLoading, setWorkspaceLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [avatarBusy, setAvatarBusy] = useState(false);
+  const [attachmentBusy, setAttachmentBusy] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<Attachment[]>([]);
+  const attachmentInputRef = useRef<HTMLInputElement | null>(null);
   const [serverIconBusy, setServerIconBusy] = useState(false);
   const [categoryInput, setCategoryInput] = useState("Text Channels");
   const [serverMemberRoles, setServerMemberRoles] = useState<Record<string, Record<string, "owner" | "admin" | "member">>>({});
@@ -211,14 +222,14 @@ function App({ session }: { session: Session }) {
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
     if(!channelId&&!conversationId)return;let cancelled=false;
     const loadMessages=async()=>{
-      const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id").eq("channel_id",channelId).order("created_at",{ascending:true}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id").eq("conversation_id",conversationId!).order("created_at",{ascending:true}).limit(200);
+      const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:true}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:true}).limit(200);
       if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
       const rows=result.data||[],authorIds=[...new Set(rows.map(row=>row.author_id))];let profiles:any[]=[];
       if(authorIds.length){const p=await supabase.from("profiles").select("id,username").in("id",authorIds);if(p.error){notify("Couldn't load message authors: "+p.error.message);setMessagesLoading(false);return;}profiles=p.data||[];}
       const names=new Map(profiles.map(p=>[p.id,p.username||"Player"])),byId=new Map(rows.map(row=>[row.id,row]));
       const reactionMap=new Map<string,Reaction[]>();
       if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));if(rr.error){notify("Unable to load reactions: "+rr.error.message);setMessagesLoading(false);return;}for(const r of rr.data||[]){const list=reactionMap.get(r.message_id)||[];const existing=list.find(x=>x.emoji===r.emoji);if(existing){existing.count++;if(r.user_id===session.user.id)existing.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});reactionMap.set(r.message_id,list);}}
-      const mapped:Message[]=rows.map(row=>{const reply=row.reply_to?byId.get(row.reply_to):null;return{id:row.id,author:names.get(row.author_id)||(row.author_id===session.user.id?name:"Member"),text:row.body,time:new Date(row.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),own:row.author_id===session.user.id,...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{})};});
+      const mapped:Message[]=await Promise.all(rows.map(async row=>{const reply=row.reply_to?byId.get(row.reply_to):null;const attachments=await signMessageAttachments(row.attachments);return{id:row.id,author:names.get(row.author_id)||(row.author_id===session.user.id?name:"Member"),text:row.body,time:new Date(row.created_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}),own:row.author_id===session.user.id,...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{}),...(attachments.length?{attachments}:{})};}));
       setMessages(old=>({...old,[activeKey]:mapped,[active]:mapped}));
     };
     void loadMessages().catch(error=>{if(!cancelled)notify("Couldn't load messages: "+(error instanceof Error?error.message:"Please try again."));});
