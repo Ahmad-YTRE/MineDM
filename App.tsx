@@ -297,9 +297,8 @@ function App({ session }: { session: Session }) {
     void load();const channel=supabase.channel("voax-notifications-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+session.user.id},payload=>{const row=payload.new as AppNotification;setNotifications(old=>[row,...old.filter(n=>n.id!==row.id)].slice(0,40));notify(row.title);}).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[session.user.id]);
-  useEffect(()=>{
-    const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(view==="channel"&&active===row.channel_id))return;void(async()=>{const {data:readState,error:readError}=await supabase.from("channel_read_states").select("last_read_at").eq("user_id",session.user.id).eq("channel_id",row.channel_id).maybeSingle();if(readError||!readState)return;const {count,error}=await supabase.from("messages").select("id",{count:"exact",head:true}).eq("channel_id",row.channel_id).neq("author_id",session.user.id).gt("created_at",readState.last_read_at);if(!error)setUnread(old=>({...old,[keyFor("channel",row.channel_id!)]:count||0}));})();}).subscribe();return()=>{void supabase.removeChannel(channel);};
-  },[session.user.id,active,view]);
+  useEffect(()=>{const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(viewRef.current==="channel"&&activeRef.current===row.channel_id))return;const key=keyFor("channel",row.channel_id);setUnread(old=>({...old,[key]:(old[key]||0)+1}));}).subscribe();return()=>{void supabase.removeChannel(channel);};},[session.user.id]);
+
   useEffect(()=>{
     const conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
     if(!conversationId){voiceChannelRef.current=null;return;}
@@ -326,14 +325,9 @@ function App({ session }: { session: Session }) {
 
   const currentMessages = messages[activeKey] || messages[active] || [];
   const currentMessageIds = currentMessages.map(message=>message.id).join(",");
-  useEffect(()=>{
-    const ids=currentMessageIds?currentMessageIds.split(","):[];if(!ids.length)return;
-    const channel=supabase.channel("voax-reactions-"+activeKey).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},async()=>{
-      const {data,error}=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",ids);if(error)return;
-      const grouped:Record<string,Reaction[]>={};for(const r of data||[]){const list=grouped[r.message_id]||(grouped[r.message_id]=[]);const item=list.find(x=>x.emoji===r.emoji);if(item){item.count++;if(r.user_id===session.user.id)item.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});}
-      setMessages(old=>({...old,[activeKey]:(old[activeKey]||old[active]||[]).map(m=>({...m,reactions:grouped[m.id]||[]}))}));
-    }).subscribe();return()=>{void supabase.removeChannel(channel);};
-  },[activeKey,currentMessageIds,session.user.id]);
+  useEffect(()=>{currentMessageIdsRef.current=currentMessageIds?currentMessageIds.split(","):[];},[currentMessageIds]);
+  useEffect(()=>{const channel=supabase.channel("voax-reactions-"+activeKey).on("postgres_changes",{event:"*",schema:"public",table:"message_reactions"},payload=>{const eventType=(payload as any).eventType as string;const row=((eventType==="DELETE"?(payload as any).old:(payload as any).new)||{}) as {message_id?:string;user_id?:string;emoji?:string};if(!row.message_id||!row.emoji||row.user_id===session.user.id||!currentMessageIdsRef.current.includes(row.message_id))return;const delta=eventType==="DELETE"?-1:1;setMessages(old=>{const key=activeKeyRef.current;const list=old[key]||old[activeRef.current]||[];return{...old,[key]:list.map(message=>{if(message.id!==row.message_id)return message;const reactions=[...(message.reactions||[])];const index=reactions.findIndex(reaction=>reaction.emoji===row.emoji);if(index<0){if(delta<0)return message;reactions.push({emoji:row.emoji!,count:1,reacted:false});}else{const count=reactions[index].count+delta;if(count<=0)reactions.splice(index,1);else reactions[index]={...reactions[index],count};}return{...message,reactions};})};}).subscribe();return()=>{void supabase.removeChannel(channel);};},[activeKey,session.user.id]);
+
   const visibleMessages = search.trim() && (view === "channel" || view === "dm")
     ? currentMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
     : currentMessages;
