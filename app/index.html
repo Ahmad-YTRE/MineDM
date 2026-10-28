@@ -1413,6 +1413,7 @@
     function censorProfanity(text) {
       const terms = ["motherfucker","motherfuck","bullshit","asshole","bastard","bitch","fuck","shit","cunt","dick","pussy","whore","slut","crap","damn","piss","ass"];
       let result = text.normalize("NFKC").replace(/[\u200B-\u200D\uFEFF]/g, "");
+      result = result.replace(/f[\\s*#@._-]+ck/gi, "fuck").replace(/sh[\\s*#@._-]+t/gi, "shit").replace(/b[\\s*#@._-]+tch/gi, "bitch").replace(/a[\\s*#@._-]{1,3}hole/gi, "asshole").replace(/d[\\s*#@._-]+ck/gi, "dick");
       for (const term of terms) {
         const pattern = [...term].map(char => char + "+").join("[^\\p{L}\\p{N}]*");
         result = result.replace(new RegExp("(^|[^\\p{L}\\p{N}])(" + pattern + ")(?=$|[^\\p{L}\\p{N}])", "giu"), (match, prefix, word) => prefix + word.replace(/\p{L}/gu, "*"));
