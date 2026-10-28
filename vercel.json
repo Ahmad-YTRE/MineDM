@@ -2,6 +2,14 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/docs",
+      "destination": "/"
+    },
+    {
+      "source": "/docs/:path*",
+      "destination": "/"
+    },
+    {
       "source": "/app",
       "destination": "/"
     },
