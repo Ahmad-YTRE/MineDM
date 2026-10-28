@@ -252,7 +252,7 @@ function App({ session }: { session: Session }) {
       const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:true}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:true}).limit(200);
       if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
       const rows=result.data||[],authorIds=[...new Set(rows.map(row=>row.author_id))];
-      const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name]));names.set(session.user.id,nameRef.current);
+      const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name] as const));names.set(session.user.id,nameRef.current);
       const missingAuthorIds=authorIds.filter(id=>!names.has(id));
       if(missingAuthorIds.length){const p=await supabase.from("profiles").select("id,username").in("id",missingAuthorIds);if(p.error){notify("Couldn't load message authors: "+p.error.message);setMessagesLoading(false);return;}for(const profile of p.data||[])names.set(profile.id,profile.username||"Player");}
       const byId=new Map(rows.map(row=>[row.id,row]));
