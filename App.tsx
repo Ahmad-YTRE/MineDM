@@ -606,7 +606,7 @@ function App({ session }: { session: Session }) {
     setPeople(old=>old.map(person=>person.id===personId?{...person,hasConversation:false,preview:"Start a conversation"}:person));
     setConversationIds(old=>{const next={...old};delete next[personId];return next;});
     setMessages(old=>{const next={...old};delete next["dm:"+activePerson.name.toLowerCase()];return next;});
-    setActive(channels[0]?.id||"");setView(channels.length?"channel":"home");setShowLanding(false);setSidebarOpen(false);window.history.pushState({}, "", channels.length?"/app":"/dms");notify("Conversation removed from your inbox.");
+    const fallbackChannel=channels.find(channel=>channel.serverId===activeServer)||channels[0];setActive(fallbackChannel?.id||"");setView(fallbackChannel?"channel":"home");setShowLanding(false);setSidebarOpen(false);window.history.pushState({}, "", fallbackChannel?"/app":"/dms");notify("Conversation removed from your inbox.");
   }
 
   if (showLanding) return <Landing openApp={openApp} />;
