@@ -1,0 +1,17 @@
+{
+  "short_name": "Voax PWA",
+  "name": "Voax - App",
+  "icons": [
+    {
+      "src": "public/logo.svg",
+      "sizes": "1000x1000",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/index.html",
+  "background_color": "#040c06",
+  "theme_color": "#10b981",
+  "display": "standalone",
+  "orientation": "landscape"
+}
