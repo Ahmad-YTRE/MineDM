@@ -273,7 +273,7 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{
     const conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
     if(!conversationId){voiceChannelRef.current=null;return;}
-    const channel=supabase.channel("minedm-voice-"+conversationId,{config:{broadcast:{self:false}}});
+    const channel=supabase.channel("minedm-voice-"+conversationId,{config:{broadcast:{self:false},private:true}});
     voiceChannelRef.current=channel;
     channel.on("broadcast",{event:"voice-signal"},async({payload})=>{
       if(payload?.to!==session.user.id||payload?.from!==activePerson?.id)return;
