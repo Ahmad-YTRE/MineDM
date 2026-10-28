@@ -15,7 +15,8 @@ type Server = { id: string; name: string; description: string; createdBy?: strin
 type FriendRequest = { id: string; requester_id: string; addressee_id: string; name: string; avatarUrl?: string | null };
 type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string };
 type Channel = { id: string; name: string; description: string; serverId?: string; category?: string };
-type ContextMenuState = { x: number; y: number } & ({ kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message });
+type ContextMenuTarget = { kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message };
+type ContextMenuState = { x: number; y: number } & ContextMenuTarget;
 type SavedState = {
   name: string; status: string; active: string; view: "channel" | "dm" | "friends" | "home";
   channels: Channel[]; servers?: Server[]; activeServer?: string; people: Person[]; messages: Record<string, Message[]>;
@@ -502,7 +503,7 @@ function App({ session }: { session: Session }) {
   }
   function openApp(){window.history.pushState({},"","/app");setShowLanding(false);setView("channel");setActive(channels[0]?.id||"");if(channels[0])void markChannelRead(channels[0].id);}
   function openProfile(person:Person){setContextMenu(null);setSelectedProfile(person);}
-  function showContextMenu(event:React.MouseEvent, target:Omit<ContextMenuState,"x"|"y">){event.preventDefault();event.stopPropagation();setStatusMenuOpen(false);setContextMenu({x:event.clientX,y:event.clientY,...target} as ContextMenuState);}
+  function showContextMenu(event:React.MouseEvent, target:ContextMenuTarget){event.preventDefault();event.stopPropagation();setStatusMenuOpen(false);setContextMenu({x:event.clientX,y:event.clientY,...target} as ContextMenuState);}
   async function copyContextText(value:string,label:string){try{await navigator.clipboard.writeText(value);notify(label+" copied.");}catch{notify("Clipboard access is blocked by this browser.");}setContextMenu(null);}
   function contextPersonForMessage(message:Message):Person|null{return message.own?{id:session.user.id,name,status,online:status!=="Offline",color:"self",preview:"Your profile",avatarUrl}:people.find(person=>person.name===message.author)||null;}
   async function hideDMForPerson(person:Person){const personId=person.id;const conversationId=conversationIds[personId];if(!conversationId){notify("This conversation is no longer available.");setContextMenu(null);return;}const {error}=await supabase.from("conversation_members").update({hidden_at:new Date().toISOString()}).eq("conversation_id",conversationId).eq("user_id",session.user.id);if(error){notify("Unable to remove this conversation: "+error.message);setContextMenu(null);return;}setPeople(old=>old.map(item=>item.id===personId?{...item,hasConversation:false,preview:"Start a conversation"}:item));setConversationIds(old=>{const next={...old};delete next[personId];return next;});setContextMenu(null);if(activePerson?.id===personId){const fallbackChannel=channels.find(channel=>channel.serverId===activeServer)||channels[0];setActive(fallbackChannel?.id||"");setView(fallbackChannel?"channel":"home");setShowLanding(false);setSidebarOpen(false);window.history.pushState({},"",fallbackChannel?"/app":"/dms");}notify("Conversation hidden from your inbox. Messages are kept.");}
