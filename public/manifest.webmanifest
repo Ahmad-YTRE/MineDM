@@ -1,0 +1,24 @@
+{
+  "id": "/",
+  "name": "Voax — Chat. Play. Build together!",
+  "short_name": "Voax",
+  "description": "Voax is a Minecraft-inspired community chat app.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "any",
+  "background_color": "#090b10",
+  "theme_color": "#00008B",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "400x400",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
