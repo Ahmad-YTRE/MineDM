@@ -75,7 +75,7 @@ function SettingsSkeleton() {
 
 function Landing({ openApp }: { openApp: () => void }) {
   return <div className="landing">
-    <header className="landing-header"><a className="wordmark" href="/"><Logo size={32} />Voax</a><nav><a href="#features">Features</a><a href="#community">Community</a></nav><button className="btn primary" onClick={openApp}>Open web app <Icon name="arrowUpRight" size={15} /></button></header>
+    <header className="landing-header"><a className="wordmark" href="/"><Logo size={32} />Voax</a><nav><a href="#features">Features</a><a href="#community">Community</a><a href="/docs">User guide</a></nav><button className="btn primary" onClick={openApp}>Open web app <Icon name="arrowUpRight" size={15} /></button></header>
     <section className="hero"><Logo size={96} className="is-hero" /><div className="eyebrow"><span className="pulse"/> THE HANGOUT FOR YOUR MINECRAFT CREW</div><h1>Chat. Play.<br/><span>Build together.</span></h1><p>A familiar, lightweight place to chat with your Minecraft friends, organize your crew, and share your next big idea.</p><div className="hero-actions"><button className="btn primary large" onClick={openApp}>Open Voax <Icon name="arrowRight" size={16} /></button><a className="btn secondary large" href="#features">Explore features</a></div><div className="hero-note"><Icon name="sparkles" size={15} /> A Minecraft-inspired chat community</div></section>
     <section className="landing-features" id="features"><div className="section-kicker">MADE FOR YOUR CREW</div><h2>Everything your squad needs.</h2><div className="feature-grid"><article><div className="feature-icon"><Icon name="message" size={24} /></div><h3>Channels & DMs</h3><p>Keep server conversations organized and jump into private chats whenever you need.</p></article><article><div className="feature-icon"><Icon name="pickaxe" size={24} /></div><h3>Built for builders</h3><p>Talk builds, share ideas, and plan your next adventure with your crew.</p></article><article><div className="feature-icon"><Icon name="zap" size={24} /></div><h3>Lightweight by design</h3><p>A clean, responsive interface that works on desktop, tablet, and mobile.</p></article></div></section>
     <footer className="landing-footer" id="community"><span className="wordmark"><Logo size={20} />Voax</span><span>© 2026 Voax · An independent community demo, not affiliated with Mojang.</span></footer>
@@ -897,7 +897,42 @@ function App({ session }: { session: Session }) {
   </div>;
 }
 
-function Root() {
+
+function DocsPage() {
+  const [query, setQuery] = useState("");
+  const [activeSection, setActiveSection] = useState("getting-started");
+  const sections = [
+    { id: "getting-started", label: "Getting started", icon: "sparkles" },
+    { id: "friends", label: "Friends & DMs", icon: "users" },
+    { id: "servers", label: "Servers & channels", icon: "message" },
+    { id: "messages", label: "Messaging", icon: "send" },
+    { id: "profiles", label: "Profile & presence", icon: "user" },
+    { id: "settings", label: "Settings & appearance", icon: "settings" },
+    { id: "moderation", label: "Server management", icon: "shield" },
+    { id: "troubleshooting", label: "Troubleshooting", icon: "helpCircle" },
+  ];
+  const entries = [
+    { id: "getting-started", title: "Welcome to Voax", intro: "Voax is a place to chat with friends and organize communities in servers. Start by creating an account or signing in, then make your profile your own.", steps: ["Open Voax and choose the sign-up or sign-in option.", "Complete the requested account details and verify your email if prompted.", "Once signed in, use the sidebar to move between your conversations, friends, servers, and channels."] },
+    { id: "friends", title: "Add friends and start private chats", intro: "Friends make it easier to find people and continue conversations outside a server.", steps: ["Open the Friends area and choose the add-friend action.", "Enter the person's exact Voax username, then send the request.", "The other person can accept or reject the request from their incoming requests.", "Open a friend's profile or use the Message action to start a direct conversation."] },
+    { id: "servers", title: "Servers and channels", intro: "Servers group a community together. Channels keep different topics organized so conversations are easier to follow.", steps: ["Create a server for your community, or use Join Server to join with an invite code or link.", "Select a server from the server rail to view its channels.", "Choose a channel to read and send messages in that space.", "If you have permission, open server settings to manage the server, channels, and member roles.", "Share the server's invite code with people you want to invite. Treat invite links as shareable access links."] },
+    { id: "messages", title: "Send messages and share links", intro: "Use channel chat for group discussions and direct messages for one-to-one conversations.", steps: ["Select a channel or direct message, type into the message composer, and send.", "Use message actions to reply, react with an emoji, copy text, or delete a message when allowed.", "Paste a web link to show a link preview when available.", "Use the attachment button when available to attach a file. Only share files and links you are comfortable showing to that conversation."] },
+    { id: "profiles", title: "Profiles and online status", intro: "Your profile helps other members recognize you and understand when you are available.", steps: ["Open your profile or account settings to update supported profile details and your avatar.", "Choose a presence status such as Online, Idle, Do not disturb, or Offline when the status control is available.", "Select another member to view their profile and use the available actions, such as Message or Add Friend."] },
+    { id: "settings", title: "Settings and appearance", intro: "Tune the app to your preferences from the user settings panel.", steps: ["Open user settings from your profile or account menu.", "Use Appearance to switch between dark and light themes.", "Review account and profile options before leaving the settings panel.", "On a smaller screen, use the navigation controls to open the sidebar and move between spaces."] },
+    { id: "moderation", title: "Server management and roles", intro: "Server owners and authorized moderators have additional tools to keep a community organized.", steps: ["Open the server settings from the server menu.", "Create or organize channels when you have the required permission.", "Manage member roles and their permissions carefully; grant only the access people need.", "Use member-management actions and message moderation options only when you have permission.", "If a control is missing or disabled, your current role may not have permission to use it."] },
+    { id: "troubleshooting", title: "Troubleshooting", intro: "Most common issues can be resolved by checking the selected space, account, and connection.", steps: ["If you cannot find someone, check the spelling of their exact Voax username.", "If a friend request is already pending or the two of you are already friends, check your existing requests and friend list first.", "If messages or channels do not load, check your internet connection and reload Voax.", "If a server action is unavailable, ask the server owner to check your role and permissions.", "Never share your password or verification codes. If sign-in still fails, use the account recovery option shown on the sign-in screen if available."] },
+  ];
+  const normalizedQuery = query.trim().toLowerCase();
+  const filteredEntries = entries.filter(entry => !normalizedQuery || (entry.title + " " + entry.intro + " " + entry.steps.join(" ")).toLowerCase().includes(normalizedQuery));
+  return <main className="docs-page">
+    <header className="docs-topbar"><a className="docs-brand" href="/"><Logo size={34}/> <span>Voax</span><span className="docs-brand-divider">/</span><span className="docs-brand-label">Help center</span></a><div className="docs-top-actions"><a href="/">Home</a><a className="btn primary" href="/app">Open Voax <Icon name="arrowUpRight" size={15}/></a></div></header>
+    <section className="docs-hero"><div className="docs-eyebrow"><span className="pulse"/> VOAX HELP CENTER</div><h1>Make yourself<br/><span>at home.</span></h1><p>Everything you need to start chatting, find your people, and build a community on Voax.</p><label className="docs-search"><Icon name="search" size={19}/><input aria-label="Search the user guide" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search the guide, e.g. add a friend"/></label><div className="docs-hero-meta"><span><Icon name="bookOpen" size={14}/> User guide</span><span><Icon name="clock" size={14}/> Quick, practical answers</span></div></section>
+    <div className="docs-layout"><aside className="docs-sidebar"><div className="docs-sidebar-label">ON THIS PAGE</div>{sections.map(section => <a key={section.id} className={activeSection===section.id?"active":""} href={"#"+section.id} onClick={()=>setActiveSection(section.id)}><Icon name={section.icon} size={16}/>{section.label}</a>)}<div className="docs-sidebar-tip"><Icon name="lightbulb" size={18}/><strong>Quick tip</strong><p>Use the exact Voax username when sending a friend request.</p></div></aside>
+      <div className="docs-content">{normalizedQuery && <div className="docs-results-count">{filteredEntries.length} {filteredEntries.length===1?"topic":"topics"} matching “{query}”</div>}{filteredEntries.length===0 ? <div className="docs-no-results"><Icon name="search" size={26}/><h2>No matching topics</h2><p>Try a different keyword, like “server”, “theme”, or “friend”.</p><button className="btn secondary" onClick={()=>setQuery("")}>Clear search</button></div> : filteredEntries.map((entry,index) => <section className="docs-article" id={entry.id} key={entry.id}><div className="docs-article-index">{String(index+1).padStart(2,"0")}</div><div className="docs-article-main"><div className="docs-section-kicker">VOAX GUIDE / {String(index+1).padStart(2,"0")}</div><h2>{entry.title}</h2><p className="docs-intro">{entry.intro}</p><ol>{entry.steps.map((step,i)=><li key={step}><span className="docs-step-number">{i+1}</span><span>{step}</span></li>)}</ol></div></section>)}
+      <section className="docs-help-card"><div className="docs-help-icon"><Icon name="messageCircle" size={22}/></div><div><h3>Still need a hand?</h3><p>Try the troubleshooting guide above or ask a server owner for help with community permissions.</p></div><a href="/app" className="btn secondary">Back to Voax <Icon name="arrowUpRight" size={14}/></a></section>
+      <footer className="docs-footer"><span>© 2026 Voax</span><span>Built for your people, your space.</span><a href="/">Back to home ↑</a></footer></div></div>
+  </main>;
+}
+\nfunction Root() {
   useEffect(() => {
     const onPop = () => window.location.pathname === "/" ? window.location.reload() : window.location.reload();
     window.addEventListener("popstate", onPop);
@@ -916,7 +951,7 @@ function Root() {
     });
     return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
-  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to Voax…</main>;
+  if (window.location.pathname === "/docs" || window.location.pathname === "/docs/") return <DocsPage />;\n  if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to Voax…</main>;
   if (!session) return <AuthScreen />;
   return <App session={session}/>;
 }
