@@ -528,12 +528,26 @@ function App({ session }: { session: Session }) {
   async function createCustomServerRole(e:FormEvent){
     e.preventDefault();
     if(!currentServer||!canManageRoles)return;
-    const value=newRoleName.trim().replace(/\\s+/g," ");
+    const value=newRoleName.trim().replace(/\s+/g," ");
     if(!value)return;
+    const normalizedName=value.toLocaleLowerCase();
+    if(customServerRoles.some(role=>role.name.trim().toLocaleLowerCase()===normalizedName)){
+      notify("A role with this name already exists in this server. Choose a different name.");
+      return;
+    }
     const permissions={...newRolePermissions};
     if(currentServer.role!=="owner"){permissions.manage_roles=false;permissions.manage_server=false;}
     const {data,error}=await supabase.from("server_roles").insert({server_id:currentServer.id,name:value,color:newRoleColor,permissions,position:customServerRoles.length}).select("id,server_id,name,color,position,permissions").single();
-    if(error||!data){notify("Couldn't create role: "+(error?.message||"Please try again."));return;}
+    if(error||!data){
+      if(error?.code==="23505"||error?.message?.includes("server_roles_server_id_name_key")){
+        const {data:latestRoles}=await supabase.from("server_roles").select("id,server_id,name,color,position,permissions").eq("server_id",currentServer.id).order("position",{ascending:false}).order("created_at");
+        if(latestRoles)setCustomServerRoles(latestRoles as ServerRole[]);
+        notify("A role with this name already exists in this server. Choose a different name.");
+      }else{
+        notify("Couldn't create role: "+(error?.message||"Please try again."));
+      }
+      return;
+    }
     setCustomServerRoles(old=>[...old,data as ServerRole]);
     setSelectedRoleId(data.id);
     setRoleEditorTab("display");
