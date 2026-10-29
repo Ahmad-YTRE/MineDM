@@ -41,6 +41,28 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) ?? undefined }));
 }
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
+function escapeMentionLabel(value: string) { return value.replace(/[.*+?^$()|[\]\\]/g, "\\function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }"); }
+function buildMentionTokens(body: string, members: Person[], roles: ServerRole[]): MentionToken[] {
+  const tick = String.fromCharCode(96);
+  const plain = body.replace(new RegExp(tick+tick+tick+"[\\s\\S]*?"+tick+tick+tick,"g")," ").replace(new RegExp(tick+"[^"+tick+"]*"+tick,"g")," ");
+  const found = new Map<string, MentionToken>();
+  const add = (token: MentionToken) => found.set(token.type + ":" + (token.id || ""), token);
+  for (const type of ["everyone", "here"] as const) {
+    const re = new RegExp("(^|[^A-Za-z0-9_\\\\])@" + type + "(?=$|[^A-Za-z0-9_])", "i");
+    if (re.test(plain)) add({ type });
+  }
+  for (const person of members) {
+    if (!person.id || !person.name || person.name === "Player") continue;
+    const re = new RegExp("(^|[^A-Za-z0-9_\\\\])@" + escapeMentionLabel(person.name) + "(?=$|[^A-Za-z0-9_])", "i");
+    if (re.test(plain)) add({ type: "user", id: person.id });
+  }
+  for (const role of roles) {
+    if (!role.id || !role.name) continue;
+    const re = new RegExp("(^|[^A-Za-z0-9_\\\\])@" + escapeMentionLabel(role.name) + "(?=$|[^A-Za-z0-9_])", "i");
+    if (re.test(plain)) add({ type: "role", id: role.id });
+  }
+  return [...found.values()];
+}
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
   return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src="/logo.png" alt="" /></span>;
