@@ -320,7 +320,7 @@ function App({ session }: { session: Session }) {
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter},async payload=>{
         const row=payload.new as {id:string;author_id:string;body:string;created_at:string;reply_to:string|null;attachments?:unknown};
         const attachments=await signMessageAttachments(row.attachments);
-        const message:Message={id:row.id,author:row.author_id===session.user.id?nameRef.current:(peopleRef.current.find(p=>p.id===row.author_id)?.name||"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),own:row.author_id===session.user.id,...(attachments.length?{attachments}:{})};
+        const message:Message={id:row.id,author:row.author_id===session.user.id?nameRef.current:(peopleRef.current.find(p=>p.id===row.author_id)?.name||"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),timestamp:row.created_at,own:row.author_id===session.user.id,...(attachments.length?{attachments}:{})};
         setMessages(old=>{const list=old[activeKey]||old[active]||[];if(list.some(m=>m.id===message.id))return old;const next=[...list,message];return{...old,[activeKey]:next,[active]:next};});
       })
       .on("broadcast",{event:"message-deleted"},payload=>{
