@@ -13,9 +13,10 @@ type Message = { id: string; publicId?: string; author: string; text: string; ti
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
 type Person = { id: string; publicId?: string; name: string; online: boolean; status?: PresenceStatus; color: string; preview: string; avatarUrl?: string | null; isFriend?: boolean; hasConversation?: boolean };
 type Server = { id: string; publicId?: string; name: string; description: string; createdBy?: string; inviteCode?: string; iconUrl?: string | null; role?: "owner" | "admin" | "member" };
-type ServerRole = { id: string; server_id: string; name: string; color: string; position: number; permissions: { manage_server?: boolean; manage_roles?: boolean; manage_channels?: boolean; kick_members?: boolean; manage_messages?: boolean } };
+type ServerRole = { id: string; server_id: string; name: string; color: string; position: number; allow_anyone_to_mention?: boolean; permissions: { manage_server?: boolean; manage_roles?: boolean; manage_channels?: boolean; kick_members?: boolean; manage_messages?: boolean; mention_members?: boolean; mention_roles?: boolean; mention_everyone?: boolean; mention_here?: boolean; manage_ping_settings?: boolean } };
 type FriendRequest = { id: string; requester_id: string; addressee_id: string; name: string; avatarUrl?: string | null };
-type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string };
+type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string; interruptive?: boolean };
+type PingMentionToken = { type: "user" | "role" | "everyone" | "here"; id?: string };
 type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string };
 type ContextMenuTarget = { kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message } | { kind: "channels" };
 type ContextMenuState = { x: number; y: number } & ContextMenuTarget;
@@ -99,14 +100,18 @@ function LinkPreview({ url }: { url: string }) {
     <span className="link-preview-copy"><span className="link-preview-site">{data?.siteName || data?.hostname || hostname}</span><strong>{data?.title || hostname}</strong>{data?.description && <span className="link-preview-description">{data.description}</span>}<span className="link-preview-url">{hostname}</span></span>
   </a>;
 }
-function MessageContent({ text, onJoinInvite, servers = [] }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[] }) {
-  const tokens = text.split(/(https?:\/\/[^\s<>()]+|\/invite\/[A-Za-z0-9_-]+)/gi).filter(Boolean);
+function MessageContent({ text, onJoinInvite, servers = [], mentionNames = [], onMentionClick }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[]; mentionNames?: string[]; onMentionClick?: (label: string) => void }) {
+  const escapedMentions = [...new Set(["@everyone", "@here", ...mentionNames].map(value => value.startsWith("@") ? value : "@"+value))].sort((a,b)=>b.length-a.length).map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,"\\function MessageContent({ text, onJoinInvite, servers = [] }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[] }) {
+  const tokens = text.split(/(https?:\/\/[^\s<>()]+|\/invite\/[A-Za-z0-9_-]+)/gi).filter(Boolean);"));
+  const mentionAlternation = escapedMentions.length ? escapedMentions.join("|") : "@(?:everyone|here|[\\w.-]+)";
+  const tokens = text.split(new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|"+mentionAlternation+")","gi")).filter(Boolean);
   const invites = [...new Set((text.match(/(?:https?:\/\/[^\s<>()]+)?\/invite\/([A-Za-z0-9_-]+)/gi) || []).map(value => value.match(/\/invite\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value): value is string => Boolean(value)))];
   const urls = [...new Set((text.match(/https?:\/\/[^\s<>()]+/gi) || []).map(value => value.replace(/[.,!?;:]+$/, "")))].filter(value => !/\/invite\//i.test(value));
   return <div className="message-content"><p>{tokens.map((token, index) => {
     const invite = token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
     if (invite) { const linkedServer = servers.find(server => server.inviteCode === invite[1]); return <a key={index} className="invite-inline-link" href={"/invite/" + invite[1]} onClick={event => { event.preventDefault(); window.location.assign("/invite/" + invite[1]); }}>{linkedServer ? "Invite to " + linkedServer.name : "Voax server invite"}</a>; }
     if (/^https?:\/\//i.test(token)) return <a key={index} href={token} target="_blank" rel="noopener noreferrer">{token}</a>;
+    if (token.startsWith("@") && escapedMentions.some(label=>label.toLowerCase()===token.toLowerCase())) { const kind=/^@everyone$/i.test(token)?"everyone":/^@here$/i.test(token)?"here":"member"; return <button type="button" key={index} className={"message-mention mention-"+kind} onClick={()=>onMentionClick?.(token)}>{token}</button>; }
     return <React.Fragment key={index}>{token}</React.Fragment>;
   })}</p>
     {invites.map(code => { const server = servers.find(item => item.inviteCode === code); return <section className="invite-preview-card" key={code} aria-label="Server invite"><div className="invite-preview-topline"><span className="invite-preview-brand"><Icon name="users" size={13}/> VOAX INVITE</span><span className="invite-preview-status"><i/> Invite link</span></div><div className="invite-preview-main"><div className="invite-preview-icon">{server?.iconUrl ? <img src={server.iconUrl} alt="" loading="lazy"/> : <Icon name="users" size={25}/>}</div><div className="invite-preview-copy"><span className="invite-preview-eyebrow">YOU’VE BEEN INVITED TO JOIN</span><strong>{server?.name || "A Voax server"}</strong>{server?.description?.trim() && !/^your community$/i.test(server.description.trim()) && <span>{server.description}</span>}<small><Icon name="link" size={12}/> /invite/{code}</small></div></div><div className="invite-preview-footer"><span className="invite-preview-secure"><Icon name="shieldCheck" size={13}/> You’re invited</span><button type="button" className="btn primary invite-join-button" onClick={() => onJoinInvite(code)}>Join server <Icon name="arrowRight" size={14}/></button></div></section>; })}
@@ -137,10 +142,13 @@ function App({ session }: { session: Session }) {
   const [roleSaveBusy, setRoleSaveBusy] = useState(false);
   const [newRoleName, setNewRoleName] = useState("");
   const [newRoleColor, setNewRoleColor] = useState("#00e5ff");
-  const [newRolePermissions, setNewRolePermissions] = useState<ServerRole["permissions"]>({manage_channels:false,manage_messages:false,kick_members:false,manage_roles:false,manage_server:false});
+  const [newRolePermissions, setNewRolePermissions] = useState<ServerRole["permissions"]>({manage_channels:false,manage_messages:false,kick_members:false,manage_roles:false,manage_server:false,mention_members:false,mention_roles:false,mention_everyone:false,mention_here:false,manage_ping_settings:false});
   const [status, setStatus] = useState<PresenceStatus>("Online");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<"account" | "appearance">("account");
+  const [settingsSection, setSettingsSection] = useState<"account" | "appearance" | "notifications">("account");
+  const [notificationPreferences, setNotificationPreferences] = useState({global_mode:"all",direct_mentions_enabled:true,role_mentions_enabled:true,everyone_mentions_enabled:true,here_mentions_enabled:true});
+  const [serverPingSettings, setServerPingSettings] = useState({confirmation_threshold:25,cooldown_seconds:60,admin_mass_pings_enabled:true,direct_targets_per_10s:10,role_actions_per_60s:5,messages_per_5s:5});
+  const [serverPingSettingsLoading, setServerPingSettingsLoading] = useState(false);
   const [profileBio, setProfileBio] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => (localStorage.getItem("voax.theme") ?? localStorage.getItem("minedm.theme")) === "light" ? "light" : "dark");
   const [clockFormat, setClockFormat] = useState<"12h" | "24h">(() => localStorage.getItem("voax.clockFormat") === "24h" ? "24h" : "12h");
@@ -357,8 +365,8 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
   useEffect(()=>{
     let cancelled=false;
-    const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at").order("created_at",{ascending:false}).limit(40);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}setNotifications(data||[]);};
-    void load();const channel=supabase.channel("voax-notifications-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+session.user.id},payload=>{const row=payload.new as AppNotification;setNotifications(old=>[row,...old.filter(n=>n.id!==row.id)].slice(0,40));notify(row.title);}).subscribe();
+    const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at,interruptive").order("created_at",{ascending:false}).limit(100);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}setNotifications(data||[]);};
+    void load();const channel=supabase.channel("voax-notifications-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+session.user.id},payload=>{const row=payload.new as AppNotification;setNotifications(old=>[row,...old.filter(n=>n.id!==row.id)].slice(0,100));if(row.interruptive!==false)notify(row.title);}).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[session.user.id]);
   useEffect(()=>{const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(viewRef.current==="channel"&&activeRef.current===row.channel_id))return;const key=keyFor("channel",row.channel_id);setUnread(old=>({...old,[key]:(old[key]||0)+1}));}).subscribe();return()=>{void supabase.removeChannel(channel);};},[session.user.id]);
@@ -516,7 +524,7 @@ function App({ session }: { session: Session }) {
   }
   async function loadCustomServerRoles(serverId:string){
     const [{data:roles,error:rolesError},{data:assignments,error:assignError}]=await Promise.all([
-      supabase.from("server_roles").select("id,server_id,name,color,position,permissions").eq("server_id",serverId).order("position",{ascending:false}).order("created_at"),
+      supabase.from("server_roles").select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").eq("server_id",serverId).order("position",{ascending:false}).order("created_at"),
       supabase.from("server_member_roles").select("server_id,user_id,role_id").eq("server_id",serverId)
     ]);
     if(rolesError||assignError){notify("Couldn't load custom roles: "+(rolesError?.message||assignError?.message));return;}
@@ -537,10 +545,10 @@ function App({ session }: { session: Session }) {
     }
     const permissions={...newRolePermissions};
     if(currentServer.role!=="owner"){permissions.manage_roles=false;permissions.manage_server=false;}
-    const {data,error}=await supabase.from("server_roles").insert({server_id:currentServer.id,name:value,color:newRoleColor,permissions,position:customServerRoles.length}).select("id,server_id,name,color,position,permissions").single();
+    const {data,error}=await supabase.from("server_roles").insert({server_id:currentServer.id,name:value,color:newRoleColor,permissions,position:customServerRoles.length}).select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").single();
     if(error||!data){
       if(error?.code==="23505"||error?.message?.includes("server_roles_server_id_name_key")){
-        const {data:latestRoles}=await supabase.from("server_roles").select("id,server_id,name,color,position,permissions").eq("server_id",currentServer.id).order("position",{ascending:false}).order("created_at");
+        const {data:latestRoles}=await supabase.from("server_roles").select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").eq("server_id",currentServer.id).order("position",{ascending:false}).order("created_at");
         if(latestRoles)setCustomServerRoles(latestRoles as ServerRole[]);
         notify("A role with this name already exists in this server. Choose a different name.");
       }else{
@@ -590,7 +598,7 @@ function App({ session }: { session: Session }) {
     setCustomServerRoles(ordered.map(role=>role.id===current.id?{...role,position:target.position}:role.id===target.id?{...role,position:current.position}:role).sort((a,b)=>b.position-a.position));
     notify("Role order updated.");
   }
-  async function saveCustomRoleDetails(roleId:string, changes:Partial<Pick<ServerRole,"name"|"color"|"permissions">>){
+  async function saveCustomRoleDetails(roleId:string, changes:Partial<Pick<ServerRole,"name"|"color"|"permissions"|"allow_anyone_to_mention">>){
     if(!currentServer||!canManageRoles)return;
     const role=customServerRoles.find(item=>item.id===roleId);
     if(!role)return;
@@ -599,7 +607,7 @@ function App({ session }: { session: Session }) {
       next.permissions={...next.permissions,manage_roles:false,manage_server:false};
     }
     setRoleSaveBusy(true);
-    const {error}=await supabase.from("server_roles").update({name:next.name,color:next.color,permissions:next.permissions}).eq("id",roleId).eq("server_id",currentServer.id);
+    const {error}=await supabase.from("server_roles").update({name:next.name,color:next.color,permissions:next.permissions,allow_anyone_to_mention:next.allow_anyone_to_mention}).eq("id",roleId).eq("server_id",currentServer.id);
     setRoleSaveBusy(false);
     if(error){notify("Couldn't save role: "+error.message);return;}
     setCustomServerRoles(old=>old.map(item=>item.id===roleId?next:item));
@@ -798,8 +806,14 @@ function App({ session }: { session: Session }) {
     const scopePrefix=(view==="channel"?"channels/"+activeChannel?.id:"conversations/"+conversationId)+"/";
     if(pendingAttachments.some(attachment=>!attachment.path.startsWith(scopePrefix))){notify("Your attachment belongs to a different conversation. Remove it and attach it again here.");return;}
     const attachmentRows=pendingAttachments.map(({path,name,mimeType,size})=>({path,name,mimeType,size}));
-    const {data,error}=await supabase.from("messages").insert({channel_id:view==="channel"?active:null,conversation_id:view==="dm"?conversationId:null,author_id:session.user.id,body:body||"Shared an attachment",attachments:attachmentRows,reply_to:replyingTo?.id||null}).select("id,author_id,body,created_at,reply_to,attachments").single();
-    if(error||!data){notify("Message not sent: "+(error?.message||"Please try again."));return;}
+    const mentionPeople:Person[]=view==="channel"?[{id:session.user.id,name,online:status!=="Offline",status,color:"self",preview:"You"},...serverMemberPeople]:[];
+    const mentionTokens=collectPingMentions(body,mentionPeople,customServerRoles);
+    let sendResult=await supabase.rpc("send_message_with_pings",{p_channel_id:view==="channel"?active:null,p_conversation_id:view==="dm"?conversationId:null,p_body:body||"Shared an attachment",p_attachments:attachmentRows,p_reply_to:replyingTo?.id||null,p_mentions:mentionTokens,p_confirmed:false});
+    if(sendResult.error){notify("Message not sent: "+sendResult.error.message);return;}
+    let resultPayload=sendResult.data as {confirmation_required?:boolean;target_count?:number;threshold?:number;message?:any};
+    if(resultPayload?.confirmation_required){const confirmed=window.confirm("This message will notify "+resultPayload.target_count+" unique members. Send the ping?");if(!confirmed)return;sendResult=await supabase.rpc("send_message_with_pings",{p_channel_id:view==="channel"?active:null,p_conversation_id:view==="dm"?conversationId:null,p_body:body||"Shared an attachment",p_attachments:attachmentRows,p_reply_to:replyingTo?.id||null,p_mentions:mentionTokens,p_confirmed:true});if(sendResult.error){notify("Message not sent: "+sendResult.error.message);return;}resultPayload=sendResult.data as {confirmation_required?:boolean;target_count?:number;threshold?:number;message?:any};}
+    const data=resultPayload?.message;
+    if(!data){notify("Message not sent: The server returned an invalid message response.");return;}
     const signedAttachments=await signMessageAttachments(data.attachments);
     const item:Message={id:data.id,author:name,text:data.body,time:formatClock(new Date(data.created_at), clockFormat),timestamp:data.created_at,own:true,...(replyingTo?{replyTo:{author:replyingTo.author,text:replyingTo.text}}:{}),...(signedAttachments.length?{attachments:signedAttachments}:{})};
     setMessages(old=>{const list=old[activeKey]||old[active]||[];const next=list.some(m=>m.id===item.id)?list:[...list,item];return{...old,[activeKey]:next,[active]:next};});
