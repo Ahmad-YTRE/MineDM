@@ -1779,3 +1779,40 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   color: #334155;
   border-color: #cbd6e2;
 }
+
+
+/* Skeleton loading states follow the active app theme, including nested destination skeletons. */
+:root[data-theme="light"] .skeleton-bar {
+  background: linear-gradient(90deg, #e1e8f0 0%, #f8fafc 45%, #e1e8f0 100%);
+  background-size: 220% 100%;
+}
+:root[data-theme="light"] .dm-home-skeleton-content {
+  background: radial-gradient(ellipse at 15% 0, #d9f0f5 0, transparent 48%), #f4f7fb;
+}
+:root[data-theme="light"] .dm-home-skeleton-card {
+  background: #ffffff;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .dm-skeleton-row.indented {
+  background: #edf2f8;
+}
+:root[data-theme="light"] .dm-skeleton-attachment {
+  background: #e1e8f0;
+}
+:root[data-theme="light"] .settings-skeleton-profile {
+  background: #ffffff;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .settings-skeleton-input {
+  background: #f8fafc;
+  border: 1px solid #d8e1eb;
+}
+:root[data-theme="light"] .settings-skeleton-save {
+  border-color: #d8e1eb;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="light"] .skeleton-bar {
+    animation: none;
+    background: #e6edf4;
+  }
+}
