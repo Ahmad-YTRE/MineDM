@@ -42,6 +42,26 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   const urls = new Map((data || []).map(item => [item.path, item.signedUrl] as const));
   return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) ?? undefined }));
 }
+
+type CachedProfile = { id: string; public_id: string | null; username: string | null; status: string | null; avatar_url: string | null };
+const PROFILE_CACHE_TTL_MS = 30_000;
+const profileCache = new Map<string, { value: CachedProfile | null; expiresAt: number }>();
+async function loadCachedProfiles(ids: string[]): Promise<CachedProfile[]> {
+  const uniqueIds = [...new Set(ids)];
+  if (!uniqueIds.length) return [];
+  const now = Date.now();
+  const missingIds = uniqueIds.filter(id => {
+    const entry = profileCache.get(id);
+    return !entry || entry.expiresAt <= now;
+  });
+  if (missingIds.length) {
+    const { data, error } = await supabase.from("profiles").select("id,public_id,username,status,avatar_url").in("id", missingIds);
+    if (error) throw error;
+    const fetched = new Map<string, CachedProfile>((data || []).map(row => [row.id, row as CachedProfile]));
+    for (const id of missingIds) profileCache.set(id, { value: fetched.get(id) || null, expiresAt: now + PROFILE_CACHE_TTL_MS });
+  }
+  return uniqueIds.map(id => profileCache.get(id)?.value).filter((profile): profile is CachedProfile => Boolean(profile));
+}
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 function escapeMentionLabel(value: string) { return value.replace(/[.*+?^$()|[\]\\]/g, ch => "\\" + ch); }
 function buildMentionTokens(body: string, members: Person[], roles: ServerRole[]): MentionToken[] {
@@ -371,7 +391,7 @@ function App({ session }: { session: Session }) {
       const rows=result.data||[],authorIds=[...new Set(rows.map(row=>row.author_id))];
       const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name] as const));names.set(session.user.id,nameRef.current);
       const missingAuthorIds=authorIds.filter(id=>!names.has(id));
-      if(missingAuthorIds.length){const p=await supabase.from("profiles").select("id,username").in("id",missingAuthorIds);if(p.error){notify("Couldn't load message authors: "+p.error.message);setMessagesLoading(false);return;}for(const profile of p.data||[])names.set(profile.id,profile.username||"Player");}
+      if(missingAuthorIds.length){const profiles=await loadCachedProfiles(missingAuthorIds);for(const profile of profiles)names.set(profile.id,profile.username||"Player");}
       const byId=new Map(rows.map(row=>[row.id,row]));
       const reactionMap=new Map<string,Reaction[]>();
       if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));if(rr.error){notify("Unable to load reactions: "+rr.error.message);setMessagesLoading(false);return;}for(const r of rr.data||[]){const list=reactionMap.get(r.message_id)||[];const existing=list.find(x=>x.emoji===r.emoji);if(existing){existing.count++;if(r.user_id===session.user.id)existing.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});reactionMap.set(r.message_id,list);}}
@@ -415,7 +435,7 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_blocks").select("blocked_actor_id").eq("user_id",session.user.id);if(cancelled)return;if(error){console.warn("Notification blocks unavailable",error.message);}else setBlockedNotificationActors((data||[]).map(row=>row.blocked_actor_id));};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_preferences").select("global_mode,direct_mentions_enabled,role_mentions_enabled,everyone_mentions_enabled,here_mentions_enabled").eq("user_id",session.user.id).maybeSingle();if(cancelled)return;if(error){notify("Unable to load notification preferences: "+error.message);return;}if(data){setGlobalNotificationMode(data.global_mode||"all");setDirectMentionsEnabled(data.direct_mentions_enabled!==false);setRoleMentionsEnabled(data.role_mentions_enabled!==false);setEveryoneMentionsEnabled(data.everyone_mentions_enabled!==false);setHereMentionsEnabled(data.here_mentions_enabled!==false);}};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{if(!activeServer)return;let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("server_ping_settings").select("confirmation_threshold,cooldown_seconds,admin_mass_pings_enabled,direct_targets_per_10s,role_actions_per_60s,messages_per_5s").eq("server_id",activeServer).maybeSingle();if(cancelled)return;if(error){console.warn("Ping settings unavailable",error.message);return;}if(data)setServerPingSettings({confirmation_threshold:data.confirmation_threshold??25,cooldown_seconds:data.cooldown_seconds??60,admin_mass_pings_enabled:data.admin_mass_pings_enabled??true,direct_targets_per_10s:data.direct_targets_per_10s??10,role_actions_per_60s:data.role_actions_per_60s??5,messages_per_5s:data.messages_per_5s??5});};void load();return()=>{cancelled=true;};},[activeServer]);
-  useEffect(()=>{let cancelled=false;const load=async()=>{if(activeServer){const {data}=await supabase.from("notification_overrides").select("mode").eq("user_id",session.user.id).eq("scope_type","server").eq("scope_id",activeServer).maybeSingle();if(!cancelled)setServerNotificationMode((data?.mode as any)||"inherit");}else setServerNotificationMode("inherit");if(view==="channel"&&active){const {data}=await supabase.from("notification_overrides").select("mode").eq("user_id",session.user.id).eq("scope_type","channel").eq("scope_id",active).maybeSingle();if(!cancelled)setChannelNotificationMode((data?.mode as any)||"inherit");}else setChannelNotificationMode("inherit");};void load();return()=>{cancelled=true;};},[session.user.id,activeServer,active,view]);
+  useEffect(()=>{let cancelled=false;const load=async()=>{const scopes=[...(activeServer?[{type:"server",id:activeServer}]:[]),...(view==="channel"&&active?[{type:"channel",id:active}]:[])];if(!scopes.length){setServerNotificationMode("inherit");setChannelNotificationMode("inherit");return;}const {data,error}=await supabase.from("notification_overrides").select("scope_type,scope_id,mode").eq("user_id",session.user.id).in("scope_id",scopes.map(scope=>scope.id));if(cancelled)return;if(error){console.warn("Notification overrides unavailable",error.message);return;}const serverMode=data?.find(row=>row.scope_type==="server"&&row.scope_id===activeServer)?.mode;const channelMode=data?.find(row=>row.scope_type==="channel"&&row.scope_id===active)?.mode;setServerNotificationMode((serverMode as any)||"inherit");setChannelNotificationMode((channelMode as any)||"inherit");};void load();return()=>{cancelled=true;};},[session.user.id,activeServer,active,view]);
   useEffect(()=>{
     let cancelled=false;
     const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at,interruptive").order("created_at",{ascending:false}).limit(100);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}const rows=(data||[]) as AppNotification[];rows.forEach(row=>seenNotificationIdsRef.current.add(row.id));setNotifications(current=>[...current.filter(row=>!rows.some(loaded=>loaded.id===row.id)),...rows].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,100));};
@@ -724,8 +744,7 @@ function App({ session }: { session: Session }) {
     for(const row of serverMemberRows)if(row.user_id!==uid)related.add(row.user_id);
     for(const row of friendships||[]){const id=row.requester_id===uid?row.addressee_id:row.requester_id;if(id!==uid)related.add(id);}
     for(const row of convMembers)if(row.user_id!==uid)related.add(row.user_id);
-    let profiles:any[]=[];
-    if(related.size){const {data,error}=await supabase.from("profiles").select("id,public_id,username,status,avatar_url").in("id",[...related]);if(error)throw error;profiles=data||[];}
+    const profiles=await loadCachedProfiles([...related]);
     const friendIds=new Set<string>();
     for(const row of friendships||[])if(row.status==="accepted")friendIds.add(row.requester_id===uid?row.addressee_id:row.requester_id);
     const convMap:Record<string,string>={};
