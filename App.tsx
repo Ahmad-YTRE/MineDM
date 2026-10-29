@@ -41,7 +41,7 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) ?? undefined }));
 }
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
-function escapeMentionLabel(value: string) { return value.replace(/[.*+?^$()|[\]\\]/g, "\\function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }"); }
+function escapeMentionLabel(value: string) { return value.replace(/[.*+?^$()|[\]\\]/g, ch => "\\" + ch); }
 function buildMentionTokens(body: string, members: Person[], roles: ServerRole[]): MentionToken[] {
   const tick = String.fromCharCode(96);
   const plain = body.replace(new RegExp(tick+tick+tick+"[\\s\\S]*?"+tick+tick+tick,"g")," ").replace(new RegExp(tick+"[^"+tick+"]*"+tick,"g")," ");
