@@ -785,7 +785,7 @@ function App({ session }: { session: Session }) {
     if(error||!data?.channel_id){notify("This message is no longer available.");return;}
     const channel=channels.find(item=>item.id===data.channel_id);
     if(!channel){notify("You no longer have access to this channel.");return;}
-    setPendingMentionJumpId(notification.entity_id);switchToChannel(channel);setModal(null);if(!notification.read_at)await markNotificationRead(notification.id);
+    setSearch("");setPendingMentionJumpId(notification.entity_id);switchToChannel(channel);setModal(null);if(!notification.read_at)await markNotificationRead(notification.id);
   }
   async function markNotificationRead(id:string){const readAt=new Date().toISOString();const {error}=await supabase.from("notifications").update({read_at:readAt}).eq("id",id);if(error){notify("Unable to update notification: "+error.message);return;}setNotifications(old=>old.map(n=>n.id===id?{...n,read_at:readAt}:n));}
   function sendTyping(typing:boolean){const channel=typingChannelRef.current;if(!channel)return;void channel.send({type:"broadcast",event:"typing",payload:{userId:session.user.id,name,typing,activeKey}});}
