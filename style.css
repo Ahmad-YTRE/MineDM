@@ -758,17 +758,30 @@ button.member-entry { cursor: pointer; }
 .link-preview-site, .link-preview-url { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .link-preview-copy strong { font-size: 14px; line-height: 1.35; color: var(--text, #e6edf7); overflow-wrap: anywhere; }
 .link-preview-description { color: #a9b5c7; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
-.invite-preview-card { display: flex; align-items: center; gap: 12px; width: min(100%, 480px); margin-top: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
-.invite-preview-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); }
-.invite-preview-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
-.invite-preview-copy strong { font-size: 13px; }
-.invite-preview-copy span, .invite-preview-copy small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
-.invite-join-button { flex: 0 0 auto; white-space: nowrap; padding: 9px 12px; font-size: 12px; }
+.invite-inline-link { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border-radius: 5px; background: color-mix(in srgb, var(--accent) 11%, transparent); color: var(--accent); font-weight: 650; text-decoration: none; }
+.invite-inline-link:hover { text-decoration: underline; }
+.invite-preview-card { display: flex; flex-direction: column; gap: 13px; width: min(100%, 440px); margin-top: 11px; padding: 15px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--line) 85%, #5865f2); border-radius: 12px; background: color-mix(in srgb, var(--panel) 94%, #5865f2 6%); box-shadow: 0 6px 20px #00000012; }
+.invite-preview-topline, .invite-preview-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.invite-preview-brand { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+.invite-preview-status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+.invite-preview-status i { width: 6px; height: 6px; border-radius: 50%; background: #23a559; }
+.invite-preview-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.invite-preview-icon { display: grid; place-items: center; flex: 0 0 58px; width: 58px; height: 58px; overflow: hidden; border-radius: 16px; background: color-mix(in srgb, #5865f2 22%, var(--card)); color: #aeb6ff; }
+.invite-preview-icon img { width: 100%; height: 100%; object-fit: cover; }
+.invite-preview-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+.invite-preview-copy strong { max-width: 100%; color: var(--text); font-size: 15px; font-weight: 750; overflow-wrap: anywhere; }
+.invite-preview-copy span:not(.invite-preview-eyebrow) { color: var(--muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.invite-preview-copy .invite-preview-eyebrow { color: #aeb6ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.invite-preview-copy small { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.invite-preview-footer { padding-top: 12px; border-top: 1px solid var(--line); }
+.invite-preview-secure { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; }
+.invite-join-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; white-space: nowrap; padding: 9px 13px; font-size: 12px; font-weight: 750; }
 @media (max-width: 560px) {
-  .invite-preview-card { flex-wrap: wrap; }
+  .invite-preview-card { width: 100%; padding: 12px; }
+  .invite-preview-icon { flex-basis: 48px; width: 48px; height: 48px; border-radius: 13px; }
+  .invite-preview-footer { align-items: stretch; flex-direction: column; }
   .invite-join-button { width: 100%; }
 }
-
 
 /* Discord-style custom server roles */
 .custom-roles-section { margin: 16px 0 22px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 65%, transparent); }
