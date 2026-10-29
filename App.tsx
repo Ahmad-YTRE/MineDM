@@ -398,9 +398,12 @@ function App({ session }: { session: Session }) {
 
   useEffect(()=>{
     const channel=supabase.channel("voax-presence",{config:{presence:{key:session.user.id}}});
+    const persistPresence=()=>supabase.from("user_presence").upsert({user_id:session.user.id,status,last_seen_at:new Date().toISOString()},{onConflict:"user_id"});
+    void persistPresence();
+    const heartbeat=window.setInterval(()=>{void persistPresence();},30000);
     const sync=()=>{const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:PresenceStatus}>>;const next:Record<string,PresenceStatus>={};for(const entries of Object.values(state))for(const entry of entries){if(entry.userId)next[entry.userId]=entry.status||"Online";}setPresenceByUser(next);};
     channel.on("presence",{event:"sync"},sync).subscribe(async state=>{if(state==="SUBSCRIBED"){if(status==="Offline")await channel.untrack();else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString()});sync();}});
-    return()=>{void channel.untrack();void supabase.removeChannel(channel);};
+    return()=>{window.clearInterval(heartbeat);void channel.untrack();void supabase.removeChannel(channel);};
   },[session.user.id,status]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
   useEffect(()=>{
