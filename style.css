@@ -2002,3 +2002,7 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 :root[data-theme="light"] .member-entry strong { color:inherit; }
 :root[data-theme="light"] .member-entry .member-role-label { background:color-mix(in srgb,currentColor 8%,#fff); }
+
+.member-role-group-label { gap: 7px; }
+.member-role-group-label > span:nth-child(2) { min-width: 0; }
+.member-role-group-count { margin-left: auto; color: #69768a; font-size: 9px; font-weight: 750; letter-spacing: 0; }
