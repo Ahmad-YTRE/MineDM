@@ -335,7 +335,7 @@ function App({ session }: { session: Session }) {
   const canManageServer = Boolean(isOwnerOrAdmin || myCustomPermissions.manage_server);
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
-  const mentionInputMatch = view === "channel" ? draft.match(/(^|\\s)@([^\\s@]*)$/) : null;
+  const mentionInputMatch = view === "channel" ? draft.match(/(^|\s)@([^\s@]*)$/) : null;
   const mentionQuery = (mentionInputMatch?.[2] || "").toLocaleLowerCase();
   const mentionMembers: Person[] = view === "channel" ? [{id:session.user.id,name,online:status!=="Offline",status,color:"self",preview:"You"},...serverMemberPeople] : [];
   const canMentionRoles = Boolean(isOwnerOrAdmin || myCustomPermissions.mention_roles);
@@ -838,7 +838,7 @@ function App({ session }: { session: Session }) {
   async function saveNotificationPreferences(changes:Partial<typeof notificationPreferences>){const next={...notificationPreferences,...changes};setNotificationPreferences(next);const {error}=await supabase.from("user_notification_preferences").upsert({user_id:session.user.id,...next});if(error){notify("Could not save notification preferences: "+error.message);return;}notify("Notification preferences saved.");}
   async function saveNotificationOverride(scopeType:"server"|"channel",scopeId:string,mode:string){if(!scopeId)return;const setter=scopeType==="server"?setServerNotificationMode:setChannelNotificationMode;const {error}=mode?await supabase.from("notification_overrides").upsert({user_id:session.user.id,scope_type:scopeType,scope_id:scopeId,mode},{onConflict:"user_id,scope_type,scope_id"}):await supabase.from("notification_overrides").delete().eq("user_id",session.user.id).eq("scope_type",scopeType).eq("scope_id",scopeId);if(error){notify("Could not save notification override: "+error.message);return;}setter(mode);notify("Notification override saved.");}
   async function saveServerPingSettings(changes:Partial<typeof serverPingSettings>){if(!currentServer||!isOwnerOrAdmin)return;const next={...serverPingSettings,...changes};setServerPingSettings(next);setServerPingSettingsLoading(true);const {error}=await supabase.from("server_ping_settings").upsert({server_id:currentServer.id,...next,updated_by:session.user.id});setServerPingSettingsLoading(false);if(error){notify("Could not save ping safeguards: "+error.message);return;}notify("Server ping safeguards saved.");}
-  function insertPingCandidate(candidate:{type:"user"|"role"|"everyone"|"here";id?:string;label:string}){const next=draft.replace(/(^|\\s)@[^\\s@]*$/,(_match,space)=>space+"@"+candidate.label+" ");setDraft(next);}
+  function insertPingCandidate(candidate:{type:"user"|"role"|"everyone"|"here";id?:string;label:string}){const next=draft.replace(/(^|\s)@[^\s@]*$/,(_match,space)=>space+"@"+candidate.label+" ");setDraft(next);}
   async function sendMessage(e:FormEvent){
     e.preventDefault();const body=censorProfanity(draft.trim());if(!body&&!pendingAttachments.length)return;
     if(view==="channel"&&!activeChannel){notify("Create a server and channel before sending messages.");return;}
