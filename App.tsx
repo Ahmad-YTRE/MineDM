@@ -837,7 +837,7 @@ function App({ session }: { session: Session }) {
   async function createServer(e:FormEvent){
     e.preventDefault();const value=modalInput.trim().replace(/\s+/g," ");if(!value)return;
     if(servers.some(s=>s.name.toLowerCase()===value.toLowerCase())){notify("A server with that name already exists.");return;}
-    const {data:server,error}=await supabase.from("servers").insert({name:value,description:"Your community",created_by:session.user.id}).select("id,name,description,created_by,invite_code").single();
+    const {data:server,error}=await supabase.from("servers").insert({name:value,description:"A Voax server",created_by:session.user.id}).select("id,name,description,created_by,invite_code").single();
     if(error||!server){notify("Couldn't create the server: "+(error?.message||"Please try again."));return;}
     const {error:memberError}=await supabase.from("server_members").insert({server_id:server.id,user_id:session.user.id,role:"owner"});
     if(memberError){await supabase.from("servers").delete().eq("id",server.id);notify("Couldn't add you to the new server: "+memberError.message);return;}
