@@ -100,6 +100,33 @@ function LinkPreview({ url }: { url: string }) {
     <span className="link-preview-copy"><span className="link-preview-site">{data?.siteName || data?.hostname || hostname}</span><strong>{data?.title || hostname}</strong>{data?.description && <span className="link-preview-description">{data.description}</span>}<span className="link-preview-url">{hostname}</span></span>
   </a>;
 }
+function hasPingToken(body: string, label: string) {
+  const source = body.replace(/```[\\s\\S]*?```/g, " ").replace(/`[^`\\n]*`/g, " ");
+  const needle = "@" + label;
+  let index = source.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase());
+  while (index >= 0) {
+    const before = source[index - 1] || "";
+    const after = source[index + needle.length] || "";
+    let slashes = 0;
+    for (let i = index - 1; i >= 0 && source[i] === "\\\\"; i--) slashes++;
+    if ((!before || !/[\\p{L}\\p{N}_]/u.test(before)) && (!after || !/[\\p{L}\\p{N}_]/u.test(after)) && slashes % 2 === 0) return true;
+    index = source.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase(), index + 1);
+  }
+  return false;
+}
+function collectPingMentions(body: string, members: Person[], roles: ServerRole[]): PingMentionToken[] {
+  const tokens: PingMentionToken[] = [];
+  if (hasPingToken(body, "everyone")) tokens.push({ type: "everyone" });
+  if (hasPingToken(body, "here")) tokens.push({ type: "here" });
+  for (const member of members) {
+    if (member.id && member.name && hasPingToken(body, member.name)) tokens.push({ type: "user", id: member.id });
+  }
+  for (const role of roles) {
+    if (role.id && role.name && hasPingToken(body, role.name)) tokens.push({ type: "role", id: role.id });
+  }
+  return tokens.filter((token, index) => tokens.findIndex(other => other.type === token.type && other.id === token.id) === index);
+}
+
 function MessageContent({ text, onJoinInvite, servers = [], mentionNames = [], onMentionClick }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[]; mentionNames?: string[]; onMentionClick?: (label: string) => void }) {
   const escapedMentions = [...new Set(["@everyone", "@here", ...mentionNames].map(value => value.startsWith("@") ? value : "@"+value))].sort((a,b)=>b.length-a.length).map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,"\\function MessageContent({ text, onJoinInvite, servers = [] }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[] }) {
   const tokens = text.split(/(https?:\/\/[^\s<>()]+|\/invite\/[A-Za-z0-9_-]+)/gi).filter(Boolean);"));
