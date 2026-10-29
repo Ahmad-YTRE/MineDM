@@ -955,9 +955,12 @@ function App({ session }: { session: Session }) {
           const assignedIds = customRoleAssignments[activeServer]?.[userId] || [];
           return orderedRoles.find(role => assignedIds.includes(role.id));
         };
+        const onlineMembers = allMembers.filter(person => person.online);
+        const offlineMembers = allMembers.filter(person => !person.online);
         const groups = [
-          ...orderedRoles.map(role => ({ id: role.id, name: role.name, color: role.color, members: allMembers.filter(person => getPrimaryCustomRole(person.id)?.id === role.id) })),
-          { id: "unassigned", name: "Unassigned", color: "var(--muted)", members: allMembers.filter(person => !getPrimaryCustomRole(person.id)) }
+          ...orderedRoles.map(role => ({ id: role.id, name: role.name, color: role.color, members: onlineMembers.filter(person => getPrimaryCustomRole(person.id)?.id === role.id) })),
+          { id: "unassigned", name: "Unassigned", color: "var(--muted)", members: onlineMembers.filter(person => !getPrimaryCustomRole(person.id)) },
+          { id: "offline", name: "Offline", color: "var(--muted)", members: offlineMembers }
         ].filter(group => group.members.length > 0);
         return groups.map(group => <section className="member-role-group" key={group.id}>
           <div className="member-group-label member-role-group-label"><span className="member-status-dot" style={{background: group.color}}/><span>{group.name.toUpperCase()}</span><span className="member-role-group-count">{group.members.length}</span></div>
