@@ -2050,3 +2050,14 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .mention-pill-role { color: #6d28d9; }
 :root[data-theme="light"] .mention-pill-everyone { color: #92400e; }
 :root[data-theme="light"] .mention-pill-here { color: #047857; }
+
+.message-mention-target {
+  border-radius: 10px;
+  outline: 2px solid color-mix(in srgb, var(--accent, #00e5ff) 72%, transparent);
+  background: color-mix(in srgb, var(--accent, #00e5ff) 9%, transparent);
+  animation: voax-mention-jump 2.6s ease-out;
+}
+@keyframes voax-mention-jump {
+  0%, 55% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent, #00e5ff) 16%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
