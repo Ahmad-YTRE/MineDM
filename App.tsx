@@ -57,7 +57,7 @@ async function loadCachedProfiles(ids: string[]): Promise<CachedProfile[]> {
   if (missingIds.length) {
     const { data, error } = await supabase.from("profiles").select("id,public_id,username,status,avatar_url").in("id", missingIds);
     if (error) throw error;
-    const fetched = new Map<string, CachedProfile>((data || []).map(row => [row.id, row as CachedProfile]));
+    const fetched = new Map<string, CachedProfile>((data || []).map(row => [row.id, row as CachedProfile] as const));
     for (const id of missingIds) profileCache.set(id, { value: fetched.get(id) || null, expiresAt: now + PROFILE_CACHE_TTL_MS });
   }
   return uniqueIds.map(id => profileCache.get(id)?.value).filter((profile): profile is CachedProfile => Boolean(profile));
