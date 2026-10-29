@@ -566,7 +566,7 @@ function App({ session }: { session: Session }) {
   }
   async function loadCustomServerRoles(serverId:string){
     const [{data:roles,error:rolesError},{data:assignments,error:assignError}]=await Promise.all([
-      supabase.from("server_roles").select("id,server_id,name,color,position,permissions").eq("server_id",serverId).order("position",{ascending:false}).order("created_at"),
+      supabase.from("server_roles").select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").eq("server_id",serverId).order("position",{ascending:false}).order("created_at"),
       supabase.from("server_member_roles").select("server_id,user_id,role_id").eq("server_id",serverId)
     ]);
     if(rolesError||assignError){notify("Couldn't load custom roles: "+(rolesError?.message||assignError?.message));return;}
@@ -587,10 +587,10 @@ function App({ session }: { session: Session }) {
     }
     const permissions={...newRolePermissions};
     if(currentServer.role!=="owner"){permissions.manage_roles=false;permissions.manage_server=false;}
-    const {data,error}=await supabase.from("server_roles").insert({server_id:currentServer.id,name:value,color:newRoleColor,permissions,position:customServerRoles.length}).select("id,server_id,name,color,position,permissions").single();
+    const {data,error}=await supabase.from("server_roles").insert({server_id:currentServer.id,name:value,color:newRoleColor,permissions,position:customServerRoles.length}).select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").single();
     if(error||!data){
       if(error?.code==="23505"||error?.message?.includes("server_roles_server_id_name_key")){
-        const {data:latestRoles}=await supabase.from("server_roles").select("id,server_id,name,color,position,permissions").eq("server_id",currentServer.id).order("position",{ascending:false}).order("created_at");
+        const {data:latestRoles}=await supabase.from("server_roles").select("id,server_id,name,color,position,permissions,allow_anyone_to_mention").eq("server_id",currentServer.id).order("position",{ascending:false}).order("created_at");
         if(latestRoles)setCustomServerRoles(latestRoles as ServerRole[]);
         notify("A role with this name already exists in this server. Choose a different name.");
       }else{
@@ -640,7 +640,7 @@ function App({ session }: { session: Session }) {
     setCustomServerRoles(ordered.map(role=>role.id===current.id?{...role,position:target.position}:role.id===target.id?{...role,position:current.position}:role).sort((a,b)=>b.position-a.position));
     notify("Role order updated.");
   }
-  async function saveCustomRoleDetails(roleId:string, changes:Partial<Pick<ServerRole,"name"|"color"|"permissions">>){
+  async function saveCustomRoleDetails(roleId:string, changes:Partial<Pick<ServerRole,"name"|"color"|"permissions"|"allow_anyone_to_mention">>){
     if(!currentServer||!canManageRoles)return;
     const role=customServerRoles.find(item=>item.id===roleId);
     if(!role)return;
@@ -847,8 +847,8 @@ function App({ session }: { session: Session }) {
     const query=match[1].toLocaleLowerCase();
     const start=value.length-match[1].length-1;
     const options:MentionSuggestion[]=[
-      {type:"everyone",label:"everyone",detail:"Mention everyone in this server"},
-      {type:"here",label:"here",detail:"Mention members who are Online or Idle"},
+      {type:"everyone" as const,label:"everyone",detail:"Mention everyone in this server"},
+      {type:"here" as const,label:"here",detail:"Mention members who are Online or Idle"},
       ...serverMemberPeople.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
       ...customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"}))
     ].filter(option=>option.label.toLocaleLowerCase().startsWith(query)).slice(0,8);
