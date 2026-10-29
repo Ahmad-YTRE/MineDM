@@ -1306,3 +1306,25 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     padding-inline: 14px;
   }
 }
+
+
+/* Clock format preference */
+.clock-format-choice .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.clock-format-choice .btn small {
+  font-size: 9px;
+  font-weight: 700;
+  opacity: .75;
+}
+@media (max-width: 560px) {
+  .clock-format-choice .btn {
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+  .clock-format-choice .btn small { display: none; }
+}
