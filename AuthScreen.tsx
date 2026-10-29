@@ -23,6 +23,23 @@ export function AuthScreen() {
     }
   }
 
+  async function signInWithGoogle() {
+    setBusy(true); setError(""); setNotice("");
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: window.location.origin,
+          queryParams: { access_type: "offline", prompt: "select_account" },
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Google sign-in couldn't start. Please try again.");
+      setBusy(false);
+    }
+  }
+
   async function submit(event: FormEvent) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
@@ -51,6 +68,15 @@ export function AuthScreen() {
         <div style={{display:"flex",alignItems:"center",gap:12,color:"#66758b",fontSize:11,margin:"4px 0"}}>
           <span style={{height:1,flex:1,background:"#ffffff18"}}/><span>OR</span><span style={{height:1,flex:1,background:"#ffffff18"}}/>
         </div>
+        <button type="button" className="btn secondary large" style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10}} disabled={busy} onClick={signInWithGoogle}>
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 48 48" style={{flexShrink:0}}>
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5Z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.76 7.18l7.73 6C44.42 37.97 46.98 31.81 46.98 24.55Z"/>
+            <path fill="#FBBC05" d="M10.53 28.59A14.4 14.4 0 0 1 9.75 24c0-1.59.27-3.13.76-4.59l-7.98-6.19A23.9 23.9 0 0 0 0 24c0 3.87.93 7.53 2.56 10.78l7.97-6.19Z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.91-5.8l-7.73-6c-2.14 1.44-4.89 2.3-8.18 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 43.62 14.62 48 24 48Z"/>
+          </svg>
+          {busy ? "Please wait…" : "Continue with Google"}
+        </button>
         <button type="button" className="btn secondary large" style={{width:"100%"}} disabled={busy} onClick={signInWithDiscord}>
           {busy ? "Please wait…" : "Continue with Discord"}
         </button>
