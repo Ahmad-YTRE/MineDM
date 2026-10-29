@@ -118,7 +118,7 @@ function collectPingMentions(body: string, members: Person[], roles: ServerRole[
   const tokens: PingMentionToken[] = [];
   if (hasPingToken(body, "everyone")) tokens.push({ type: "everyone" });
   if (hasPingToken(body, "here")) tokens.push({ type: "here" });
-  for (const member of members) if (member.id && member.name && hasPingToken(body, member.name)) tokens.push({ type: "user", id: member.id });
+  for (const member of members) if (member.id && member.name && !(member.name==="Player" && member.preview==="Server member") && hasPingToken(body, member.name)) tokens.push({ type: "user", id: member.id });
   for (const role of roles) if (role.id && role.name && hasPingToken(body, role.name)) tokens.push({ type: "role", id: role.id });
   return tokens.filter((token, index) => tokens.findIndex(other => other.type === token.type && other.id === token.id) === index);
 }
@@ -340,7 +340,7 @@ function App({ session }: { session: Session }) {
   const mentionMembers: Person[] = view === "channel" ? [{id:session.user.id,name,online:status!=="Offline",status,color:"self",preview:"You"},...serverMemberPeople] : [];
   const canMentionRoles = Boolean(isOwnerOrAdmin || myCustomPermissions.mention_roles);
   const pingCandidates = mentionInputMatch ? [
-    ...mentionMembers.filter(person=>person.id!==session.user.id && person.name.toLocaleLowerCase().startsWith(mentionQuery)).map(person=>({type:"user" as const,id:person.id,label:person.name,description:"Member"})),
+    ...mentionMembers.filter(person=>person.id!==session.user.id && !(person.name==="Player" && person.preview==="Server member") && person.name.toLocaleLowerCase().startsWith(mentionQuery)).map(person=>({type:"user" as const,id:person.id,label:person.name,description:"Member"})),
     ...customServerRoles.filter(role=>(role.allow_anyone_to_mention || canMentionRoles) && role.name.toLocaleLowerCase().startsWith(mentionQuery)).map(role=>({type:"role" as const,id:role.id,label:role.name,description:"Role"})),
     ...(("@everyone".startsWith("@"+mentionQuery) && (isOwnerOrAdmin || myCustomPermissions.mention_everyone)) ? [{type:"everyone" as const,label:"everyone",description:"Notify all server members"}] : []),
     ...(("@here".startsWith("@"+mentionQuery) && (isOwnerOrAdmin || myCustomPermissions.mention_here)) ? [{type:"here" as const,label:"here",description:"Notify Online and Idle members"}] : [])
