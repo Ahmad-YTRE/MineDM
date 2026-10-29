@@ -385,7 +385,7 @@ function App({ session }: { session: Session }) {
     return()=>{cancelled=true;};
   },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,clockFormat]);
   useEffect(()=>{
-    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
+    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId)return;
     const filter=channelId?"channel_id=eq."+channelId:"conversation_id=eq."+conversationId;
     const realtime=supabase.channel("voax-messages-"+(channelId||conversationId))
@@ -402,7 +402,7 @@ function App({ session }: { session: Session }) {
       }).subscribe();
     messageEventsChannelRef.current=realtime;
     return()=>{if(messageEventsChannelRef.current===realtime)messageEventsChannelRef.current=null;void supabase.removeChannel(realtime);};
-  },[active,activeKey,view,session.user.id,conversationIds,activePerson?.id]);
+  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id]);
 
   useEffect(()=>{
     const channel=supabase.channel("voax-presence",{config:{presence:{key:session.user.id}}});
