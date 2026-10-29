@@ -1328,3 +1328,59 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   }
   .clock-format-choice .btn small { display: none; }
 }
+
+
+/* Discord-inspired member profile popout and role-management refinements */
+.profile-popout { width:min(340px,calc(100vw - 28px)); border:0; border-radius:12px; background:#232428; color:#f2f3f5; }
+.profile-popout-banner { height:96px; background:linear-gradient(135deg,#34445a 0%,#2c3447 54%,#292b36 100%); }
+.profile-popout-banner:after { background:linear-gradient(125deg,transparent 35%,#ffffff09 35.3%,transparent 36%,transparent 72%,#ffffff06 72.3%,transparent 73%); }
+.profile-popout-identity { padding-inline:16px; min-height:50px; }
+.profile-popout-avatar { width:76px; height:76px; flex-basis:76px; margin-top:-38px; border:6px solid #232428; background:#303136; }
+.profile-popout-avatar>i { border-color:#232428; }
+.profile-popout-body { padding:0 16px 16px; }
+.profile-popout-body h2 { margin-top:5px; font-size:19px; letter-spacing:-.2px; }
+.profile-popout-handle { color:#b5bac1; }
+.profile-popout-status { margin-top:10px; color:#dbdee1; }
+.profile-popout-divider { margin:14px 0; background:#3a3b40; }
+.profile-about h3,.profile-mutual h3,.profile-server-roles h3 { color:#b5bac1; font-size:10px; letter-spacing:.65px; }
+.profile-about p { color:#dbdee1; }
+.profile-server-roles { margin-top:14px; }
+.profile-server-role-list { display:flex; flex-wrap:wrap; gap:6px; }
+.profile-server-role { display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:5px 8px; border:1px solid color-mix(in srgb,var(--role-color) 45%,#3a3b40); border-radius:5px; background:color-mix(in srgb,var(--role-color) 13%,#292a2f); color:var(--role-color); font-size:11px; font-weight:650; }
+.profile-server-role i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:var(--role-color); }
+.profile-popout-quick-actions { padding-top:9px; }
+.profile-icon-action { width:32px; height:32px; border-radius:50%; background:#3b3d44; color:#e3e5e8; }
+.profile-icon-action:hover { background:#4b4e57; color:#fff; }
+.profile-popout-actions { border-color:#3a3b40; }
+.profile-popout-actions .btn { border-radius:5px; }
+.profile-popout-backdrop { background:#0008; backdrop-filter:blur(2px); }
+.role-member-profile-trigger { display:grid; place-items:center; padding:0; border:0; cursor:pointer; }
+.role-member-profile-trigger:hover { filter:brightness(1.12); }
+.role-member-info strong[role="button"] { cursor:pointer; }
+.role-member-info strong[role="button"]:hover { text-decoration:underline; }
+.discord-server-settings-modal:has(.custom-roles-section) { background:var(--panel); }
+.custom-roles-section { border:1px solid var(--line); border-radius:8px; background:var(--card); box-shadow:none; }
+.custom-roles-section h3,.role-member-list h3 { text-transform:uppercase; letter-spacing:.07em; font-size:11px; color:var(--muted); }
+.custom-roles-section h3::before,.role-member-list h3::before { display:none; }
+.custom-role-row { min-height:46px; border-radius:7px; }
+.custom-role-row:hover { background:color-mix(in srgb,var(--text,#e6edf7) 5%,transparent); }
+.role-permission-option { border-radius:6px; background:var(--panel); }
+.role-member-list { gap:5px; }
+.role-member-row { min-height:60px; border-radius:7px; background:transparent; }
+.role-member-row:hover { background:color-mix(in srgb,var(--text,#e6edf7) 5%,transparent); }
+.role-member-avatar { border-radius:50%; }
+.role-member-row select { border-radius:6px; }
+.role-owner-pill { letter-spacing:.04em; }
+:root[data-theme="light"] .profile-popout { background:#fff; color:#232428; }
+:root[data-theme="light"] .profile-popout-banner { background:linear-gradient(135deg,#d5e2ed,#e4e6ef); }
+:root[data-theme="light"] .profile-popout-avatar { border-color:#fff; background:#edf0f4; }
+:root[data-theme="light"] .profile-popout-avatar>i { border-color:#fff; }
+:root[data-theme="light"] .profile-popout-divider,:root[data-theme="light"] .profile-popout-actions { border-color:#e2e5e9; background-color:#e2e5e9; }
+:root[data-theme="light"] .profile-popout-body h2,:root[data-theme="light"] .profile-about p { color:#232428; }
+:root[data-theme="light"] .profile-popout-status { color:#4e5058; }
+:root[data-theme="light"] .profile-icon-action { background:#e7e9ed; color:#36383f; }
+:root[data-theme="light"] .custom-roles-section { background:#f2f3f5; }
+@media(max-width:560px) {
+  .profile-popout { width:min(340px,calc(100vw - 20px)); }
+  .role-member-profile-trigger { grid-column:1; }
+}
