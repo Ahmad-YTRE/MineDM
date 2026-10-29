@@ -335,6 +335,7 @@ function App({ session }: { session: Session }) {
   const canManageServer = Boolean(isOwnerOrAdmin || myCustomPermissions.manage_server);
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
+  useEffect(()=>{let cancelled=false;void(async()=>{const scopes=[{type:"server",id:activeServer},{type:"channel",id:view==="channel"?(activeChannel?.id||""):""}].filter(scope=>scope.id);if(!scopes.length){setServerNotificationMode("");setChannelNotificationMode("");return;}const {data,error}=await supabase.from("notification_overrides").select("scope_type,scope_id,mode").eq("user_id",session.user.id).in("scope_id",scopes.map(scope=>scope.id));if(cancelled)return;if(error){notify("Could not load notification overrides: "+error.message);return;}setServerNotificationMode(data?.find(row=>row.scope_type==="server"&&row.scope_id===activeServer)?.mode||"");setChannelNotificationMode(data?.find(row=>row.scope_type==="channel"&&row.scope_id===(view==="channel"?activeChannel?.id:""))?.mode||"");})();return()=>{cancelled=true;};},[activeServer,activeChannel?.id,view,session.user.id]);
   const mentionInputMatch = view === "channel" ? draft.match(/(^|\s)@([^\s@]*)$/) : null;
   const mentionQuery = (mentionInputMatch?.[2] || "").toLocaleLowerCase();
   const mentionMembers: Person[] = view === "channel" ? [{id:session.user.id,name,online:status!=="Offline",status,color:"self",preview:"You"},...serverMemberPeople] : [];
