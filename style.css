@@ -1982,3 +1982,23 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .discord-role-header-actions { gap:4px; }
   .discord-role-order-actions .icon-btn { width:25px; height:25px; }
 }
+
+
+/* Role-aware member list: use the highest-priority assigned role like Discord. */
+.member-entry .member-entry-copy { display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.member-entry .member-entry-copy strong { max-width:100%; }
+.member-entry .member-role-label {
+  display:inline-block;
+  max-width:100%;
+  margin-top:2px;
+  padding:2px 5px;
+  border:1px solid;
+  border-radius:4px;
+  background:color-mix(in srgb,currentColor 9%,transparent);
+  font-size:8px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+:root[data-theme="light"] .member-entry strong { color:inherit; }
+:root[data-theme="light"] .member-entry .member-role-label { background:color-mix(in srgb,currentColor 8%,#fff); }
