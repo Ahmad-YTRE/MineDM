@@ -13,7 +13,9 @@ type Message = { id: string; publicId?: string; author: string; text: string; ti
 type PresenceStatus = "Online" | "Idle" | "Do not disturb" | "Offline";
 type Person = { id: string; publicId?: string; name: string; online: boolean; status?: PresenceStatus; color: string; preview: string; avatarUrl?: string | null; isFriend?: boolean; hasConversation?: boolean };
 type Server = { id: string; publicId?: string; name: string; description: string; createdBy?: string; inviteCode?: string; iconUrl?: string | null; role?: "owner" | "admin" | "member" };
-type ServerRole = { id: string; server_id: string; name: string; color: string; position: number; permissions: { manage_server?: boolean; manage_roles?: boolean; manage_channels?: boolean; kick_members?: boolean; manage_messages?: boolean } };
+type ServerRole = { id: string; server_id: string; name: string; color: string; position: number; permissions: { manage_server?: boolean; manage_roles?: boolean; manage_channels?: boolean; kick_members?: boolean; manage_messages?: boolean; mention_roles?: boolean; mention_everyone?: boolean; mention_here?: boolean }; allow_anyone_to_mention?: boolean };
+type MentionToken = { type: "user" | "role" | "everyone" | "here"; id?: string };
+type MentionSuggestion = { type: "user" | "role" | "everyone" | "here"; id?: string; label: string; detail: string };
 type FriendRequest = { id: string; requester_id: string; addressee_id: string; name: string; avatarUrl?: string | null };
 type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string };
 type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string };
@@ -154,6 +156,9 @@ function App({ session }: { session: Session }) {
   const [categoryCreationMode, setCategoryCreationMode] = useState(false);
   const [serverMemberRoles, setServerMemberRoles] = useState<Record<string, Record<string, "owner" | "admin" | "member">>>({});
   const [customServerRoles, setCustomServerRoles] = useState<ServerRole[]>([]);
+  const [serverPingSettings, setServerPingSettings] = useState({confirmation_threshold:25,cooldown_seconds:60,admin_mass_pings_enabled:true,direct_targets_per_10s:10,role_actions_per_60s:5,messages_per_5s:5});
+  const [serverPingSettingsSaving, setServerPingSettingsSaving] = useState(false);
+  const [notificationPreferencesSaving, setNotificationPreferencesSaving] = useState(false);
   const [customRoleAssignments, setCustomRoleAssignments] = useState<Record<string, Record<string, string[]>>>({});
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [roleEditorTab, setRoleEditorTab] = useState<"display" | "permissions" | "members">("display");
@@ -163,7 +168,15 @@ function App({ session }: { session: Session }) {
   const [newRolePermissions, setNewRolePermissions] = useState<ServerRole["permissions"]>({manage_channels:false,manage_messages:false,kick_members:false,manage_roles:false,manage_server:false});
   const [status, setStatus] = useState<PresenceStatus>("Online");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const [settingsSection, setSettingsSection] = useState<"account" | "appearance">("account");
+  const [settingsSection, setSettingsSection] = useState<"account" | "appearance" | "notifications">("account");
+  const [globalNotificationMode, setGlobalNotificationMode] = useState<"all" | "mentions" | "none">("all");
+  const [directMentionsEnabled, setDirectMentionsEnabled] = useState(true);
+  const [roleMentionsEnabled, setRoleMentionsEnabled] = useState(true);
+  const [everyoneMentionsEnabled, setEveryoneMentionsEnabled] = useState(true);
+  const [hereMentionsEnabled, setHereMentionsEnabled] = useState(true);
+  const [serverNotificationMode, setServerNotificationMode] = useState<"inherit"|"all"|"mentions"|"none"|"muted">("inherit");
+  const [channelNotificationMode, setChannelNotificationMode] = useState<"inherit"|"all"|"mentions"|"none"|"muted">("inherit");
+  const [mentionMenu, setMentionMenu] = useState<{ start: number; options: MentionSuggestion[] } | null>(null);
   const [profileBio, setProfileBio] = useState("");
   const [theme, setTheme] = useState<"dark" | "light">(() => (localStorage.getItem("voax.theme") ?? localStorage.getItem("minedm.theme")) === "light" ? "light" : "dark");
   const [clockFormat, setClockFormat] = useState<"12h" | "24h">(() => localStorage.getItem("voax.clockFormat") === "24h" ? "24h" : "12h");
@@ -272,6 +285,16 @@ function App({ session }: { session: Session }) {
       .message-row:hover .message-avatar { box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 24%, transparent); }
       .composer { transition: border-color .2s ease, box-shadow .2s ease; }
       .composer:focus-within { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 7%, transparent); }
+      .composer-area { position: relative; }
+      .mention-suggestions { position:absolute; z-index:30; left:14px; right:14px; bottom:calc(100% - 8px); max-height:280px; overflow:auto; padding:6px; border:1px solid var(--border, #ffffff1a); border-radius:12px; background:var(--panel, #151a23); box-shadow:0 14px 40px #0007; }
+      .mention-suggestion { display:flex; align-items:center; gap:10px; width:100%; text-align:left; padding:9px 10px; border:0; border-radius:8px; background:transparent; color:inherit; cursor:pointer; }
+      .mention-suggestion:hover, .mention-suggestion:focus { background:color-mix(in srgb, var(--accent) 12%, transparent); outline:none; }
+      .mention-suggestion strong { display:block; font-size:13px; }
+      .mention-suggestion small { display:block; color:var(--muted, #98a2b3); font-size:11px; }
+      .mention-pill { display:inline; padding:1px 4px; border-radius:4px; background:color-mix(in srgb, var(--accent) 16%, transparent); color:var(--accent); font-weight:600; }
+      .ping-setting-group { border:1px solid var(--border, #ffffff1a); border-radius:12px; padding:14px; margin:14px 0; }
+      .ping-setting-group h3 { margin:0 0 6px; font-size:14px; }
+      .ping-setting-group p { margin:0 0 12px; color:var(--muted, #98a2b3); font-size:12px; }
       .modal-backdrop { animation: voax-pop-in .18s ease-out both; }
       .modal { animation: voax-pop-in .22s cubic-bezier(.2,.8,.2,1) both; }
       .toast { animation: voax-slide-up .22s ease-out both; }
@@ -377,6 +400,7 @@ function App({ session }: { session: Session }) {
     channel.on("presence",{event:"sync"},sync).subscribe(async state=>{if(state==="SUBSCRIBED"){if(status==="Offline")await channel.untrack();else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString()});sync();}});
     return()=>{void channel.untrack();void supabase.removeChannel(channel);};
   },[session.user.id,status]);
+  useEffect(()=>{const publish=async()=>{const stamp=new Date().toISOString();const {error}=await supabase.from("user_presence").upsert({user_id:session.user.id,status,last_seen_at:stamp},{onConflict:"user_id"});if(error)console.warn("Presence sync failed",error.message);};void publish();const heartbeat=window.setInterval(()=>{void publish();},30000);return()=>window.clearInterval(heartbeat);},[session.user.id,status]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_preferences").select("global_mode,direct_mentions_enabled,role_mentions_enabled,everyone_mentions_enabled,here_mentions_enabled").eq("user_id",session.user.id).maybeSingle();if(cancelled)return;if(error){notify("Unable to load notification preferences: "+error.message);return;}if(data){setGlobalNotificationMode(data.global_mode||"all");setDirectMentionsEnabled(data.direct_mentions_enabled!==false);setRoleMentionsEnabled(data.role_mentions_enabled!==false);setEveryoneMentionsEnabled(data.everyone_mentions_enabled!==false);setHereMentionsEnabled(data.here_mentions_enabled!==false);}};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{if(!activeServer)return;let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("server_ping_settings").select("confirmation_threshold,cooldown_seconds,admin_mass_pings_enabled,direct_targets_per_10s,role_actions_per_60s,messages_per_5s").eq("server_id",activeServer).maybeSingle();if(cancelled)return;if(error){console.warn("Ping settings unavailable",error.message);return;}if(data)setServerPingSettings({confirmation_threshold:data.confirmation_threshold??25,cooldown_seconds:data.cooldown_seconds??60,admin_mass_pings_enabled:data.admin_mass_pings_enabled??true,direct_targets_per_10s:data.direct_targets_per_10s??10,role_actions_per_60s:data.role_actions_per_60s??5,messages_per_5s:data.messages_per_5s??5});};void load();return()=>{cancelled=true;};},[activeServer]);
