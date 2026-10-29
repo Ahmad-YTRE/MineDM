@@ -377,6 +377,8 @@ function App({ session }: { session: Session }) {
     return()=>{void channel.untrack();void supabase.removeChannel(channel);};
   },[session.user.id,status]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
+  useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_preferences").select("global_mode,direct_mentions_enabled,role_mentions_enabled,everyone_mentions_enabled,here_mentions_enabled").eq("user_id",session.user.id).maybeSingle();if(cancelled)return;if(error){notify("Unable to load notification preferences: "+error.message);return;}if(data){setGlobalNotificationMode(data.global_mode||"all");setDirectMentionsEnabled(data.direct_mentions_enabled!==false);setRoleMentionsEnabled(data.role_mentions_enabled!==false);setEveryoneMentionsEnabled(data.everyone_mentions_enabled!==false);setHereMentionsEnabled(data.here_mentions_enabled!==false);}};void load();return()=>{cancelled=true;};},[session.user.id]);
+  useEffect(()=>{if(!activeServer)return;let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("server_ping_settings").select("confirmation_threshold,cooldown_seconds,admin_mass_pings_enabled,direct_targets_per_10s,role_actions_per_60s,messages_per_5s").eq("server_id",activeServer).maybeSingle();if(cancelled)return;if(error){console.warn("Ping settings unavailable",error.message);return;}if(data)setServerPingSettings({confirmation_threshold:data.confirmation_threshold??25,cooldown_seconds:data.cooldown_seconds??60,admin_mass_pings_enabled:data.admin_mass_pings_enabled??true,direct_targets_per_10s:data.direct_targets_per_10s??10,role_actions_per_60s:data.role_actions_per_60s??5,messages_per_5s:data.messages_per_5s??5});};void load();return()=>{cancelled=true;};},[activeServer]);
   useEffect(()=>{
     let cancelled=false;
     const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at").order("created_at",{ascending:false}).limit(40);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}setNotifications(data||[]);};
@@ -812,6 +814,38 @@ function App({ session }: { session: Session }) {
     if(error){notify("Unable to remove the uploaded attachment: "+error.message);return;}
     setPendingAttachments(old=>old.filter(item=>item.path!==attachment.path));
   }
+  function updateMentionSuggestions(value:string){
+    if(view!=="channel"){setMentionMenu(null);return;}
+    const match=value.match(/(?:^|\s)@([A-Za-z0-9_ -]*)$/);
+    if(!match){setMentionMenu(null);return;}
+    const query=match[1].toLocaleLowerCase();
+    const start=value.length-match[1].length-1;
+    const options:MentionSuggestion[]=[
+      {type:"everyone",label:"everyone",detail:"Mention everyone in this server"},
+      {type:"here",label:"here",detail:"Mention members who are Online or Idle"},
+      ...serverMemberPeople.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
+      ...customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"}))
+    ].filter(option=>option.label.toLocaleLowerCase().startsWith(query)).slice(0,8);
+    setMentionMenu(options.length?{start,options}:null);
+  }
+  function chooseMentionSuggestion(option:MentionSuggestion){
+    if(!mentionMenu)return;
+    const next=draft.slice(0,mentionMenu.start)+"@"+option.label+" "+draft.slice(draft.length);
+    setDraft(next);setMentionMenu(null);sendTyping(true);
+    window.setTimeout(()=>document.querySelector<HTMLInputElement>(".composer input[aria-label='Message']")?.focus(),0);
+  }
+  async function saveUserNotificationPreferences(changes:Partial<{global_mode:"all"|"mentions"|"none";direct_mentions_enabled:boolean;role_mentions_enabled:boolean;everyone_mentions_enabled:boolean;here_mentions_enabled:boolean}>){
+    const next={global_mode:changes.global_mode??globalNotificationMode,direct_mentions_enabled:changes.direct_mentions_enabled??directMentionsEnabled,role_mentions_enabled:changes.role_mentions_enabled??roleMentionsEnabled,everyone_mentions_enabled:changes.everyone_mentions_enabled??everyoneMentionsEnabled,here_mentions_enabled:changes.here_mentions_enabled??hereMentionsEnabled};
+    setGlobalNotificationMode(next.global_mode);setDirectMentionsEnabled(next.direct_mentions_enabled);setRoleMentionsEnabled(next.role_mentions_enabled);setEveryoneMentionsEnabled(next.everyone_mentions_enabled);setHereMentionsEnabled(next.here_mentions_enabled);setNotificationPreferencesSaving(true);
+    const {error}=await supabase.from("user_notification_preferences").upsert({user_id:session.user.id,...next,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+    setNotificationPreferencesSaving(false);if(error){notify("Couldn't save notification preferences: "+error.message);return;}notify("Notification preferences saved.");
+  }
+  async function saveServerPingSettings(changes:Partial<typeof serverPingSettings>){
+    if(!currentServer||!isOwnerOrAdmin){notify("Only server owners and administrators can manage ping safeguards.");return;}
+    const next={...serverPingSettings,...changes};setServerPingSettings(next);setServerPingSettingsSaving(true);
+    const {error}=await supabase.from("server_ping_settings").upsert({server_id:currentServer.id,...next,updated_by:session.user.id,updated_at:new Date().toISOString()},{onConflict:"server_id"});
+    setServerPingSettingsSaving(false);if(error){notify("Couldn't save ping safeguards: "+error.message);return;}notify("Ping safeguards saved.");
+  }
   async function sendMessage(e:FormEvent){
     e.preventDefault();const body=censorProfanity(draft.trim());if(!body&&!pendingAttachments.length)return;
     if(view==="channel"&&!activeChannel){notify("Create a server and channel before sending messages.");return;}
@@ -820,12 +854,25 @@ function App({ session }: { session: Session }) {
     const scopePrefix=(view==="channel"?"channels/"+activeChannel?.id:"conversations/"+conversationId)+"/";
     if(pendingAttachments.some(attachment=>!attachment.path.startsWith(scopePrefix))){notify("Your attachment belongs to a different conversation. Remove it and attach it again here.");return;}
     const attachmentRows=pendingAttachments.map(({path,name,mimeType,size})=>({path,name,mimeType,size}));
-    const {data,error}=await supabase.from("messages").insert({channel_id:view==="channel"?active:null,conversation_id:view==="dm"?conversationId:null,author_id:session.user.id,body:body||"Shared an attachment",attachments:attachmentRows,reply_to:replyingTo?.id||null}).select("id,author_id,body,created_at,reply_to,attachments").single();
-    if(error||!data){notify("Message not sent: "+(error?.message||"Please try again."));return;}
+    const mentionMembers:Person[]=[...serverMemberPeople,{id:session.user.id,name,online:status!=="Offline",status,color:"blue",preview:"You"}];
+    const mentions=view==="channel"?buildMentionTokens(body,mentionMembers,customServerRoles):[];
+    const send=(confirmed:boolean)=>supabase.rpc("send_message_with_pings",{p_channel_id:view==="channel"?active:null,p_conversation_id:view==="dm"?conversationId:null,p_body:body||"Shared an attachment",p_attachments:attachmentRows,p_reply_to:replyingTo?.id||null,p_mentions:mentions,p_confirmed:confirmed});
+    let result=await send(false);
+    if(result.error){notify("Message not sent: "+result.error.message);return;}
+    let payload=result.data as any;
+    if(payload?.confirmation_required){
+      const count=Number(payload.target_count)||0;
+      if(!window.confirm("This ping will notify "+count+" unique members. Send it anyway?"))return;
+      result=await send(true);
+      if(result.error){notify("Message not sent: "+result.error.message);return;}
+      payload=result.data as any;
+    }
+    if(!payload?.message?.id){notify("Message not sent: the server returned an invalid response.");return;}
+    const data=payload.message;
     const signedAttachments=await signMessageAttachments(data.attachments);
     const item:Message={id:data.id,author:name,text:data.body,time:formatClock(new Date(data.created_at), clockFormat),timestamp:data.created_at,own:true,...(replyingTo?{replyTo:{author:replyingTo.author,text:replyingTo.text}}:{}),...(signedAttachments.length?{attachments:signedAttachments}:{})};
     setMessages(old=>{const list=old[activeKey]||old[active]||[];const next=list.some(m=>m.id===item.id)?list:[...list,item];return{...old,[activeKey]:next,[active]:next};});
-    setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setReplyingTo(null);setPendingAttachments([]);notify("Message sent.");
+    setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setMentionMenu(null);setReplyingTo(null);setPendingAttachments([]);notify("Message sent.");
   }
   async function createItem(e:FormEvent){
     e.preventDefault();const value=modalInput.trim();if(!value)return;
