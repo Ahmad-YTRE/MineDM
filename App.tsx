@@ -557,7 +557,7 @@ function App({ session }: { session: Session }) {
       await supabase.from("server_roles").update({position:current.position}).eq("id",current.id).eq("server_id",currentServer.id);
       notify("Couldn't reorder roles: "+swapError.message);return;
     }
-    setCustomServerRoles(ordered.map((role,i)=>role.id===current.id?{...role,position:target.position}:role.id===target.id?{...role,position:current.position}:role));
+    setCustomServerRoles(ordered.map(role=>role.id===current.id?{...role,position:target.position}:role.id===target.id?{...role,position:current.position}:role).sort((a,b)=>b.position-a.position));
     notify("Role order updated.");
   }
   async function saveCustomRoleDetails(roleId:string, changes:Partial<Pick<ServerRole,"name"|"color"|"permissions">>){
