@@ -101,16 +101,16 @@ function LinkPreview({ url }: { url: string }) {
   </a>;
 }
 function hasPingToken(body: string, label: string) {
-  const source = body.replace(/```[\\s\\S]*?```/g, " ").replace(/`[^`\\n]*`/g, " ");
+  const source = body.replace(/\x60{1,3}[\s\S]*?\x60{1,3}/g, " ");
   const needle = "@" + label;
-  let index = source.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase());
+  let index = source.toLowerCase().indexOf(needle.toLowerCase());
   while (index >= 0) {
     const before = source[index - 1] || "";
     const after = source[index + needle.length] || "";
     let slashes = 0;
-    for (let i = index - 1; i >= 0 && source[i] === "\\\\"; i--) slashes++;
-    if ((!before || !/[\\p{L}\\p{N}_]/u.test(before)) && (!after || !/[\\p{L}\\p{N}_]/u.test(after)) && slashes % 2 === 0) return true;
-    index = source.toLocaleLowerCase().indexOf(needle.toLocaleLowerCase(), index + 1);
+    for (let i = index - 1; i >= 0 && source[i] === "\\"; i--) slashes++;
+    if ((!before || !/[a-z0-9_]/i.test(before)) && (!after || !/[a-z0-9_]/i.test(after)) && slashes % 2 === 0) return true;
+    index = source.toLowerCase().indexOf(needle.toLowerCase(), index + 1);
   }
   return false;
 }
@@ -118,19 +118,16 @@ function collectPingMentions(body: string, members: Person[], roles: ServerRole[
   const tokens: PingMentionToken[] = [];
   if (hasPingToken(body, "everyone")) tokens.push({ type: "everyone" });
   if (hasPingToken(body, "here")) tokens.push({ type: "here" });
-  for (const member of members) {
-    if (member.id && member.name && hasPingToken(body, member.name)) tokens.push({ type: "user", id: member.id });
-  }
-  for (const role of roles) {
-    if (role.id && role.name && hasPingToken(body, role.name)) tokens.push({ type: "role", id: role.id });
-  }
+  for (const member of members) if (member.id && member.name && hasPingToken(body, member.name)) tokens.push({ type: "user", id: member.id });
+  for (const role of roles) if (role.id && role.name && hasPingToken(body, role.name)) tokens.push({ type: "role", id: role.id });
   return tokens.filter((token, index) => tokens.findIndex(other => other.type === token.type && other.id === token.id) === index);
 }
-
+function escapeMentionRegex(value: string) {
+  return value.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
+}
 function MessageContent({ text, onJoinInvite, servers = [], mentionNames = [], onMentionClick }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[]; mentionNames?: string[]; onMentionClick?: (label: string) => void }) {
-  const escapedMentions = [...new Set(["@everyone", "@here", ...mentionNames].map(value => value.startsWith("@") ? value : "@"+value))].sort((a,b)=>b.length-a.length).map(value=>value.replace(/[.*+?^${}()|[\]\\]/g,"\\function MessageContent({ text, onJoinInvite, servers = [] }: { text: string; onJoinInvite: (code: string) => void; servers?: Server[] }) {
-  const tokens = text.split(/(https?:\/\/[^\s<>()]+|\/invite\/[A-Za-z0-9_-]+)/gi).filter(Boolean);"));
-  const mentionAlternation = escapedMentions.length ? escapedMentions.join("|") : "@(?:everyone|here|[\\w.-]+)";
+  const escapedMentions = [...new Set(["@everyone", "@here", ...mentionNames].map(value => value.startsWith("@") ? value : "@"+value))].sort((a,b)=>b.length-a.length).map(escapeMentionRegex);
+  const mentionAlternation = escapedMentions.length ? escapedMentions.join("|") : "@(?:everyone|here|[\w.-]+)";
   const tokens = text.split(new RegExp("(https?:\\/\\/[^\\s<>()]+|\\/invite\\/[A-Za-z0-9_-]+|"+mentionAlternation+")","gi")).filter(Boolean);
   const invites = [...new Set((text.match(/(?:https?:\/\/[^\s<>()]+)?\/invite\/([A-Za-z0-9_-]+)/gi) || []).map(value => value.match(/\/invite\/([A-Za-z0-9_-]+)/i)?.[1]).filter((value): value is string => Boolean(value)))];
   const urls = [...new Set((text.match(/https?:\/\/[^\s<>()]+/gi) || []).map(value => value.replace(/[.,!?;:]+$/, "")))].filter(value => !/\/invite\//i.test(value));
@@ -138,7 +135,7 @@ function MessageContent({ text, onJoinInvite, servers = [], mentionNames = [], o
     const invite = token.match(/(?:https?:\/\/[^/]+)?\/invite\/([A-Za-z0-9_-]+)/i);
     if (invite) { const linkedServer = servers.find(server => server.inviteCode === invite[1]); return <a key={index} className="invite-inline-link" href={"/invite/" + invite[1]} onClick={event => { event.preventDefault(); window.location.assign("/invite/" + invite[1]); }}>{linkedServer ? "Invite to " + linkedServer.name : "Voax server invite"}</a>; }
     if (/^https?:\/\//i.test(token)) return <a key={index} href={token} target="_blank" rel="noopener noreferrer">{token}</a>;
-    if (token.startsWith("@") && escapedMentions.some(label=>label.toLowerCase()===token.toLowerCase())) { const kind=/^@everyone$/i.test(token)?"everyone":/^@here$/i.test(token)?"here":"member"; return <button type="button" key={index} className={"message-mention mention-"+kind} onClick={()=>onMentionClick?.(token)}>{token}</button>; }
+    if (token.startsWith("@") && mentionNames.some(label=>("@"+label.replace(/^@/,"")).toLowerCase()===token.toLowerCase()) || /^@(everyone|here)$/i.test(token)) { const kind=/^@everyone$/i.test(token)?"everyone":/^@here$/i.test(token)?"here":"member"; return <button type="button" key={index} className={"message-mention mention-"+kind} onClick={()=>onMentionClick?.(token)}>{token}</button>; }
     return <React.Fragment key={index}>{token}</React.Fragment>;
   })}</p>
     {invites.map(code => { const server = servers.find(item => item.inviteCode === code); return <section className="invite-preview-card" key={code} aria-label="Server invite"><div className="invite-preview-topline"><span className="invite-preview-brand"><Icon name="users" size={13}/> VOAX INVITE</span><span className="invite-preview-status"><i/> Invite link</span></div><div className="invite-preview-main"><div className="invite-preview-icon">{server?.iconUrl ? <img src={server.iconUrl} alt="" loading="lazy"/> : <Icon name="users" size={25}/>}</div><div className="invite-preview-copy"><span className="invite-preview-eyebrow">YOU’VE BEEN INVITED TO JOIN</span><strong>{server?.name || "A Voax server"}</strong>{server?.description?.trim() && !/^your community$/i.test(server.description.trim()) && <span>{server.description}</span>}<small><Icon name="link" size={12}/> /invite/{code}</small></div></div><div className="invite-preview-footer"><span className="invite-preview-secure"><Icon name="shieldCheck" size={13}/> You’re invited</span><button type="button" className="btn primary invite-join-button" onClick={() => onJoinInvite(code)}>Join server <Icon name="arrowRight" size={14}/></button></div></section>; })}
