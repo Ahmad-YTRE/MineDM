@@ -1676,3 +1676,106 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .discord-settings-nav { padding-top: 20px; padding-bottom: 12px; }
   .discord-settings-nav-spacer { min-height: 8px; }
 }
+
+
+/* Targeted light-mode fixes: create-server dialog, conversation search, and message composer. */
+:root[data-theme="light"] .search-wrap {
+  background: #ffffff;
+  border-color: #cbd6e2;
+  color: #64748b;
+  box-shadow: 0 1px 2px #17203308;
+}
+:root[data-theme="light"] .search-wrap input {
+  background: transparent;
+  color: #172033;
+  caret-color: #087f9b;
+}
+:root[data-theme="light"] .search-wrap input::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .composer-area {
+  background: #f4f7fb;
+}
+:root[data-theme="light"] .composer {
+  background: #ffffff;
+  border-color: #cbd6e2;
+  box-shadow: 0 3px 14px #17203308;
+}
+:root[data-theme="light"] .composer:focus-within {
+  border-color: #0891a8;
+  box-shadow: 0 0 0 3px #0891a81a;
+}
+:root[data-theme="light"] .composer input {
+  background: transparent;
+  color: #172033;
+  caret-color: #087f9b;
+}
+:root[data-theme="light"] .composer input::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .attach-btn {
+  background: #eaf0f6;
+  border-color: #d8e1eb;
+  color: #087f9b;
+}
+:root[data-theme="light"] .attach-btn:hover {
+  background: #dfeaf2;
+}
+:root[data-theme="light"] .send-btn {
+  background: #087f9b;
+  color: #ffffff;
+}
+:root[data-theme="light"] .composer-foot {
+  color: #7b8798;
+}
+:root[data-theme="light"] .composer-foot kbd {
+  color: #526174;
+  border-color: #cbd6e2;
+  background: #ffffff;
+}
+:root[data-theme="light"] .modal-backdrop {
+  background: #24324770;
+}
+:root[data-theme="light"] .modal {
+  background: #ffffff;
+  color: #172033;
+  border-color: #d8e1eb;
+  box-shadow: 0 28px 80px #17203330;
+}
+:root[data-theme="light"] .modal h2,
+:root[data-theme="light"] .modal h3 {
+  color: #172033;
+}
+:root[data-theme="light"] .modal > p {
+  color: #5d6b7d;
+}
+:root[data-theme="light"] .modal label {
+  color: #334155;
+}
+:root[data-theme="light"] .modal form > input,
+:root[data-theme="light"] .modal select,
+:root[data-theme="light"] .modal textarea,
+:root[data-theme="light"] .modal input:not([type="checkbox"]):not([type="file"]):not([type="color"]) {
+  background: #f8fafc;
+  color: #172033;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .modal form > input::placeholder,
+:root[data-theme="light"] .modal textarea::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .modal-x {
+  color: #64748b;
+}
+:root[data-theme="light"] .modal-x:hover {
+  color: #172033;
+  background: #edf2f8;
+}
+:root[data-theme="light"] .modal .btn.secondary {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd6e2;
+}
