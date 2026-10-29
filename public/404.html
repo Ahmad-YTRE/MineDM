@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found | Voax</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, Monospace;
+        }
+
+        :root {
+            --bg-dark: #0b0c10;
+            --neon-cyan: #00f2fe;
+            --neon-purple: #4facfe;
+            --neon-red: #ff0055;
+            --text-main: #c5c6c7;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, #1a0b2e 0%, #0b0c10 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .error-container {
+            padding: 20px;
+            max-width: 600px;
+            position: relative;
+        }
+
+        .glitch-code {
+            font-size: 8rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
+            letter-spacing: 4px;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        .error-container h1 {
+            font-size: 2.2rem;
+            color: #fff;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .error-container h1 span {
+            background: linear-gradient(45deg, var(--neon-red), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .error-container p {
+            font-size: 1.2rem;
+            color: #a9b7c6;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 35px;
+            font-size: 16px;
+            font-weight: bold;
+            text-decoration: none;
+            text-transform: uppercase;
+            border-radius: 8px;
+            transition: all 0.4s ease;
+            cursor: pointer;
+            color: #0b0c10;
+            background: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+        }
+
+        .btn:hover {
+            background: transparent;
+            color: var(--neon-cyan);
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.8), inset 0 0 10px rgba(0, 242, 254, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                text-shadow: 0 0 20px rgba(255, 0, 85, 0.6), 0 0 40px rgba(255, 0, 85, 0.3);
+            }
+            50% {
+                text-shadow: 0 0 30px rgba(0, 242, 254, 0.8), 0 0 50px rgba(0, 242, 254, 0.5);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .glitch-code { font-size: 5rem; }
+            .error-container h1 { font-size: 1.6rem; }
+            .error-container p { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <div class="glitch-code">404</div>
+        <h1><span>Page Not Found</span></h1>
+        <p>Looks like this page wandered into the void. The page may have moved, or the address may be incorrect.</p>
+        <a href="/" class="btn">Respawn at Home</a>
+    </div>
+
+</body>
+</html>
