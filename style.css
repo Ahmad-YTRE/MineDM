@@ -758,17 +758,30 @@ button.member-entry { cursor: pointer; }
 .link-preview-site, .link-preview-url { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
 .link-preview-copy strong { font-size: 14px; line-height: 1.35; color: var(--text, #e6edf7); overflow-wrap: anywhere; }
 .link-preview-description { color: #a9b5c7; font-size: 12px; line-height: 1.45; overflow-wrap: anywhere; }
-.invite-preview-card { display: flex; align-items: center; gap: 12px; width: min(100%, 480px); margin-top: 10px; padding: 13px; border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--line)); border-radius: 10px; background: color-mix(in srgb, var(--accent) 5%, var(--card)); }
-.invite-preview-icon { display: grid; place-items: center; flex: 0 0 42px; width: 42px; height: 42px; border-radius: 10px; background: color-mix(in srgb, var(--accent) 12%, var(--panel)); color: var(--accent); }
-.invite-preview-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
-.invite-preview-copy strong { font-size: 13px; }
-.invite-preview-copy span, .invite-preview-copy small { color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
-.invite-join-button { flex: 0 0 auto; white-space: nowrap; padding: 9px 12px; font-size: 12px; }
+.invite-inline-link { display: inline-flex; align-items: center; gap: 5px; padding: 2px 7px; border-radius: 5px; background: color-mix(in srgb, var(--accent) 11%, transparent); color: var(--accent); font-weight: 650; text-decoration: none; }
+.invite-inline-link:hover { text-decoration: underline; }
+.invite-preview-card { display: flex; flex-direction: column; gap: 13px; width: min(100%, 440px); margin-top: 11px; padding: 15px; overflow: hidden; border: 1px solid color-mix(in srgb, var(--line) 85%, #5865f2); border-radius: 12px; background: color-mix(in srgb, var(--panel) 94%, #5865f2 6%); box-shadow: 0 6px 20px #00000012; }
+.invite-preview-topline, .invite-preview-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.invite-preview-brand { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; font-weight: 800; letter-spacing: .09em; }
+.invite-preview-status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 10px; }
+.invite-preview-status i { width: 6px; height: 6px; border-radius: 50%; background: #23a559; }
+.invite-preview-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.invite-preview-icon { display: grid; place-items: center; flex: 0 0 58px; width: 58px; height: 58px; overflow: hidden; border-radius: 16px; background: color-mix(in srgb, #5865f2 22%, var(--card)); color: #aeb6ff; }
+.invite-preview-icon img { width: 100%; height: 100%; object-fit: cover; }
+.invite-preview-copy { display: flex; flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: 4px; }
+.invite-preview-copy strong { max-width: 100%; color: var(--text); font-size: 15px; font-weight: 750; overflow-wrap: anywhere; }
+.invite-preview-copy span:not(.invite-preview-eyebrow) { color: var(--muted); font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
+.invite-preview-copy .invite-preview-eyebrow { color: #aeb6ff; font-size: 9px; font-weight: 800; letter-spacing: .08em; }
+.invite-preview-copy small { display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; color: var(--muted); font-size: 10px; overflow-wrap: anywhere; }
+.invite-preview-footer { padding-top: 12px; border-top: 1px solid var(--line); }
+.invite-preview-secure { display: inline-flex; align-items: center; gap: 5px; color: var(--muted); font-size: 10px; }
+.invite-join-button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; flex: 0 0 auto; white-space: nowrap; padding: 9px 13px; font-size: 12px; font-weight: 750; }
 @media (max-width: 560px) {
-  .invite-preview-card { flex-wrap: wrap; }
+  .invite-preview-card { width: 100%; padding: 12px; }
+  .invite-preview-icon { flex-basis: 48px; width: 48px; height: 48px; border-radius: 13px; }
+  .invite-preview-footer { align-items: stretch; flex-direction: column; }
   .invite-join-button { width: 100%; }
 }
-
 
 /* Discord-style custom server roles */
 .custom-roles-section { margin: 16px 0 22px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: color-mix(in srgb, var(--panel) 65%, transparent); }
@@ -992,3 +1005,1017 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .docs-footer { font-size:9px; }
 }
 @media (prefers-reduced-motion:reduce) { .docs-page * { transition:none !important; scroll-behavior:auto !important; } }
+
+
+/* Members & Roles — refined role-management workspace */
+.discord-server-settings-modal:has(.custom-roles-section) {
+  width: min(920px, calc(100vw - 36px));
+  max-width: 920px;
+}
+.discord-server-settings-modal:has(.custom-roles-section) > .section-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 9px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .12em;
+}
+.discord-server-settings-modal:has(.custom-roles-section) > h2 {
+  margin: 0;
+  font-size: clamp(24px, 3vw, 30px);
+  line-height: 1.12;
+  letter-spacing: -.8px;
+}
+.discord-server-settings-modal:has(.custom-roles-section) > p {
+  max-width: 620px;
+  margin: 10px 0 22px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+.custom-roles-section {
+  margin: 0 0 20px;
+  padding: 18px;
+  border-radius: 15px;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--accent) 5%, var(--panel)), color-mix(in srgb, var(--card) 88%, transparent));
+  box-shadow: inset 0 1px 0 #ffffff05;
+}
+.custom-roles-section h3,
+.role-member-list h3 {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 13px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: -.1px;
+}
+.custom-roles-section h3::before,
+.role-member-list h3::before {
+  content: "";
+  width: 3px;
+  height: 15px;
+  border-radius: 4px;
+  background: var(--accent);
+}
+.custom-role-row {
+  display: grid;
+  grid-template-columns: 12px minmax(100px, 170px) minmax(0, 1fr) 30px;
+  gap: 12px;
+  align-items: center;
+  min-height: 52px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  transition: background .16s ease, border-color .16s ease;
+}
+.custom-role-row:hover {
+  border-color: var(--line);
+  background: color-mix(in srgb, var(--card) 76%, transparent);
+}
+.custom-role-row .custom-role-dot {
+  width: 11px;
+  height: 11px;
+  flex-basis: 11px;
+  box-shadow: 0 0 0 4px color-mix(in srgb, currentColor 12%, transparent), 0 0 14px color-mix(in srgb, currentColor 25%, transparent);
+}
+.custom-role-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+  font-weight: 800;
+}
+.custom-role-row small {
+  font-size: 10px;
+  line-height: 1.5;
+  text-transform: none;
+}
+.custom-role-row .icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  opacity: .72;
+}
+.custom-role-row .icon-btn:hover { opacity: 1; }
+.custom-role-form {
+  gap: 10px;
+  margin-top: 14px;
+  padding: 17px 0 0;
+}
+.custom-role-form > label {
+  color: var(--text, #e6edf7);
+  font-size: 11px;
+  font-weight: 800;
+}
+.custom-role-create-row { gap: 9px; }
+.custom-role-create-row input:not([type="color"]) {
+  min-height: 42px;
+  padding-inline: 12px;
+  border-radius: 10px;
+  font-size: 12px;
+}
+.custom-role-create-row input[type="color"] {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  box-shadow: inset 0 0 0 3px var(--panel);
+}
+.custom-role-create-row .btn {
+  min-height: 42px;
+  padding-inline: 15px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 800;
+}
+.role-permission-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 3px 0 0;
+}
+.role-permission-option {
+  min-height: 39px;
+  padding: 9px 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--card) 60%, transparent);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.35;
+  transition: border-color .16s ease, background .16s ease, color .16s ease;
+}
+.role-permission-option:has(input:checked) {
+  border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+  color: var(--text, #e6edf7);
+}
+.role-permission-option input {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 14px;
+  accent-color: var(--accent);
+}
+.custom-role-form > small {
+  font-size: 10px;
+  line-height: 1.55;
+}
+.role-member-list {
+  gap: 8px;
+  margin-top: 4px;
+}
+.role-member-list h3 { margin-bottom: 5px; }
+.role-member-row {
+  display: grid;
+  grid-template-columns: 38px minmax(110px, 1fr) minmax(105px, 135px) minmax(120px, 155px) 30px;
+  align-items: center;
+  gap: 10px;
+  min-height: 68px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--panel) 72%, transparent);
+  transition: border-color .16s ease, background .16s ease, transform .16s ease;
+}
+.role-member-row:hover {
+  border-color: color-mix(in srgb, var(--accent) 24%, var(--line));
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+}
+.role-member-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+.role-member-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.role-member-info strong {
+  overflow: hidden;
+  color: var(--text, #e6edf7);
+  font-size: 12px;
+  font-weight: 750;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.role-member-info small {
+  color: var(--muted);
+  font-size: 10px;
+}
+.role-member-info .assigned-custom-role {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  max-width: 100%;
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  font-size: 10px;
+}
+.role-member-row select {
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 28px 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background-color: var(--card);
+  color: var(--text, #e6edf7);
+  font-size: 10px;
+}
+.role-member-row select:disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+.role-owner-pill {
+  justify-self: end;
+  padding: 5px 8px;
+  border: 1px solid #f2c46d38;
+  border-radius: 999px;
+  background: #f2c46d12;
+  color: #e9bd68;
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: .08em;
+}
+.role-kick-button {
+  border-radius: 8px;
+  justify-self: end;
+}
+.discord-server-settings-modal:has(.custom-roles-section) > .modal-actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 2;
+  margin: 18px -20px -20px;
+  padding: 14px 20px 20px;
+  border-top: 1px solid var(--line);
+  background: color-mix(in srgb, var(--panel) 94%, transparent);
+  backdrop-filter: blur(16px);
+}
+:root[data-theme="light"] .custom-roles-section {
+  background: linear-gradient(145deg, #e9f8fa, #ffffff);
+}
+:root[data-theme="light"] .role-member-row {
+  background: #ffffff;
+}
+:root[data-theme="light"] .role-permission-option {
+  background: #ffffff;
+  color: #637287;
+}
+:root[data-theme="light"] .role-permission-option:has(input:checked) {
+  background: #e5f6f8;
+  color: #172033;
+}
+@media (max-width: 760px) {
+  .role-member-row {
+    grid-template-columns: 36px minmax(0, 1fr) minmax(0, 1fr) 30px;
+  }
+  .role-member-row .role-member-info { grid-column: 2 / -1; }
+  .role-member-row select { grid-row: 2; }
+  .role-member-row select:first-of-type { grid-column: 2; }
+  .role-member-row select:nth-of-type(2) { grid-column: 3; }
+  .role-member-row .role-kick-button { grid-column: 4; grid-row: 2; }
+  .role-member-row .role-owner-pill { grid-column: 3 / 5; grid-row: 2; }
+}
+@media (max-width: 560px) {
+  .discord-server-settings-modal:has(.custom-roles-section) {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 20px);
+    padding: 20px 14px;
+  }
+  .custom-roles-section { padding: 13px; }
+  .custom-role-row {
+    grid-template-columns: 12px minmax(0, 1fr) 30px;
+    gap: 9px;
+  }
+  .custom-role-row small { grid-column: 2; grid-row: 2; }
+  .custom-role-row .icon-btn { grid-column: 3; grid-row: 1 / 3; }
+  .custom-role-create-row { display: grid; grid-template-columns: minmax(0, 1fr) 42px; }
+  .custom-role-create-row input:not([type="color"]) { grid-column: 1 / -1; }
+  .custom-role-create-row input[type="color"] { grid-column: 2; grid-row: 2; }
+  .custom-role-create-row .btn { grid-column: 1; grid-row: 2; }
+  .role-permission-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .role-member-row {
+    grid-template-columns: 34px minmax(0, 1fr) 30px;
+    gap: 8px;
+    padding: 10px;
+  }
+  .role-member-row .role-member-info { grid-column: 2 / 4; }
+  .role-member-row select:first-of-type { grid-column: 1 / 3; }
+  .role-member-row select:nth-of-type(2) { grid-column: 1 / 3; grid-row: 3; }
+  .role-member-row .role-kick-button { grid-column: 3; grid-row: 2 / 4; }
+  .role-member-row .role-owner-pill { grid-column: 1 / -1; justify-self: start; grid-row: 2; }
+  .discord-server-settings-modal:has(.custom-roles-section) > .modal-actions {
+    margin-inline: -14px;
+    padding-inline: 14px;
+  }
+}
+
+
+/* Clock format preference */
+.clock-format-choice .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.clock-format-choice .btn small {
+  font-size: 9px;
+  font-weight: 700;
+  opacity: .75;
+}
+@media (max-width: 560px) {
+  .clock-format-choice .btn {
+    padding-inline: 9px;
+    font-size: 10px;
+  }
+  .clock-format-choice .btn small { display: none; }
+}
+
+
+/* Discord-inspired member profile popout and role-management refinements */
+.profile-popout { width:min(340px,calc(100vw - 28px)); border:0; border-radius:12px; background:#232428; color:#f2f3f5; }
+.profile-popout-banner { height:96px; background:linear-gradient(135deg,#34445a 0%,#2c3447 54%,#292b36 100%); }
+.profile-popout-banner:after { background:linear-gradient(125deg,transparent 35%,#ffffff09 35.3%,transparent 36%,transparent 72%,#ffffff06 72.3%,transparent 73%); }
+.profile-popout-identity { padding-inline:16px; min-height:50px; }
+.profile-popout-avatar { width:76px; height:76px; flex-basis:76px; margin-top:-38px; border:6px solid #232428; background:#303136; }
+.profile-popout-avatar>i { border-color:#232428; }
+.profile-popout-body { padding:0 16px 16px; }
+.profile-popout-body h2 { margin-top:5px; font-size:19px; letter-spacing:-.2px; }
+.profile-popout-handle { color:#b5bac1; }
+.profile-popout-status { margin-top:10px; color:#dbdee1; }
+.profile-popout-divider { margin:14px 0; background:#3a3b40; }
+.profile-about h3,.profile-mutual h3,.profile-server-roles h3 { color:#b5bac1; font-size:10px; letter-spacing:.65px; }
+.profile-about p { color:#dbdee1; }
+.profile-server-roles { margin-top:14px; }
+.profile-server-role-list { display:flex; flex-wrap:wrap; gap:6px; }
+.profile-server-role { display:inline-flex; align-items:center; gap:6px; max-width:100%; padding:5px 8px; border:1px solid color-mix(in srgb,var(--role-color) 45%,#3a3b40); border-radius:5px; background:color-mix(in srgb,var(--role-color) 13%,#292a2f); color:var(--role-color); font-size:11px; font-weight:650; }
+.profile-server-role i { width:7px; height:7px; flex:0 0 7px; border-radius:50%; background:var(--role-color); }
+.profile-popout-quick-actions { padding-top:9px; }
+.profile-icon-action { width:32px; height:32px; border-radius:50%; background:#3b3d44; color:#e3e5e8; }
+.profile-icon-action:hover { background:#4b4e57; color:#fff; }
+.profile-popout-actions { border-color:#3a3b40; }
+.profile-popout-actions .btn { border-radius:5px; }
+.profile-popout-backdrop { background:#0008; backdrop-filter:blur(2px); }
+.role-member-profile-trigger { display:grid; place-items:center; padding:0; border:0; cursor:pointer; }
+.role-member-profile-trigger:hover { filter:brightness(1.12); }
+.role-member-info strong[role="button"] { cursor:pointer; }
+.role-member-info strong[role="button"]:hover { text-decoration:underline; }
+.discord-server-settings-modal:has(.custom-roles-section) { background:var(--panel); }
+.custom-roles-section { border:1px solid var(--line); border-radius:8px; background:var(--card); box-shadow:none; }
+.custom-roles-section h3,.role-member-list h3 { text-transform:uppercase; letter-spacing:.07em; font-size:11px; color:var(--muted); }
+.custom-roles-section h3::before,.role-member-list h3::before { display:none; }
+.custom-role-row { min-height:46px; border-radius:7px; }
+.custom-role-row:hover { background:color-mix(in srgb,var(--text,#e6edf7) 5%,transparent); }
+.role-permission-option { border-radius:6px; background:var(--panel); }
+.role-member-list { gap:5px; }
+.role-member-row { min-height:60px; border-radius:7px; background:transparent; }
+.role-member-row:hover { background:color-mix(in srgb,var(--text,#e6edf7) 5%,transparent); }
+.role-member-avatar { border-radius:50%; }
+.role-member-row select { border-radius:6px; }
+.role-owner-pill { letter-spacing:.04em; }
+:root[data-theme="light"] .profile-popout { background:#fff; color:#232428; }
+:root[data-theme="light"] .profile-popout-banner { background:linear-gradient(135deg,#d5e2ed,#e4e6ef); }
+:root[data-theme="light"] .profile-popout-avatar { border-color:#fff; background:#edf0f4; }
+:root[data-theme="light"] .profile-popout-avatar>i { border-color:#fff; }
+:root[data-theme="light"] .profile-popout-divider,:root[data-theme="light"] .profile-popout-actions { border-color:#e2e5e9; background-color:#e2e5e9; }
+:root[data-theme="light"] .profile-popout-body h2,:root[data-theme="light"] .profile-about p { color:#232428; }
+:root[data-theme="light"] .profile-popout-status { color:#4e5058; }
+:root[data-theme="light"] .profile-icon-action { background:#e7e9ed; color:#36383f; }
+:root[data-theme="light"] .custom-roles-section { background:#f2f3f5; }
+@media(max-width:560px) {
+  .profile-popout { width:min(340px,calc(100vw - 20px)); }
+  .role-member-profile-trigger { grid-column:1; }
+}
+
+
+/* Profile cards use Voax's own surfaces, accents and theme tokens */
+.profile-popout {
+  background:var(--panel);
+  border:1px solid var(--line);
+  color:var(--text,#e6edf7);
+  box-shadow:0 24px 80px #0007,0 0 0 1px color-mix(in srgb,var(--accent) 8%,transparent);
+}
+.profile-popout-banner {
+  height:104px;
+  background:radial-gradient(ellipse at 82% 0,color-mix(in srgb,var(--accent) 30%,transparent),transparent 55%),
+    linear-gradient(125deg,color-mix(in srgb,var(--accent) 14%,var(--panel)),color-mix(in srgb,#818cf8 20%,var(--panel)) 58%,var(--panel));
+}
+.profile-popout-avatar { border-color:var(--panel); background:var(--card); }
+.profile-popout-avatar>i { border-color:var(--panel); }
+.profile-popout-body h2 { color:var(--text,#e6edf7); }
+.profile-popout-handle { color:var(--muted); }
+.profile-popout-handle span { color:var(--muted); }
+.profile-popout-status { color:var(--muted); }
+.profile-popout-divider { background:var(--line); }
+.profile-about h3,.profile-mutual h3,.profile-server-roles h3 { color:var(--muted); }
+.profile-about p { color:var(--text,#e6edf7); }
+.profile-popout-actions { border-color:var(--line); }
+.profile-popout-actions .btn.secondary { background:var(--card); border-color:var(--line); color:var(--text,#e6edf7); }
+.profile-icon-action { background:var(--card); border:1px solid var(--line); color:var(--text,#e6edf7); }
+.profile-icon-action:hover { background:color-mix(in srgb,var(--accent) 12%,var(--card)); border-color:color-mix(in srgb,var(--accent) 35%,var(--line)); color:var(--accent); }
+.profile-close { color:var(--text,#e6edf7); background:color-mix(in srgb,var(--panel) 75%,transparent); border:1px solid var(--line); border-radius:8px; }
+.profile-server-roles { position:relative; }
+.profile-server-roles-heading { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:9px; }
+.profile-server-roles-heading h3 { margin:0; }
+.profile-server-role-list { display:flex; flex-wrap:wrap; gap:6px; }
+.profile-server-role { border-radius:7px; }
+.profile-add-role {
+  display:inline-grid; place-items:center; width:25px; height:25px; flex:0 0 25px;
+  border:1px solid var(--line); border-radius:7px; background:var(--card); color:var(--muted);
+  transition:color .15s,border-color .15s,background .15s;
+}
+.profile-add-role:hover,.profile-add-role[aria-expanded="true"] { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); background:color-mix(in srgb,var(--accent) 10%,var(--card)); }
+.profile-role-picker {
+  display:flex; flex-direction:column; gap:4px; margin-top:10px; padding:8px;
+  border:1px solid var(--line); border-radius:10px; background:var(--card);
+  box-shadow:0 12px 30px #0002; animation:voax-pop-in .12s ease-out both;
+}
+.profile-role-picker-title { padding:4px 7px 7px; color:var(--muted); font-size:9px; font-weight:850; letter-spacing:1px; }
+.profile-role-picker-option {
+  display:flex; align-items:center; gap:8px; width:100%; min-width:0; padding:8px;
+  border:1px solid transparent; border-radius:7px; background:transparent;
+  color:var(--text,#e6edf7); text-align:left; font-size:11px;
+}
+.profile-role-picker-option:hover { background:color-mix(in srgb,var(--accent) 8%,var(--panel)); border-color:var(--line); }
+.profile-role-picker-option>i { width:9px; height:9px; flex:0 0 9px; border-radius:50%; }
+.profile-role-picker-option>span { flex:1; overflow-wrap:anywhere; }
+.profile-role-picker-option .ui-icon { color:var(--accent); }
+.profile-role-picker>p { margin:3px 7px 7px; color:var(--muted); font-size:11px; }
+.profile-role-picker-manage { align-self:flex-start; margin:4px 6px 2px; padding:6px 0; border:0; background:transparent; color:var(--accent); font-size:10px; font-weight:800; }
+.profile-role-picker-manage:hover { text-decoration:underline; }
+.profile-popout-backdrop { background:color-mix(in srgb,var(--bg) 74%,transparent); backdrop-filter:blur(5px); }
+:root[data-theme="light"] .profile-popout {
+  background:#ffffff; color:#172033; border-color:#dce4ed;
+  box-shadow:0 24px 80px #182a4025,0 0 0 1px #182a4008;
+}
+:root[data-theme="light"] .profile-popout-banner {
+  background:radial-gradient(ellipse at 82% 0,#5eead438,transparent 56%),
+    linear-gradient(125deg,#e2f4f4,#e9edfc 58%,#f5f7fb);
+}
+:root[data-theme="light"] .profile-popout-avatar { border-color:#fff; background:#edf2f7; }
+:root[data-theme="light"] .profile-popout-avatar>i { border-color:#fff; }
+:root[data-theme="light"] .profile-popout-body h2,
+:root[data-theme="light"] .profile-about p { color:#172033; }
+:root[data-theme="light"] .profile-popout-handle { color:#64748b; }
+:root[data-theme="light"] .profile-popout-status { color:#526174; }
+:root[data-theme="light"] .profile-popout-divider,
+:root[data-theme="light"] .profile-popout-actions { border-color:#e2e8f0; }
+:root[data-theme="light"] .profile-popout-actions .btn.secondary {
+  background:#f1f5f9; border-color:#dbe4ed; color:#253247;
+}
+:root[data-theme="light"] .profile-icon-action { background:#f1f5f9; border-color:#dbe4ed; color:#39465a; }
+:root[data-theme="light"] .profile-icon-action:hover { background:#e4f8f7; color:#087f8c; }
+:root[data-theme="light"] .profile-close { color:#253247; background:#ffffffd9; border-color:#dbe4ed; }
+:root[data-theme="light"] .profile-server-role {
+  border-color:color-mix(in srgb,var(--role-color) 30%,#dce4ed);
+  background:color-mix(in srgb,var(--role-color) 8%,#fff);
+}
+:root[data-theme="light"] .profile-add-role { background:#f1f5f9; border-color:#dbe4ed; color:#64748b; }
+:root[data-theme="light"] .profile-role-picker { background:#fff; border-color:#dbe4ed; box-shadow:0 12px 30px #182a4018; }
+:root[data-theme="light"] .profile-role-picker-option { color:#253247; }
+:root[data-theme="light"] .profile-role-picker-option:hover { background:#effafa; border-color:#dceeee; }
+:root[data-theme="light"] .profile-popout-backdrop { background:#17203355; }
+@media(max-width:480px) {
+  .profile-popout { max-height:calc(100dvh - 20px); }
+  .profile-role-picker { max-height:190px; overflow-y:auto; }
+}
+
+
+/* Complete light-theme coverage for components that previously used fixed dark colors. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --text: #172033;
+  --muted: #5d6b7d;
+  --bg: #f4f7fb;
+  --panel: #ffffff;
+  --card: #edf2f8;
+  --line: #d8e1eb;
+}
+:root[data-theme="light"] .sidebar,
+:root[data-theme="light"] .server-rail,
+:root[data-theme="light"] .member-panel,
+:root[data-theme="light"] .member-sidebar,
+:root[data-theme="light"] .workspace-head,
+:root[data-theme="light"] .user-bar,
+:root[data-theme="light"] .member-panel-head,
+:root[data-theme="light"] .side-heading,
+:root[data-theme="light"] .topbar,
+:root[data-theme="light"] .composer-area,
+:root[data-theme="light"] .channel-list,
+:root[data-theme="light"] .dm-list,
+:root[data-theme="light"] .message-scroll,
+:root[data-theme="light"] .friends-view,
+:root[data-theme="light"] .home-view,
+:root[data-theme="light"] .dm-home-view,
+:root[data-theme="light"] .friend-card,
+:root[data-theme="light"] .dm-item,
+:root[data-theme="light"] .channel-row,
+:root[data-theme="light"] .nav-item,
+:root[data-theme="light"] .member-row,
+:root[data-theme="light"] .settings-profile-banner,
+:root[data-theme="light"] .settings-preference-row,
+:root[data-theme="light"] .role-member-row,
+:root[data-theme="light"] .custom-role-row,
+:root[data-theme="light"] .link-preview-card,
+:root[data-theme="light"] .message-attachment,
+:root[data-theme="light"] .invite-preview-card,
+:root[data-theme="light"] .replying-banner,
+:root[data-theme="light"] .reply-context,
+:root[data-theme="light"] .user-status-menu,
+:root[data-theme="light"] .context-menu {
+  background-color: #ffffff;
+  color: #172033;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .main-panel,
+:root[data-theme="light"] .discord-settings-content {
+  background: #f4f7fb;
+  color: #172033;
+}
+:root[data-theme="light"] .channel-row:hover,
+:root[data-theme="light"] .dm-item:hover,
+:root[data-theme="light"] .friend-card:hover,
+:root[data-theme="light"] .member-row:hover,
+:root[data-theme="light"] .nav-item:hover,
+:root[data-theme="light"] .message-row-actionable:hover,
+:root[data-theme="light"] .user-status-option:hover,
+:root[data-theme="light"] .user-status-option.selected {
+  background: #e8eef5;
+}
+:root[data-theme="light"] .message-row,
+:root[data-theme="light"] .message-row-actionable,
+:root[data-theme="light"] .message-meta,
+:root[data-theme="light"] .message-content,
+:root[data-theme="light"] .message-body,
+:root[data-theme="light"] .member-name,
+:root[data-theme="light"] .dm-name,
+:root[data-theme="light"] .friend-card strong,
+:root[data-theme="light"] .channel-name,
+:root[data-theme="light"] .nav-item,
+:root[data-theme="light"] .user-label,
+:root[data-theme="light"] .user-label strong,
+:root[data-theme="light"] .member-row strong,
+:root[data-theme="light"] .settings-preference-row strong,
+:root[data-theme="light"] .discord-settings-nav button,
+:root[data-theme="light"] .discord-server-settings-nav button {
+  color: #243247;
+}
+:root[data-theme="light"] .message-content p,
+:root[data-theme="light"] .message-meta time,
+:root[data-theme="light"] .member-status,
+:root[data-theme="light"] .dm-preview,
+:root[data-theme="light"] .friend-card p,
+:root[data-theme="light"] .channel-description,
+:root[data-theme="light"] .settings-preference-row small,
+:root[data-theme="light"] .settings-help,
+:root[data-theme="light"] .discord-settings-heading p,
+:root[data-theme="light"] .user-status-option small,
+:root[data-theme="light"] .message-attachment small,
+:root[data-theme="light"] .link-preview-description,
+:root[data-theme="light"] .link-preview-site,
+:root[data-theme="light"] .link-preview-url {
+  color: #5d6b7d;
+}
+:root[data-theme="light"] .discord-settings-nav {
+  background: #eaf0f6;
+  color: #334155;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .discord-settings-nav button:hover,
+:root[data-theme="light"] .discord-server-settings-nav button:hover {
+  color: #172033;
+  background: #dfe8f1;
+}
+:root[data-theme="light"] .discord-settings-nav button.active,
+:root[data-theme="light"] .discord-server-settings-nav button.active {
+  color: #075b70;
+  background: #dff6fa;
+  border-color: #b7e8ef;
+}
+:root[data-theme="light"] .discord-settings-nav button.discord-settings-signout {
+  color: #c62845;
+  background: #fff7f8;
+  border-color: #f2cbd2;
+}
+:root[data-theme="light"] .discord-settings-nav button.discord-settings-signout:hover {
+  color: #a71934;
+  background: #ffe8ec;
+}
+:root[data-theme="light"] .discord-settings-content input:not([type="checkbox"]):not([type="file"]),
+:root[data-theme="light"] .discord-settings-content textarea,
+:root[data-theme="light"] .discord-settings-content select,
+:root[data-theme="light"] .role-member-row select,
+:root[data-theme="light"] .search-wrap input,
+:root[data-theme="light"] .composer-input,
+:root[data-theme="light"] .message-composer textarea {
+  background: #ffffff;
+  color: #172033;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .discord-settings-content input[type="file"] {
+  background: #ffffff;
+  color: #334155;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .modal,
+:root[data-theme="light"] .discord-settings-modal,
+:root[data-theme="light"] .discord-server-settings-modal {
+  background: #ffffff;
+  color: #172033;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .settings-profile-banner {
+  background: linear-gradient(110deg, #e3f7fa, transparent 75%), #ffffff;
+}
+:root[data-theme="light"] .reply-context,
+:root[data-theme="light"] .replying-banner {
+  background: #edf2f8;
+  color: #334155;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .message-attachment-icon,
+:root[data-theme="light"] .feature-icon {
+  background: #eaf0f6;
+  color: #334155;
+}
+:root[data-theme="light"] .context-menu {
+  background: #ffffff;
+  border-color: #d8e1eb;
+  color: #243247;
+}
+:root[data-theme="light"] .context-menu > button {
+  color: #243247;
+}
+:root[data-theme="light"] .context-menu > button:hover {
+  color: #ffffff;
+}
+:root[data-theme="light"] .discord-settings-nav {
+  position: relative;
+}
+.discord-settings-nav button.discord-settings-signout {
+  display: flex !important;
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  width: 100%;
+  min-height: 42px;
+  margin-top: auto;
+  padding: 0 10px;
+  border: 1px solid #fb718530;
+  border-radius: 8px;
+  background: #fb718510;
+  box-shadow: 0 -8px 16px -12px #0008;
+  opacity: 1;
+  visibility: visible;
+}
+.discord-settings-nav-spacer {
+  flex: 1 0 18px;
+  min-height: 18px;
+}
+@media (max-height: 620px) {
+  .discord-settings-layout { min-height: 0; }
+  .discord-settings-nav { padding-top: 20px; padding-bottom: 12px; }
+  .discord-settings-nav-spacer { min-height: 8px; }
+}
+
+
+/* Targeted light-mode fixes: create-server dialog, conversation search, and message composer. */
+:root[data-theme="light"] .search-wrap {
+  background: #ffffff;
+  border-color: #cbd6e2;
+  color: #64748b;
+  box-shadow: 0 1px 2px #17203308;
+}
+:root[data-theme="light"] .search-wrap input {
+  background: transparent;
+  color: #172033;
+  caret-color: #087f9b;
+}
+:root[data-theme="light"] .search-wrap input::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .composer-area {
+  background: #f4f7fb;
+}
+:root[data-theme="light"] .composer {
+  background: #ffffff;
+  border-color: #cbd6e2;
+  box-shadow: 0 3px 14px #17203308;
+}
+:root[data-theme="light"] .composer:focus-within {
+  border-color: #0891a8;
+  box-shadow: 0 0 0 3px #0891a81a;
+}
+:root[data-theme="light"] .composer input {
+  background: transparent;
+  color: #172033;
+  caret-color: #087f9b;
+}
+:root[data-theme="light"] .composer input::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .attach-btn {
+  background: #eaf0f6;
+  border-color: #d8e1eb;
+  color: #087f9b;
+}
+:root[data-theme="light"] .attach-btn:hover {
+  background: #dfeaf2;
+}
+:root[data-theme="light"] .send-btn {
+  background: #087f9b;
+  color: #ffffff;
+}
+:root[data-theme="light"] .composer-foot {
+  color: #7b8798;
+}
+:root[data-theme="light"] .composer-foot kbd {
+  color: #526174;
+  border-color: #cbd6e2;
+  background: #ffffff;
+}
+:root[data-theme="light"] .modal-backdrop {
+  background: #24324770;
+}
+:root[data-theme="light"] .modal {
+  background: #ffffff;
+  color: #172033;
+  border-color: #d8e1eb;
+  box-shadow: 0 28px 80px #17203330;
+}
+:root[data-theme="light"] .modal h2,
+:root[data-theme="light"] .modal h3 {
+  color: #172033;
+}
+:root[data-theme="light"] .modal > p {
+  color: #5d6b7d;
+}
+:root[data-theme="light"] .modal label {
+  color: #334155;
+}
+:root[data-theme="light"] .modal form > input,
+:root[data-theme="light"] .modal select,
+:root[data-theme="light"] .modal textarea,
+:root[data-theme="light"] .modal input:not([type="checkbox"]):not([type="file"]):not([type="color"]) {
+  background: #f8fafc;
+  color: #172033;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .modal form > input::placeholder,
+:root[data-theme="light"] .modal textarea::placeholder {
+  color: #7b8798;
+  opacity: 1;
+}
+:root[data-theme="light"] .modal-x {
+  color: #64748b;
+}
+:root[data-theme="light"] .modal-x:hover {
+  color: #172033;
+  background: #edf2f8;
+}
+:root[data-theme="light"] .modal .btn.secondary {
+  background: #f8fafc;
+  color: #334155;
+  border-color: #cbd6e2;
+}
+
+
+/* Skeleton loading states follow the active app theme, including nested destination skeletons. */
+:root[data-theme="light"] .skeleton-bar {
+  background: linear-gradient(90deg, #e1e8f0 0%, #f8fafc 45%, #e1e8f0 100%);
+  background-size: 220% 100%;
+}
+:root[data-theme="light"] .dm-home-skeleton-content {
+  background: radial-gradient(ellipse at 15% 0, #d9f0f5 0, transparent 48%), #f4f7fb;
+}
+:root[data-theme="light"] .dm-home-skeleton-card {
+  background: #ffffff;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .dm-skeleton-row.indented {
+  background: #edf2f8;
+}
+:root[data-theme="light"] .dm-skeleton-attachment {
+  background: #e1e8f0;
+}
+:root[data-theme="light"] .settings-skeleton-profile {
+  background: #ffffff;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .settings-skeleton-input {
+  background: #f8fafc;
+  border: 1px solid #d8e1eb;
+}
+:root[data-theme="light"] .settings-skeleton-save {
+  border-color: #d8e1eb;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root[data-theme="light"] .skeleton-bar {
+    animation: none;
+    background: #e6edf4;
+  }
+}
+
+
+/* Keep the server rail's default-letter tiles and create-server tile bright in light mode. */
+:root[data-theme="light"] .server-rail .server-icon {
+  background: #ffffff;
+  color: #243247;
+  border-color: #d8e1eb;
+  box-shadow: 0 1px 2px #1720330a;
+}
+:root[data-theme="light"] .server-rail .server-icon > span {
+  color: #243247;
+}
+:root[data-theme="light"] .server-rail .server-icon.add {
+  background: #ffffff;
+  color: #087f9b;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .server-rail .server-icon:hover,
+:root[data-theme="light"] .server-rail .server-icon.selected {
+  background: #eaf8fa;
+  color: #087f9b;
+  border-color: #9bdde5;
+}
+:root[data-theme="light"] .server-rail .server-icon.add:hover {
+  background: #dff6fa;
+  color: #075b70;
+}
+:root[data-theme="light"] .server-rail .server-icon-image {
+  border-color: transparent;
+}
+
+
+/* Discord-inspired role manager: role rail, editor tabs, grouped permissions, and member assignment. */
+.discord-server-settings-modal:has(.discord-role-settings) { width:min(1040px,calc(100vw - 32px)); max-width:1040px; padding:0; overflow:hidden; }
+.discord-role-settings { display:flex; flex-direction:column; min-height:570px; max-height:min(790px,calc(100dvh - 36px)); }
+.discord-role-heading { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:28px 30px 20px; border-bottom:1px solid var(--line); }
+.discord-role-heading h2 { margin:5px 0 6px; font-size:25px; letter-spacing:-.03em; }
+.discord-role-heading p { margin:0; max-width:590px; color:var(--muted); font-size:13px; line-height:1.55; }
+.discord-role-workspace { display:grid; grid-template-columns:248px minmax(0,1fr); flex:1; min-height:0; overflow:hidden; }
+.discord-role-list-panel { display:flex; flex-direction:column; gap:10px; min-height:0; padding:18px 12px 16px; border-right:1px solid var(--line); background:color-mix(in srgb,var(--card) 58%,var(--panel)); overflow-y:auto; }
+.discord-role-list-title { display:flex; justify-content:space-between; align-items:center; padding:0 9px 5px; color:var(--muted); font-size:10px; letter-spacing:.1em; }
+.discord-role-list-title span,.discord-role-tabs button span { border-radius:5px; padding:2px 6px; background:var(--card); font-size:10px; }
+.discord-role-list-items { display:flex; flex-direction:column; gap:3px; }
+.discord-role-list-item { display:flex; align-items:center; gap:10px; width:100%; min-width:0; padding:10px 9px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--text); text-align:left; cursor:pointer; }
+.discord-role-list-item .ui-icon { margin-left:auto; color:var(--muted); opacity:0; }
+.discord-role-list-item:hover { background:color-mix(in srgb,var(--text) 5%,transparent); }
+.discord-role-list-item.active { background:color-mix(in srgb,var(--accent) 12%,var(--panel)); border-color:color-mix(in srgb,var(--accent) 22%,var(--line)); color:var(--text); }
+.discord-role-list-item.active .ui-icon,.discord-role-list-item:hover .ui-icon { opacity:1; }
+.discord-role-color { display:inline-grid; place-items:center; width:11px; height:11px; flex:0 0 11px; border-radius:50%; box-shadow:0 0 0 2px color-mix(in srgb,var(--text) 6%,transparent); }
+.discord-role-color.large { width:14px; height:14px; flex-basis:14px; }
+.discord-role-color.everyone-dot { color:var(--muted); background:var(--card); font-size:9px; font-weight:900; }
+.discord-role-list-name { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:650; }
+.discord-role-create { display:flex; flex-direction:column; gap:9px; margin-top:auto; padding:15px 8px 0; border-top:1px solid var(--line); }
+.discord-role-create>label { color:var(--muted); font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+.discord-role-create>input { width:100%; min-width:0; height:36px; padding:0 10px; border:1px solid var(--line); border-radius:6px; background:var(--panel); color:var(--text); font-size:12px; }
+.discord-role-create-actions { display:flex; align-items:center; gap:8px; }
+.discord-role-create-actions input[type=color] { width:35px; height:35px; padding:3px; border:1px solid var(--line); border-radius:6px; background:var(--panel); }
+.discord-role-create-actions .btn { display:flex; align-items:center; justify-content:center; gap:6px; flex:1; min-height:35px; padding:0 8px; font-size:11px; }
+.discord-role-editor { min-width:0; min-height:0; overflow-y:auto; background:var(--panel); }
+.discord-role-editor-inner { min-height:100%; display:flex; flex-direction:column; }
+.discord-role-editor-header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:24px 28px 18px; }
+.discord-role-editor-header>div { min-width:0; }
+.discord-role-editor-header h3 { display:flex; align-items:center; gap:10px; margin:5px 0 0; font-size:19px; overflow-wrap:anywhere; }
+.discord-role-delete { color:#ed4245; }
+.discord-role-tabs { display:flex; gap:20px; padding:0 28px; border-bottom:1px solid var(--line); }
+.discord-role-tabs button { position:relative; display:flex; align-items:center; gap:7px; padding:13px 0 12px; border:0; border-bottom:2px solid transparent; margin-bottom:-1px; background:transparent; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; }
+.discord-role-tabs button:hover,.discord-role-tabs button.active { color:var(--text); }
+.discord-role-tabs button.active { border-bottom-color:var(--accent); }
+.discord-role-display-form { display:flex; flex-direction:column; flex:1; }
+.discord-role-form-section { padding:23px 28px; border-bottom:1px solid var(--line); }
+.discord-role-form-section h4,.discord-role-permissions-intro h4 { margin:0 0 14px; color:var(--muted); font-size:10px; letter-spacing:.1em; font-weight:850; }
+.discord-role-form-section>label { display:block; margin-bottom:7px; font-size:12px; font-weight:700; }
+.discord-role-form-section>input:not([type=color]) { width:100%; max-width:430px; height:39px; padding:0 11px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--text); }
+.discord-role-form-section>p,.discord-role-permissions-intro p { margin:-5px 0 14px; color:var(--muted); font-size:12px; line-height:1.5; }
+.discord-role-color-picker { display:flex; align-items:center; gap:12px; max-width:450px; min-height:42px; padding:8px 10px; border:1px solid var(--line); border-radius:7px; background:var(--card); }
+.discord-role-color-picker input[type=color] { width:28px; height:28px; padding:2px; border:1px solid var(--line); border-radius:6px; background:var(--panel); cursor:pointer; }
+.discord-role-color-preview { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; font-weight:800; }
+.discord-role-color-hex { color:var(--muted); font-size:10px; font-variant-numeric:tabular-nums; }
+.discord-role-swatches { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.discord-role-swatches button { width:22px; height:22px; border:2px solid var(--panel); outline:1px solid var(--line); border-radius:50%; cursor:pointer; }
+.discord-role-swatches button:hover { transform:scale(1.12); }
+.discord-role-editor-footer { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:auto; padding:16px 28px; background:color-mix(in srgb,var(--card) 55%,var(--panel)); }
+.discord-role-editor-footer .btn { min-height:36px; padding:0 15px; font-size:12px; }
+.discord-role-permissions { padding:24px 28px; }
+.discord-role-permissions-intro { margin-bottom:14px; }
+.discord-role-permission-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:15px 0; border-bottom:1px solid var(--line); cursor:pointer; }
+.discord-role-permission-row>span { display:flex; flex-direction:column; gap:5px; }
+.discord-role-permission-row strong { color:var(--text); font-size:13px; }
+.discord-role-permission-row small,.discord-role-danger-note small { color:var(--muted); font-size:11px; line-height:1.5; }
+.discord-role-permission-row input[type=checkbox] { appearance:none; position:relative; width:34px; height:20px; flex:0 0 34px; border:0; border-radius:999px; background:#72767d; cursor:pointer; transition:background .15s; }
+.discord-role-permission-row input[type=checkbox]::after { content:""; position:absolute; left:3px; top:3px; width:14px; height:14px; border-radius:50%; background:white; box-shadow:0 1px 2px #0003; transition:transform .15s; }
+.discord-role-permission-row input[type=checkbox]:checked { background:#248046; }
+.discord-role-permission-row input[type=checkbox]:checked::after { transform:translateX(14px); }
+.discord-role-permission-row input[type=checkbox]:disabled { opacity:.45; cursor:not-allowed; }
+.discord-role-danger-note { display:flex; gap:10px; margin-top:20px; padding:12px; border:1px solid color-mix(in srgb,#ed4245 28%,var(--line)); border-radius:7px; color:#ed4245; background:color-mix(in srgb,#ed4245 5%,var(--panel)); }
+.discord-role-danger-note>span { display:flex; flex-direction:column; gap:4px; }
+.discord-role-danger-note strong { font-size:11px; }
+.discord-role-members-editor { padding:22px 28px; }
+.discord-role-member-assignment { display:flex; align-items:center; gap:11px; padding:11px 0; border-bottom:1px solid var(--line); }
+.discord-role-member-copy { display:flex; flex:1; flex-direction:column; gap:3px; min-width:0; }
+.discord-role-member-copy strong { color:var(--text); font-size:12px; }
+.discord-role-member-copy small { color:var(--muted); font-size:10px; }
+.discord-role-assignment-button { display:flex; align-items:center; gap:5px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--text); font-size:11px; font-weight:700; cursor:pointer; }
+.discord-role-assignment-button.assigned { background:color-mix(in srgb,#248046 12%,var(--panel)); color:#248046; border-color:color-mix(in srgb,#248046 28%,var(--line)); }
+.discord-role-assignment-button:disabled { opacity:.5; cursor:not-allowed; }
+.discord-role-empty { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:340px; padding:30px; text-align:center; }
+.discord-role-empty-icon { display:grid; place-items:center; width:54px; height:54px; border-radius:16px; background:color-mix(in srgb,var(--accent) 12%,var(--card)); color:var(--accent); }
+.discord-role-empty h3 { margin:17px 0 6px; font-size:16px; }
+.discord-role-empty p,.discord-role-empty-copy { max-width:330px; color:var(--muted); font-size:12px; line-height:1.6; }
+.discord-role-bottom-actions { display:flex; justify-content:flex-end; gap:9px; padding:14px 22px; border-top:1px solid var(--line); background:var(--panel); }
+.discord-role-bottom-actions .btn { min-height:36px; padding:0 14px; font-size:12px; }
+:root[data-theme="light"] .discord-role-list-panel { background:#f2f3f5; }
+:root[data-theme="light"] .discord-role-list-item { color:#4e5058; }
+:root[data-theme="light"] .discord-role-list-item.active { background:#e3e5e8; border-color:#d7d9dd; color:#232428; }
+:root[data-theme="light"] .discord-role-list-title,.discord-role-form-section h4 { color:#4e5058; }
+:root[data-theme="light"] .discord-role-form-section>input:not([type=color]),:root[data-theme="light"] .discord-role-create>input { background:#fff; color:#232428; border-color:#c7c9ce; }
+:root[data-theme="light"] .discord-role-color-picker { background:#f2f3f5; border-color:#d7d9dd; }
+:root[data-theme="light"] .discord-role-editor-footer { background:#f2f3f5; }
+@media(max-width:720px) {
+  .discord-server-settings-modal:has(.discord-role-settings) { width:calc(100vw - 16px); max-height:calc(100dvh - 16px); }
+  .discord-role-settings { max-height:calc(100dvh - 16px); }
+  .discord-role-heading { padding:20px 16px 15px; flex-direction:column; }
+  .discord-role-workspace { grid-template-columns:155px minmax(0,1fr); }
+  .discord-role-list-panel { padding:13px 7px; }
+  .discord-role-list-item { padding:9px 6px; gap:6px; }
+  .discord-role-list-name { font-size:11px; }
+  .discord-role-editor-header,.discord-role-form-section,.discord-role-permissions,.discord-role-members-editor { padding-left:16px; padding-right:16px; }
+  .discord-role-tabs { gap:12px; padding:0 16px; }
+  .discord-role-tabs button { font-size:11px; }
+  .discord-role-bottom-actions { padding:12px 14px; }
+}
+@media(max-width:480px) {
+  .discord-role-workspace { grid-template-columns:118px minmax(0,1fr); }
+  .discord-role-heading h2 { font-size:22px; }
+  .discord-role-heading p { font-size:11px; }
+  .discord-role-tabs { gap:9px; }
+  .discord-role-tabs button { font-size:10px; }
+  .discord-role-editor-header h3 { font-size:15px; }
+  .discord-role-color-picker { gap:7px; padding:7px; }
+  .discord-role-color-hex { font-size:9px; }
+  .discord-role-form-section,.discord-role-permissions,.discord-role-members-editor { padding-top:17px; padding-bottom:17px; }
+  .discord-role-member-assignment { flex-wrap:wrap; }
+  .discord-role-assignment-button { margin-left:auto; }
+}
+
+
+/* Keep the role manager on Voax's existing cyan/teal design system. */
+.discord-role-list-panel { background:color-mix(in srgb,var(--card) 58%,var(--panel)); }
+.discord-role-list-item.active { background:color-mix(in srgb,var(--accent) 13%,var(--panel)); border-color:color-mix(in srgb,var(--accent) 35%,var(--line)); }
+.discord-role-tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+.discord-role-permission-row input[type=checkbox]:checked { background:var(--green); }
+.discord-role-assignment-button.assigned { background:color-mix(in srgb,var(--green) 12%,var(--panel)); color:var(--green); border-color:color-mix(in srgb,var(--green) 34%,var(--line)); }
+.discord-role-header-actions { display:flex; align-items:center; gap:8px; }
+.discord-role-order-actions { display:flex; gap:4px; }
+.discord-role-order-actions .icon-btn { display:grid; place-items:center; width:29px; height:29px; border:1px solid var(--line); border-radius:7px; background:var(--card); color:var(--muted); font-size:16px; line-height:1; }
+.discord-role-order-actions .icon-btn:hover:not(:disabled) { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); background:color-mix(in srgb,var(--accent) 9%,var(--card)); }
+.discord-role-order-actions .icon-btn:disabled { opacity:.28; cursor:not-allowed; }
+.discord-role-hierarchy-hint { display:block; margin-top:5px; color:var(--muted); font-size:10px; }
+:root[data-theme="light"] .discord-role-list-panel { background:#edf2f8; }
+:root[data-theme="light"] .discord-role-list-item.active { background:#dff4f8; border-color:#9bdde5; color:#172033; }
+:root[data-theme="light"] .discord-role-tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+:root[data-theme="light"] .discord-role-order-actions .icon-btn { background:#fff; border-color:#d8e1eb; color:#5d6b7d; }
+@media(max-width:480px) {
+  .discord-role-header-actions { gap:4px; }
+  .discord-role-order-actions .icon-btn { width:25px; height:25px; }
+}
+
+
+/* Role-aware member list: use the highest-priority assigned role like Discord. */
+.member-entry .member-entry-copy { display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
+.member-entry .member-entry-copy strong { max-width:100%; }
+.member-entry .member-role-label {
+  display:inline-block;
+  max-width:100%;
+  margin-top:2px;
+  padding:2px 5px;
+  border:1px solid;
+  border-radius:4px;
+  background:color-mix(in srgb,currentColor 9%,transparent);
+  font-size:8px;
+  line-height:1.2;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+:root[data-theme="light"] .member-entry strong { color:inherit; }
+:root[data-theme="light"] .member-entry .member-role-label { background:color-mix(in srgb,currentColor 8%,#fff); }
+
+.member-role-group-label { gap: 7px; }
+.member-role-group-label > span:nth-child(2) { min-width: 0; }
+.member-role-group-count { margin-left: auto; color: #69768a; font-size: 9px; font-weight: 750; letter-spacing: 0; }
