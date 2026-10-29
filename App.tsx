@@ -1057,7 +1057,8 @@ function App({ session }: { session: Session }) {
       if (knownPerson) { void openDM(knownPerson); return; }
       void (async () => {
         let { data, error } = await supabase.from("profiles").select("id,public_id,username,status,avatar_url").eq("public_id", userId).maybeSingle();
-        if (!data) { const fallback = await supabase.from("profiles").select("id,public_id,username,status,avatar_url").eq("id", userId).maybeSingle(); data = fallback.data; error = fallback.error; }
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+        if (!data && isUuid) { const fallback = await supabase.from("profiles").select("id,public_id,username,status,avatar_url").eq("id", userId).maybeSingle(); data = fallback.data; error = fallback.error; }
         if (error || !data) { window.history.replaceState({}, "", "/app"); setView("home"); return; }
         const status = (data.status || "Offline") as PresenceStatus;
         void openDM({ id: data.id, publicId: data.public_id, name: data.username || "Player", status, online: status === "Online", color: "blue", preview: "Start a conversation", avatarUrl: data.avatar_url || null, isFriend: false, hasConversation: false });
