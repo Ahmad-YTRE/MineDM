@@ -354,6 +354,7 @@ function App({ session }: { session: Session }) {
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
   const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
+  const activeConversationId = view === "dm" && activePerson ? conversationIds[activePerson.id] : null;
   const activeKeyRef = useRef(activeKey);
   useEffect(() => { activeKeyRef.current = activeKey; activeRef.current = active; viewRef.current = view; peopleRef.current = people; nameRef.current = name; }, [activeKey, active, view, people, name]);
   useEffect(()=>{
@@ -362,7 +363,7 @@ function App({ session }: { session: Session }) {
     return()=>{cancelled=true;};
   },[session.user.id]);
   useEffect(()=>{
-    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
+    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId){setMessagesLoading(false);return;}let cancelled=false;setMessagesLoading(true);
     const loadMessages=async()=>{
       const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:true}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:true}).limit(200);
@@ -374,14 +375,17 @@ function App({ session }: { session: Session }) {
       const byId=new Map(rows.map(row=>[row.id,row]));
       const reactionMap=new Map<string,Reaction[]>();
       if(rows.length){const rr=await supabase.from("message_reactions").select("message_id,user_id,emoji").in("message_id",rows.map(row=>row.id));if(rr.error){notify("Unable to load reactions: "+rr.error.message);setMessagesLoading(false);return;}for(const r of rr.data||[]){const list=reactionMap.get(r.message_id)||[];const existing=list.find(x=>x.emoji===r.emoji);if(existing){existing.count++;if(r.user_id===session.user.id)existing.reacted=true;}else list.push({emoji:r.emoji,count:1,reacted:r.user_id===session.user.id});reactionMap.set(r.message_id,list);}}
-      const mapped:Message[]=await Promise.all(rows.map(async row=>{const reply=row.reply_to?byId.get(row.reply_to):null;const attachments=await signMessageAttachments(row.attachments);return{id:row.id,author:names.get(row.author_id)||(row.author_id===session.user.id?nameRef.current:"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),timestamp:row.created_at,own:row.author_id===session.user.id,...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{}),...(attachments.length?{attachments}:{})};}));
+      // Sign all attachment URLs in one Storage request instead of one request per message.
+      const signedAttachments=await signMessageAttachments(rows.flatMap(row=>Array.isArray(row.attachments)?row.attachments as Omit<Attachment,"url">[]:[]));
+      const attachmentUrls=new Map(signedAttachments.map(attachment=>[attachment.path,attachment.url] as const));
+      const mapped:Message[]=rows.map(row=>{const reply=row.reply_to?byId.get(row.reply_to):null;const attachments=Array.isArray(row.attachments)?(row.attachments as Omit<Attachment,"url">[]).map(attachment=>({...attachment,url:attachmentUrls.get(attachment.path)})):[];return{id:row.id,author:names.get(row.author_id)||(row.author_id===session.user.id?nameRef.current:"Member"),text:row.body,time:formatClock(new Date(row.created_at), clockFormat),timestamp:row.created_at,own:row.author_id===session.user.id,...(reply?{replyTo:{author:names.get(reply.author_id)||"Member",text:reply.body}}:{}),...(reactionMap.has(row.id)?{reactions:reactionMap.get(row.id)}:{}),...(attachments.length?{attachments}:{})};});
       setMessages(old=>({...old,[activeKey]:mapped,[active]:mapped}));setMessagesLoading(false);
     };
     void loadMessages().catch(error=>{if(!cancelled){notify("Couldn't load messages: "+(error instanceof Error?error.message:"Please try again."));setMessagesLoading(false);}});
     return()=>{cancelled=true;};
-  },[active,activeKey,view,session.user.id,conversationIds,activePerson?.id]);
+  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,clockFormat]);
   useEffect(()=>{
-    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
+    const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId)return;
     const filter=channelId?"channel_id=eq."+channelId:"conversation_id=eq."+conversationId;
     const realtime=supabase.channel("voax-messages-"+(channelId||conversationId))
@@ -398,7 +402,7 @@ function App({ session }: { session: Session }) {
       }).subscribe();
     messageEventsChannelRef.current=realtime;
     return()=>{if(messageEventsChannelRef.current===realtime)messageEventsChannelRef.current=null;void supabase.removeChannel(realtime);};
-  },[active,activeKey,view,session.user.id,conversationIds,activePerson?.id]);
+  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id]);
 
   useEffect(()=>{
     const channel=supabase.channel("voax-presence",{config:{presence:{key:session.user.id}}});
