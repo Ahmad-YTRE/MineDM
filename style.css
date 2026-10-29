@@ -1816,3 +1816,33 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     background: #e6edf4;
   }
 }
+
+
+/* Keep the server rail's default-letter tiles and create-server tile bright in light mode. */
+:root[data-theme="light"] .server-rail .server-icon {
+  background: #ffffff;
+  color: #243247;
+  border-color: #d8e1eb;
+  box-shadow: 0 1px 2px #1720330a;
+}
+:root[data-theme="light"] .server-rail .server-icon > span {
+  color: #243247;
+}
+:root[data-theme="light"] .server-rail .server-icon.add {
+  background: #ffffff;
+  color: #087f9b;
+  border-color: #cbd6e2;
+}
+:root[data-theme="light"] .server-rail .server-icon:hover,
+:root[data-theme="light"] .server-rail .server-icon.selected {
+  background: #eaf8fa;
+  color: #087f9b;
+  border-color: #9bdde5;
+}
+:root[data-theme="light"] .server-rail .server-icon.add:hover {
+  background: #dff6fa;
+  color: #075b70;
+}
+:root[data-theme="light"] .server-rail .server-icon-image {
+  border-color: transparent;
+}
