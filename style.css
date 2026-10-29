@@ -2019,3 +2019,34 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .member-role-group-label { gap: 7px; }
 .member-role-group-label > span:nth-child(2) { min-width: 0; }
 .member-role-group-count { margin-left: auto; color: #69768a; font-size: 9px; font-weight: 750; letter-spacing: 0; }
+
+
+/* Ping-system inbox and mention-type polish */
+.inbox-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.inbox-filter-row [aria-selected="true"] {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent, #00e5ff) 38%, transparent);
+}
+.mention-pill-role {
+  background: color-mix(in srgb, #a78bfa 17%, transparent);
+  color: #c4b5fd;
+}
+.mention-pill-everyone {
+  background: color-mix(in srgb, #f59e0b 18%, transparent);
+  color: #fbbf24;
+}
+.mention-pill-here {
+  background: color-mix(in srgb, #34d399 16%, transparent);
+  color: #6ee7b7;
+}
+.mention-pill-user {
+  font-weight: 700;
+}
+:root[data-theme="light"] .mention-pill-role { color: #6d28d9; }
+:root[data-theme="light"] .mention-pill-everyone { color: #92400e; }
+:root[data-theme="light"] .mention-pill-here { color: #047857; }
