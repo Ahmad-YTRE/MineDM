@@ -1960,3 +1960,25 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .discord-role-member-assignment { flex-wrap:wrap; }
   .discord-role-assignment-button { margin-left:auto; }
 }
+
+
+/* Keep the role manager on Voax's existing cyan/teal design system. */
+.discord-role-list-panel { background:color-mix(in srgb,var(--card) 58%,var(--panel)); }
+.discord-role-list-item.active { background:color-mix(in srgb,var(--accent) 13%,var(--panel)); border-color:color-mix(in srgb,var(--accent) 35%,var(--line)); }
+.discord-role-tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+.discord-role-permission-row input[type=checkbox]:checked { background:var(--green); }
+.discord-role-assignment-button.assigned { background:color-mix(in srgb,var(--green) 12%,var(--panel)); color:var(--green); border-color:color-mix(in srgb,var(--green) 34%,var(--line)); }
+.discord-role-header-actions { display:flex; align-items:center; gap:8px; }
+.discord-role-order-actions { display:flex; gap:4px; }
+.discord-role-order-actions .icon-btn { display:grid; place-items:center; width:29px; height:29px; border:1px solid var(--line); border-radius:7px; background:var(--card); color:var(--muted); font-size:16px; line-height:1; }
+.discord-role-order-actions .icon-btn:hover:not(:disabled) { color:var(--accent); border-color:color-mix(in srgb,var(--accent) 45%,var(--line)); background:color-mix(in srgb,var(--accent) 9%,var(--card)); }
+.discord-role-order-actions .icon-btn:disabled { opacity:.28; cursor:not-allowed; }
+.discord-role-hierarchy-hint { display:block; margin-top:5px; color:var(--muted); font-size:10px; }
+:root[data-theme="light"] .discord-role-list-panel { background:#edf2f8; }
+:root[data-theme="light"] .discord-role-list-item.active { background:#dff4f8; border-color:#9bdde5; color:#172033; }
+:root[data-theme="light"] .discord-role-tabs button.active { color:var(--accent); border-bottom-color:var(--accent); }
+:root[data-theme="light"] .discord-role-order-actions .icon-btn { background:#fff; border-color:#d8e1eb; color:#5d6b7d; }
+@media(max-width:480px) {
+  .discord-role-header-actions { gap:4px; }
+  .discord-role-order-actions .icon-btn { width:25px; height:25px; }
+}
