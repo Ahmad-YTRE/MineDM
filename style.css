@@ -2176,92 +2176,6 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 
 
-/* Reliable fallback: let the settings dialog itself scroll as one document. */
-.modal-backdrop:has(.discord-settings-layout),
-.modal-backdrop:has(.discord-server-settings-layout),
-.modal-backdrop:has(.discord-role-settings) {
-  display: block;
-  overflow-x: hidden;
-  overflow-y: auto;
-  padding: 18px;
-  -webkit-overflow-scrolling: touch;
-}
-.discord-settings-modal,
-.discord-server-settings-modal {
-  display: block;
-  width: min(960px, calc(100vw - 36px));
-  height: auto;
-  min-height: 0;
-  max-height: none;
-  margin: 0 auto;
-  overflow: visible;
-}
-.discord-settings-layout,
-.discord-server-settings-layout {
-  display: grid;
-  height: auto;
-  min-height: 560px;
-  max-height: none;
-  overflow: visible;
-}
-.discord-settings-content {
-  min-height: 560px;
-  height: auto;
-  overflow: visible;
-}
-.discord-settings-nav,
-.discord-server-settings-nav {
-  overflow: visible;
-}
-.discord-server-settings-modal:has(.discord-role-settings) {
-  width: min(1040px, calc(100vw - 36px));
-  height: auto;
-  max-height: none;
-}
-.discord-role-settings {
-  height: auto;
-  min-height: 0;
-  max-height: none;
-  overflow: visible;
-}
-.discord-role-workspace {
-  min-height: 0;
-  overflow: visible;
-}
-.discord-role-list-panel,
-.discord-role-editor {
-  min-height: 0;
-  overflow: visible;
-}
-@media (max-width: 700px) {
-  .modal-backdrop:has(.discord-settings-layout),
-  .modal-backdrop:has(.discord-server-settings-layout),
-  .modal-backdrop:has(.discord-role-settings) {
-    padding: 8px;
-  }
-  .discord-settings-modal,
-  .discord-server-settings-modal,
-  .discord-server-settings-modal:has(.discord-role-settings) {
-    width: 100%;
-    max-height: none;
-  }
-  .discord-settings-layout,
-  .discord-server-settings-layout {
-    min-height: 0;
-    grid-template-columns: 142px minmax(0, 1fr);
-  }
-  .discord-settings-content {
-    min-height: 0;
-  }
-}
-@media (max-width: 430px) {
-  .discord-settings-layout,
-  .discord-server-settings-layout {
-    grid-template-columns: 112px minmax(0, 1fr);
-  }
-}
-
-
 /* Visible settings scrollbar + reliable touch scrolling on mobile. */
 .modal-backdrop:has(.discord-settings-layout),
 .modal-backdrop:has(.discord-server-settings-layout),
@@ -2917,3 +2831,352 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .dm-close-btn:hover{background:#ed42451a;color:#ff6b70;}
 .dm-ping-count{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:#ed4245;color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;}
 @media (hover:none){.dm-close-btn{opacity:1;pointer-events:auto;}}
+
+
+/* Mutual server list in profile cards. Contain keeps wide server logos fully visible. */
+.profile-mutual h3 { display:flex; align-items:center; gap:7px; }
+.profile-mutual-count { display:inline-grid; place-items:center; min-width:17px; height:17px; padding:0 5px; border-radius:999px; background:color-mix(in srgb,var(--accent) 14%,var(--card)); color:var(--muted); font-size:9px; font-weight:800; letter-spacing:0; }
+.profile-mutual-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.profile-mutual-server { display:flex; align-items:center; gap:9px; min-width:0; padding:7px; border:1px solid var(--line); border-radius:9px; background:color-mix(in srgb,var(--card) 82%,var(--panel)); }
+.profile-mutual-server-icon { display:grid; place-items:center; width:38px; height:38px; flex:0 0 38px; overflow:hidden; border-radius:10px; background:color-mix(in srgb,var(--accent) 12%,var(--card)); color:var(--text); font-size:10px; font-weight:850; }
+.profile-mutual-server-icon img { display:block; width:100%; height:100%; padding:4px; box-sizing:border-box; object-fit:contain; }
+.profile-mutual-server>span { min-width:0; overflow:hidden; color:var(--text); font-size:11px; font-weight:650; text-overflow:ellipsis; white-space:nowrap; }
+.profile-mutual-empty { grid-column:1/-1; margin:0; color:var(--muted); font-size:11px; }
+@media(max-width:380px){.profile-mutual-list{grid-template-columns:minmax(0,1fr)}}
+
+
+/* Responsive polish: keep landing navigation, server rail, and settings usable on small screens. */
+.server-rail {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+.server-rail-list {
+  display: flex;
+  flex: 0 1 auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 0;
+  max-height: calc(100% - 145px);
+  padding: 2px 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #2a4554 transparent;
+}
+.server-rail-list::-webkit-scrollbar { width: 4px; }
+.server-rail-list::-webkit-scrollbar-thumb { background: #2a4554; border-radius: 8px; }
+.server-rail-list .server-icon { flex: 0 0 43px; }
+.server-workspace-menu-trigger > .ui-icon.icon-chevronDown {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+}
+.icon-chevronDown { stroke-width: 2.2; }
+
+@media (max-width: 650px) {
+  .landing-header {
+    height: auto;
+    min-height: 68px;
+    padding: 14px 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+  .landing-header .wordmark {
+    width: 100%;
+    text-align: center;
+  }
+  .landing-header nav {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px 22px;
+  }
+  .landing-header nav a {
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .hero {
+    min-height: calc(100vh - 112px);
+    height: auto;
+  }
+}
+@media (max-width: 380px) {
+  .landing-header { padding-inline: 12px; gap: 10px; }
+  .landing-header nav { gap: 8px 16px; }
+  .landing-header nav a { font-size: 11px; }
+}
+
+/* On narrow phones, make role selection a horizontal strip above the editor. */
+@media (max-width: 480px) {
+  .discord-role-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    min-height: 0;
+  }
+  .discord-role-list-panel {
+    max-height: 190px;
+    min-height: 0;
+    padding: 10px 12px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+  .discord-role-list-items {
+    flex-direction: row;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+  .discord-role-list-item {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: 150px;
+    min-height: 36px;
+  }
+  .discord-role-list-item .ui-icon { display: none; }
+  .discord-role-create {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 7px 9px;
+    margin-top: 7px;
+    padding: 9px 0 0;
+  }
+  .discord-role-create > label { grid-column: 1 / -1; }
+  .discord-role-create > input { grid-column: 1; }
+  .discord-role-create-actions { grid-column: 2; }
+  .discord-role-create-actions .btn { white-space: nowrap; }
+  .discord-role-editor {
+    min-height: 0;
+    height: auto;
+  }
+  .discord-role-editor-header { padding: 16px 14px 12px; }
+  .discord-role-tabs { gap: 12px; padding-inline: 14px; overflow-x: auto; }
+  .discord-role-tabs button { flex: 0 0 auto; white-space: nowrap; }
+  .discord-role-form-section,
+  .discord-role-permissions,
+  .discord-role-members-editor { padding-inline: 14px; }
+}
+@media (max-width: 360px) {
+  .discord-role-create { grid-template-columns: minmax(0, 1fr); }
+  .discord-role-create-actions { grid-column: 1; }
+  .discord-role-create-actions .btn { min-width: 0; }
+}
+
+/* Keep settings dialogs fixed to the viewport and scroll only their content panes. */
+.modal-backdrop:has(.discord-settings-layout),
+.modal-backdrop:has(.discord-server-settings-layout),
+.modal-backdrop:has(.discord-role-settings) {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 18px;
+}
+.discord-settings-modal,
+.discord-server-settings-modal,
+.discord-server-settings-modal:has(.discord-role-settings) {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.discord-settings-layout,
+.discord-server-settings-layout {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.discord-settings-nav,
+.discord-server-settings-nav,
+.discord-settings-content,
+.discord-role-list-panel,
+.discord-role-editor {
+  min-width: 0;
+  min-height: 0;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.discord-settings-nav,
+.discord-server-settings-nav,
+.discord-settings-content,
+.discord-role-list-panel,
+.discord-role-editor {
+  overflow-y: auto;
+}
+@media (max-width: 700px) {
+  .modal-backdrop:has(.discord-settings-layout),
+  .modal-backdrop:has(.discord-server-settings-layout),
+  .modal-backdrop:has(.discord-role-settings) { padding: 8px; }
+  .discord-settings-modal,
+  .discord-server-settings-modal,
+  .discord-server-settings-modal:has(.discord-role-settings) {
+    width: 100%;
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+}
+
+
+/* Mutual servers are icon-only; keep each server mark easy to scan. */
+.profile-mutual-list {
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+}
+.profile-mutual-server {
+  justify-content: center;
+  min-height: 54px;
+  padding: 5px;
+  border-color: transparent;
+  background: transparent;
+}
+.profile-mutual-server-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+}
+.profile-mutual-server-icon img {
+  padding: 0;
+  object-fit: cover;
+}
+
+/* Keep server buttons fully inside the rail at every responsive width. */
+@media (max-width: 900px) {
+  .server-rail-list .server-icon { flex-basis: 39px; }
+}
+@media (max-width: 650px) {
+  .server-rail-list .server-icon { flex-basis: 37px; }
+}
+@media (max-width: 380px) {
+  .server-rail-list .server-icon { flex-basis: 34px; }
+}
+
+/* Increase the mark's visible area when the SVG is used as the browser favicon. */
+
+/* Prevent server icons from being clipped when the rail is narrower than its desktop width. */
+.server-rail {
+  padding-inline: 4px;
+}
+.server-rail-list {
+  align-items: stretch;
+  overflow-x: clip;
+}
+.server-rail-list .server-icon {
+  width: min(43px, 100%);
+  min-width: 0;
+  max-width: 43px;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  align-self: center;
+}
+.server-rail > .brand-mark,
+.server-rail > .server-icon {
+  width: min(43px, 100%);
+  min-width: 0;
+  max-width: 43px;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+}
+
+
+/* Give the server rail enough real layout width so icons and badges never sit against the edge. */
+.app-shell { grid-template-columns: 76px clamp(190px, 19vw, 280px) minmax(0, 1fr); }
+.server-rail { padding-inline: 8px; }
+.server-rail-list { align-items: center; }
+.server-rail-list .server-icon,
+.server-rail > .brand-mark,
+.server-rail > .server-icon { width: 46px; max-width: 46px; }
+@media (max-width: 900px) and (min-width: 651px) {
+  .app-shell { grid-template-columns: 68px minmax(185px, 230px) minmax(0, 1fr); }
+  .server-rail { padding-inline: 7px; }
+}
+@media (max-width: 650px) {
+  .app-shell { grid-template-columns: 60px minmax(0, 1fr); }
+  .server-rail { padding-inline: 7px; }
+  .sidebar.sidebar-open { left: 60px; width: min(275px, calc(100vw - 60px)); }
+}
+@media (max-width: 380px) {
+  .app-shell { grid-template-columns: 56px minmax(0, 1fr); }
+  .server-rail { padding-inline: 6px; }
+  .sidebar.sidebar-open { left: 56px; width: calc(100vw - 56px); }
+}
+
+
+/* Show the complete uploaded server artwork instead of cropping its left/right edges. */
+.server-icon { overflow: hidden; }
+.server-icon-image { display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; object-position:center; padding:2px; border-radius:inherit; }
+
+
+/* Keep every server icon image inset from the rounded button so no artwork touches or gets clipped by its edges. */
+.server-rail .server-rail-list > .server-icon {
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.server-rail .server-rail-list > .server-icon > img.server-icon-image {
+  display: block;
+  width: calc(100% - 10px) !important;
+  height: calc(100% - 10px) !important;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0 !important;
+  object-fit: contain !important;
+  object-position: center;
+  border-radius: 7px !important;
+}
+
+
+/* Final server-rail artwork override: don't crop the image at the button boundary. */
+.server-rail .server-rail-list > button.server-icon {
+  overflow: visible !important;
+  clip-path: none !important;
+  contain: none !important;
+}
+.server-rail .server-rail-list > button.server-icon > img.server-icon-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+  clip-path: none !important;
+}
+
+
+/* Restore rounded server-icon masks while keeping the full image visible. */
+.server-rail .server-rail-list > button.server-icon {
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  clip-path: none !important;
+}
+.server-rail .server-rail-list > button.server-icon > img.server-icon-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: inherit !important;
+}
+.server-rail .server-rail-list > button.server-icon:hover,
+.server-rail .server-rail-list > button.server-icon.selected {
+  border-radius: 11px !important;
+}

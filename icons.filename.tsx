@@ -9,7 +9,7 @@ export type IconName =
   | "settings" | "refresh" | "download" | "upload" | "link" | "filter"
   | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash"
   | "pickaxe" | "tree" | "flask" | "inbox" | "send" | "paperclip" | "sparkles" | "message"
-  | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "at";
+  | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "chevronDown" | "at";
 
 const paths: Record<string, React.ReactNode> = {
   reply: <><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v2"/></>,
@@ -40,6 +40,7 @@ const paths: Record<string, React.ReactNode> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16"/>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   chevron: <path d="m9 18 6-6-6-6"/>,
+  chevronDown: <path d="m6 9 6 6 6-6"/>,
   plus: <path d="M12 5v14M5 12h14"/>,
   close: <path d="m18 6-12 12M6 6l12 12"/>,
   shield: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11z"/><path d="m9 12 2 2 4-4"/></>,
