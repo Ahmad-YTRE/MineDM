@@ -1550,6 +1550,69 @@ function Root() {
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+
+  // Temporary diagnostics for the server-rail clipping issue. The report is
+  // printed in DevTools so the exact element/ancestor causing clipping is visible.
+  useEffect(() => {
+    let lastReport = "";
+    let frame = 0;
+    const inspectServerRail = () => {
+      const rail = document.querySelector<HTMLElement>(".server-rail");
+      if (!rail) return;
+      const list = rail.querySelector<HTMLElement>(".server-rail-list");
+      const icons = Array.from(rail.querySelectorAll<HTMLElement>(".server-icon"));
+      const rect = (el: Element) => {
+        const r = el.getBoundingClientRect();
+        return { x: +r.x.toFixed(1), y: +r.y.toFixed(1), width: +r.width.toFixed(1), height: +r.height.toFixed(1), right: +r.right.toFixed(1), bottom: +r.bottom.toFixed(1) };
+      };
+      const style = (el: Element) => {
+        const s = getComputedStyle(el);
+        return { tag: el.tagName.toLowerCase(), className: typeof el.className === "string" ? el.className : "", overflow: s.overflow, overflowX: s.overflowX, overflowY: s.overflowY, position: s.position, zIndex: s.zIndex, transform: s.transform, flex: s.flex, minWidth: s.minWidth, width: s.width, boxSizing: s.boxSizing };
+      };
+      const ancestors = (el: Element) => {
+        const result = [];
+        let node: Element | null = el;
+        while (node && result.length < 7) {
+          result.push({ ...style(node), rect: rect(node) });
+          node = node.parentElement;
+        }
+        return result;
+      };
+      const iconReports = icons.slice(0, 8).map(icon => {
+        const r = icon.getBoundingClientRect();
+        const midY = Math.min(window.innerHeight - 1, Math.max(0, r.top + r.height / 2));
+        const leftStack = document.elementsFromPoint(Math.max(0, r.left + 1), midY).slice(0, 4).map(el => ({ tag: el.tagName.toLowerCase(), className: typeof el.className === "string" ? el.className : "" }));
+        const rightStack = document.elementsFromPoint(Math.max(0, r.right - 1), midY).slice(0, 4).map(el => ({ tag: el.tagName.toLowerCase(), className: typeof el.className === "string" ? el.className : "" }));
+        const clippingAncestors = ancestors(icon).filter(a => /(hidden|clip|auto|scroll)/.test(a.overflow + " " + a.overflowX + " " + a.overflowY));
+        return { title: icon.getAttribute("title"), rect: rect(icon), client: { width: icon.clientWidth, height: icon.clientHeight, scrollWidth: icon.scrollWidth, scrollHeight: icon.scrollHeight }, image: (() => { const img = icon.querySelector("img"); return img ? { ...rect(img), naturalWidth: (img as HTMLImageElement).naturalWidth, naturalHeight: (img as HTMLImageElement).naturalHeight, objectFit: getComputedStyle(img).objectFit } : null; })(), clippingAncestors, edgeHitTest: { left: leftStack, right: rightStack } };
+      });
+      const report = {
+        viewport: { width: window.innerWidth, height: window.innerHeight, devicePixelRatio: window.devicePixelRatio },
+        rail: rail ? { rect: rect(rail), client: { width: rail.clientWidth, scrollWidth: rail.scrollWidth }, style: style(rail) } : null,
+        list: list ? { rect: rect(list), client: { width: list.clientWidth, scrollWidth: list.scrollWidth }, style: style(list) } : null,
+        railAncestors: ancestors(rail),
+        icons: iconReports
+      };
+      const signature = JSON.stringify(report);
+      if (signature !== lastReport) {
+        lastReport = signature;
+        console.error("[Voax server icon clipping diagnostic] Copy this object and paste it into ChatGPT:", report);
+      }
+    };
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(inspectServerRail);
+    };
+    const observer = new MutationObserver(schedule);
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style"] });
+    window.addEventListener("resize", schedule);
+    schedule();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   useEffect(() => {
