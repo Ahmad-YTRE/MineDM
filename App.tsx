@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { createPortal } from "react-dom";
 import "./style.css";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "./supabase";
@@ -31,14 +32,50 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [customEmoji, setCustomEmoji] = useState("");
+  const [position, setPosition] = useState<{ left: number; top: number; maxHeight: number } | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const normalized = query.trim().toLowerCase();
-  const options = REACTION_EMOJI.flatMap(([category, entries]) => entries
+  const options = REACTION_EMOJI.flatMap(([, entries]) => entries
     .filter(([emoji, label]) => !normalized || label.includes(normalized) || emoji.includes(query.trim()))
-    .map(([emoji, label]) => ({ emoji, label, category })));
+    .map(([emoji, label]) => ({ emoji, label })));
   const choose = (emoji: string) => { onSelect(emoji); setOpen(false); setQuery(""); setCustomEmoji(""); };
+  useEffect(() => {
+    if (!open) { setPosition(null); return; }
+    const updatePosition = () => {
+      const anchor = triggerRef.current?.getBoundingClientRect();
+      if (!anchor) return;
+      const width = Math.min(330, window.innerWidth - 24);
+      const maxHeight = Math.min(390, window.innerHeight - 24);
+      const left = Math.max(12, Math.min(anchor.left, window.innerWidth - width - 12));
+      const above = anchor.top > maxHeight + 16;
+      const top = above
+        ? Math.max(12, anchor.top - maxHeight - 9)
+        : Math.min(window.innerHeight - maxHeight - 12, anchor.bottom + 9);
+      setPosition({ left, top, maxHeight });
+    };
+    const closeOnOutsideClick = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!triggerRef.current?.contains(target) && !pickerRef.current?.contains(target)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { setOpen(false); triggerRef.current?.focus(); }
+    };
+    updatePosition();
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [open]);
   return <div className="emoji-picker-wrap">
-    <button type="button" className="message-reaction-trigger" onClick={() => setOpen(value => !value)} title="Add reaction" aria-label="Choose an emoji reaction" aria-expanded={open}><Twemoji emoji="🙂" /></button>
-    {open && <div className="emoji-picker" role="dialog" aria-label="Choose an emoji">
+    <button ref={triggerRef} type="button" className="message-reaction-trigger" onClick={() => setOpen(value => !value)} title="Add reaction" aria-label="Choose an emoji reaction" aria-expanded={open}><Twemoji emoji="🙂" /></button>
+    {open && position && createPortal(<div ref={pickerRef} className="emoji-picker" role="dialog" aria-label="Choose an emoji" style={{ left: position.left, top: position.top, maxHeight: position.maxHeight }}>
       <div className="emoji-picker-heading"><strong>React with an emoji</strong><button type="button" onClick={() => setOpen(false)} aria-label="Close emoji picker">×</button></div>
       <input className="emoji-picker-search" value={query} onChange={event => setQuery(event.target.value)} placeholder="Search emoji" aria-label="Search emoji" autoFocus />
       <div className="emoji-picker-grid" role="list" aria-label="Emoji">
@@ -49,7 +86,7 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
         <input value={customEmoji} onChange={event => setCustomEmoji(event.target.value)} placeholder="Or paste any emoji…" aria-label="Paste any emoji" />
         <button type="submit" disabled={!/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20E3]/u.test(customEmoji)}>React</button>
       </form>
-    </div>}
+    </div>, document.body)}
   </div>;
 }
 type Attachment = { path: string; name: string; mimeType: string; size: number; url?: string };
