@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Voax — Chat. Play. Build together!",
+  "name": "Voax — Chat. Chill. Have Fun!",
   "short_name": "Voax",
-  "description": "Voax is a community chat app for everyone.",
+  "description": "Voax is the ultimate community chat app for everyone. Connect instantly, share seamlessly, and chat in secure, custom text channels.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -11,7 +11,7 @@
     "minimal-ui"
   ],
   "orientation": "any",
-  "background_color": "#090b10",
+  "background_color": "#00f0ff",
   "theme_color": "#00008B",
   "icons": [
     {
