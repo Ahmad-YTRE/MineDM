@@ -3025,3 +3025,39 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     max-height: calc(100dvh - 16px);
   }
 }
+
+
+/* Mutual servers are icon-only; keep each server mark easy to scan. */
+.profile-mutual-list {
+  grid-template-columns: repeat(auto-fill, minmax(48px, 1fr));
+  gap: 8px;
+}
+.profile-mutual-server {
+  justify-content: center;
+  min-height: 54px;
+  padding: 5px;
+  border-color: transparent;
+  background: transparent;
+}
+.profile-mutual-server-icon {
+  width: 44px;
+  height: 44px;
+  flex-basis: 44px;
+}
+.profile-mutual-server-icon img {
+  padding: 0;
+  object-fit: cover;
+}
+
+/* Keep server buttons fully inside the rail at every responsive width. */
+@media (max-width: 900px) {
+  .server-rail-list .server-icon { flex-basis: 39px; }
+}
+@media (max-width: 650px) {
+  .server-rail-list .server-icon { flex-basis: 37px; }
+}
+@media (max-width: 380px) {
+  .server-rail-list .server-icon { flex-basis: 34px; }
+}
+
+/* Increase the mark's visible area when the SVG is used as the browser favicon. */
