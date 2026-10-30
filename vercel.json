@@ -2,6 +2,22 @@
   "cleanUrls": true,
   "rewrites": [
     {
+      "source": "/admin/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/admin",
+      "destination": "/"
+    },
+    {
+      "source": "/explore/:path*",
+      "destination": "/"
+    },
+    {
+      "source": "/explore",
+      "destination": "/"
+    },
+    {
       "source": "/docs",
       "destination": "/"
     },
