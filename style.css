@@ -2459,20 +2459,32 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 
 /* Clickable member pings with compact profile avatars */
 .mention-pill-clickable {
+  -webkit-appearance: none;
+  appearance: none;
   display: inline-flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   text-align: center;
   vertical-align: middle;
   gap: 5px;
+  height: 24px;
   border: 0;
   margin: 0 1px;
-  padding: 2px 7px 2px 3px;
+  padding: 0 8px 0 5px;
   border-radius: 999px;
   font: inherit;
-  line-height: 1.45;
+  line-height: 1;
   cursor: pointer;
   transition: background-color .16s ease, filter .16s ease, transform .16s ease;
+}
+.mention-pill-clickable > span:last-child {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  line-height: 1;
+  padding: 0;
 }
 .mention-pill-clickable:hover {
   background: color-mix(in srgb, var(--accent) 24%, transparent);
@@ -2481,9 +2493,9 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .mention-pill-clickable:active { transform: scale(.97); }
 .mention-pill-avatar {
   display: inline-flex;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
