@@ -9,7 +9,7 @@ export type IconName =
   | "settings" | "refresh" | "download" | "upload" | "link" | "filter"
   | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash"
   | "pickaxe" | "tree" | "flask" | "inbox" | "send" | "paperclip" | "sparkles" | "message"
-  | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "at";
+  | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "chevronDown" | "at";
 
 const paths: Record<string, React.ReactNode> = {
   reply: <><path d="M9 14 4 9l5-5"/><path d="M4 9h9a7 7 0 0 1 7 7v2"/></>,
