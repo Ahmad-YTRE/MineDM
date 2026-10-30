@@ -511,8 +511,7 @@ function App({ session }: { session: Session }) {
   const canManageServer = Boolean(isOwnerOrAdmin || myCustomPermissions.manage_server);
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const unreadPingNotifications = notifications.filter(notification => !notification.read_at && notification.type === "mention" && notification.actor_id);
-  const isMessageActivityNotification = (notification: AppNotification) => notification.type === "message" || /\b(sent a message|message sent)\b/i.test(`${notification.title} ${notification.body}`);
-  const inboxNotifications = notifications.filter(notification => !isMessageActivityNotification(notification));
+  const inboxNotifications = notifications;
   const inboxUnreadTotal = inboxNotifications.filter(notification => !notification.read_at).length;
   const logoUnreadTotal = unreadPingNotifications.length;
   const pingActors = [...new Map(unreadPingNotifications.map(notification => [notification.actor_id!, notification])).values()]
