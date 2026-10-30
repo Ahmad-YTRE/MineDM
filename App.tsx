@@ -1226,6 +1226,7 @@ function App({ session }: { session: Session }) {
       window.history.pushState({},"",target);setActiveServer(channel.server_id);setActive(channel.id);setView("channel");setShowLanding(false);setSidebarOpen(false);return;
     }
     if(target==="/explore"&&window.location.pathname.startsWith("/explore/"))window.history.replaceState({},"",target);else window.history.pushState({},"",target);
+    if(target==="/explore")await loadWorkspace();
     setExplorePath(target);setView("explore");setShowLanding(false);setSidebarOpen(false);
   }
   function openProfile(person:Person){
