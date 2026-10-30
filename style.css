@@ -2260,3 +2260,51 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     grid-template-columns: 112px minmax(0, 1fr);
   }
 }
+
+
+/* Visible settings scrollbar + reliable touch scrolling on mobile. */
+.modal-backdrop:has(.discord-settings-layout),
+.modal-backdrop:has(.discord-server-settings-layout),
+.modal-backdrop:has(.discord-role-settings) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent, #00e5ff) color-mix(in srgb, var(--panel, #111720) 88%, transparent);
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar {
+  width: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-track,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-track,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--panel, #111720) 88%, transparent);
+  border-radius: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-thumb,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-thumb,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent, #00e5ff) 62%, #64748b);
+  border: 2px solid var(--panel, #111720);
+  border-radius: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-thumb:hover,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-thumb:hover,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #00e5ff);
+}
+.discord-settings-modal,
+.discord-server-settings-modal,
+.discord-role-settings,
+.discord-settings-content,
+.discord-settings-nav,
+.discord-server-settings-nav,
+.discord-role-list-panel,
+.discord-role-editor {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
