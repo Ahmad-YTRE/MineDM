@@ -119,7 +119,7 @@ function requestPinned(target: ResolvedTarget): Promise<{ status: number; header
       }
       const chunks: Uint8Array[] = [];
       let size = 0;
-      response.on("data", (chunk: Buffer | string) => {
+      response.on("data", (chunk: Uint8Array | string) => {
         const buffer = typeof chunk === "string" ? new TextEncoder().encode(chunk) : new Uint8Array(chunk);
         size += buffer.length;
         if (size > 1024 * 1024) {
