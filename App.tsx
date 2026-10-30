@@ -216,17 +216,169 @@ function SkeletonBar({ className = "" }: { className?: string }) {
 
 function WorkspaceSkeleton({ variant = "server" }: { variant?: "dm-home" | "server" }) {
   const dmHome = variant === "dm-home";
-  return <div className={`app-shell workspace-loading ${dmHome ? "loading-dm-home" : "has-members loading-server"}`} aria-label={dmHome ? "Loading direct messages home" : "Loading server"} aria-busy="true">
-    <aside className="server-rail"><SkeletonBar className="skeleton-server" /><div className="rail-separator" />{Array.from({ length: 4 }, (_, i) => <SkeletonBar key={i} className="skeleton-server" />)}<div className="rail-spacer" /></aside>
-    <aside className="sidebar"><div className="workspace-head"><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line wide" /></div></div><div className="search-wrap"><SkeletonBar className="skeleton-line wide" /></div>
-      {dmHome ? <><div className="side-heading"><SkeletonBar className="skeleton-line medium" /></div><div className="dm-list">{Array.from({ length: 7 }, (_, i) => <div className="skeleton-person-row" key={i}><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className={`skeleton-line ${i % 3 ? "medium" : "wide"}`} /><SkeletonBar className="skeleton-line short" /></div></div>)}</div></> : <><div className="side-heading"><SkeletonBar className="skeleton-line short" /></div><div className="nav-list">{Array.from({ length: 5 }, (_, i) => <div className="skeleton-nav-row" key={i}><SkeletonBar className="skeleton-square" /><SkeletonBar className={`skeleton-line ${i % 2 ? "medium" : "wide"}`} /></div>)}</div><div className="side-heading"><SkeletonBar className="skeleton-line short" /></div><div className="dm-list">{Array.from({ length: 4 }, (_, i) => <div className="skeleton-person-row" key={i}><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line short" /></div></div>)}</div></>}
-      <div className="user-bar"><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line short" /></div></div>
-    </aside>
-    <main className="main-panel"><header className="topbar"><div className="topbar-title"><SkeletonBar className="skeleton-square" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line wide" /></div></div><SkeletonBar className="skeleton-square" /><SkeletonBar className="skeleton-square" /></header>
-      {dmHome ? <div className="dm-home-skeleton-content"><div className="skeleton-stack dm-home-skeleton-intro"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line dm-home-skeleton-title" /><SkeletonBar className="skeleton-line dm-home-skeleton-copy" /><div className="dm-home-skeleton-actions"><SkeletonBar className="skeleton-line" /><SkeletonBar className="skeleton-line" /></div></div><div className="dm-home-skeleton-section"><SkeletonBar className="skeleton-line medium" />{Array.from({ length: 5 }, (_, i) => <div className="dm-home-skeleton-card" key={i}><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className={`skeleton-line ${i % 2 ? "wide" : "message-line"}`} /></div><SkeletonBar className="skeleton-square" /></div>)}</div></div> : <><div className="message-scroll skeleton-message-list server-loading-messages">{Array.from({ length: 6 }, (_, i) => <div className="skeleton-message-row" key={i}><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className={`skeleton-line ${i % 2 ? "wide" : "message-line"}`} /><SkeletonBar className="skeleton-line message-line-short" /></div></div>)}</div><div className="composer-area"><SkeletonBar className="skeleton-composer" /></div></>}
-    </main>
-    {!dmHome && <aside className="member-panel skeleton-member-panel"><div className="member-panel-head"><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line short" /></div></div>{Array.from({ length: 7 }, (_, i) => <div className="skeleton-person-row" key={i}><SkeletonBar className="skeleton-avatar" /><div className="skeleton-stack"><SkeletonBar className="skeleton-line medium" /><SkeletonBar className="skeleton-line short" /></div></div>)}</aside>}
-  </div>;
+
+  return (
+    <div
+      className={`app-shell workspace-loading ${dmHome ? "loading-dm-home" : "has-members loading-server"}`}
+      aria-label={dmHome ? "Loading direct messages home" : "Loading server"}
+      aria-busy="true"
+    >
+      <aside className="server-rail">
+        <SkeletonBar className="skeleton-server" />
+        <div className="rail-separator" />
+        {Array.from({ length: 4 }, (_, i) => (
+          <SkeletonBar key={i} className="skeleton-server" />
+        ))}
+        <div className="rail-spacer" />
+      </aside>
+
+      <aside className="sidebar">
+        <div className="workspace-head">
+          <div className="skeleton-stack">
+            <SkeletonBar className="skeleton-line medium" />
+            <SkeletonBar className="skeleton-line wide" />
+          </div>
+        </div>
+        <div className="search-wrap">
+          <SkeletonBar className="skeleton-line wide" />
+        </div>
+
+        {dmHome ? (
+          <>
+            <div className="side-heading">
+              <SkeletonBar className="skeleton-line medium" />
+            </div>
+            <div className="dm-list">
+              {Array.from({ length: 7 }, (_, i) => (
+                <div className="skeleton-person-row" key={i}>
+                  <SkeletonBar className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <SkeletonBar className={`skeleton-line ${i % 3 ? "medium" : "wide"}`} />
+                    <SkeletonBar className="skeleton-line short" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="side-heading">
+              <SkeletonBar className="skeleton-line short" />
+            </div>
+            <div className="nav-list">
+              {Array.from({ length: 5 }, (_, i) => (
+                <div className="skeleton-nav-row" key={i}>
+                  <SkeletonBar className="skeleton-square" />
+                  <SkeletonBar className={`skeleton-line ${i % 2 ? "medium" : "wide"}`} />
+                </div>
+              ))}
+            </div>
+            <div className="side-heading">
+              <SkeletonBar className="skeleton-line short" />
+            </div>
+            <div className="dm-list">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div className="skeleton-person-row" key={i}>
+                  <SkeletonBar className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <SkeletonBar className="skeleton-line medium" />
+                    <SkeletonBar className="skeleton-line short" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
+
+        <div className="user-bar">
+          <SkeletonBar className="skeleton-avatar" />
+          <div className="skeleton-stack">
+            <SkeletonBar className="skeleton-line medium" />
+            <SkeletonBar className="skeleton-line short" />
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div className="topbar-title">
+            <SkeletonBar className="skeleton-square" />
+            <div className="skeleton-stack">
+              <SkeletonBar className="skeleton-line medium" />
+              <SkeletonBar className="skeleton-line wide" />
+            </div>
+          </div>
+          <SkeletonBar className="skeleton-square" />
+          <SkeletonBar className="skeleton-square" />
+        </header>
+
+        {dmHome ? (
+          <div className="dm-home-skeleton-content">
+            <div className="skeleton-stack dm-home-skeleton-intro">
+              <SkeletonBar className="skeleton-line medium" />
+              <SkeletonBar className="skeleton-line dm-home-skeleton-title" />
+              <SkeletonBar className="skeleton-line dm-home-skeleton-copy" />
+              <div className="dm-home-skeleton-actions">
+                <SkeletonBar className="skeleton-line" />
+                <SkeletonBar className="skeleton-line" />
+              </div>
+            </div>
+            <div className="dm-home-skeleton-section">
+              <SkeletonBar className="skeleton-line medium" />
+              {Array.from({ length: 5 }, (_, i) => (
+                <div className="dm-home-skeleton-card" key={i}>
+                  <SkeletonBar className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <SkeletonBar className="skeleton-line medium" />
+                    <SkeletonBar className={`skeleton-line ${i % 2 ? "wide" : "message-line"}`} />
+                  </div>
+                  <SkeletonBar className="skeleton-square" />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="message-scroll skeleton-message-list server-loading-messages">
+              {Array.from({ length: 6 }, (_, i) => (
+                <div className="skeleton-message-row" key={i}>
+                  <SkeletonBar className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <SkeletonBar className="skeleton-line medium" />
+                    <SkeletonBar className={`skeleton-line ${i % 2 ? "wide" : "message-line"}`} />
+                    <SkeletonBar className="skeleton-line message-line-short" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="composer-area">
+              <SkeletonBar className="skeleton-composer" />
+            </div>
+          </>
+        )}
+      </main>
+
+      {!dmHome && (
+        <aside className="member-panel skeleton-member-panel">
+          <div className="member-panel-head">
+            <div className="skeleton-stack">
+              <SkeletonBar className="skeleton-line medium" />
+              <SkeletonBar className="skeleton-line short" />
+            </div>
+          </div>
+          {Array.from({ length: 7 }, (_, i) => (
+            <div className="skeleton-person-row" key={i}>
+              <SkeletonBar className="skeleton-avatar" />
+              <div className="skeleton-stack">
+                <SkeletonBar className="skeleton-line medium" />
+                <SkeletonBar className="skeleton-line short" />
+              </div>
+            </div>
+          ))}
+        </aside>
+      )}
+    </div>
+  );
 }
 
 function DmConversationSkeleton() {
