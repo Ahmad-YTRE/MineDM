@@ -1225,7 +1225,8 @@ function App({ session }: { session: Session }) {
       const channel=channelResult.data;
       window.history.pushState({},"",target);setActiveServer(channel.server_id);setActive(channel.id);setView("channel");setShowLanding(false);setSidebarOpen(false);return;
     }
-    window.history.pushState({},"",target);setExplorePath(target);setView("explore");setShowLanding(false);setSidebarOpen(false);
+    if(target==="/explore"&&window.location.pathname.startsWith("/explore/"))window.history.replaceState({},"",target);else window.history.pushState({},"",target);
+    setExplorePath(target);setView("explore");setShowLanding(false);setSidebarOpen(false);
   }
   function openProfile(person:Person){
     setContextMenu(null);
