@@ -91,3 +91,6 @@ Found a bug or have an idea? Open an issue in the [GitHub repository](https://gi
 ---
 
 Made for friends, teams, and communities. **Chat. Chill. Have Fun.**
+---
+
+**&copy; Shahadah Studios Elite and BloxdLabs**
