@@ -5,7 +5,7 @@
 Voax is a real-time chat platform for friends and gaming communities. Organize conversations, build communities with servers and channels, and keep in touch through direct messages.
 
 **Live app:** https://voax.vercel.app  
-**Repository:** https://github.com/Ahmad-YTRE/Voax
+**Repository:** https://github.com/Ahmad-YTRE/Voax **Main Repository:** https://github.com/Shahadah-Studs/Voax
 
 ## Features
 
@@ -86,7 +86,7 @@ The app is configured for Vercel deployment. Production deployments are triggere
 
 ## Contributing and bug reports
 
-Found a bug or have an idea? Open an issue in the [GitHub repository](https://github.com/Ahmad-YTRE/Voax) with steps to reproduce the problem and any relevant details. Please do not include passwords, access tokens, or other secrets.
+Found a bug or have an idea? Open an issue in the [GitHub repository](https://github.com/Shahadah-studs/Voax) with steps to reproduce the problem and any relevant details. Please do not include passwords, access tokens, or other secrets.
 
 ---
 
