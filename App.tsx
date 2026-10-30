@@ -1255,7 +1255,7 @@ function App({ session }: { session: Session }) {
         const offlineMembers = allMembers.filter(person => !person.online);
         const groups = [
           ...orderedRoles.map(role => ({ id: role.id, name: role.name, color: role.color, members: onlineMembers.filter(person => getPrimaryCustomRole(person.id)?.id === role.id) })),
-          { id: "unassigned", name: "Unassigned", color: "var(--muted)", members: onlineMembers.filter(person => !getPrimaryCustomRole(person.id)) },
+          { id: "unassigned", name: "Online", color: "var(--muted)", members: onlineMembers.filter(person => !getPrimaryCustomRole(person.id)) },
           { id: "offline", name: "Offline", color: "var(--muted)", members: offlineMembers }
         ].filter(group => group.members.length > 0);
         return groups.map(group => <section className="member-role-group" key={group.id}>
