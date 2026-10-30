@@ -258,11 +258,6 @@ export function AdminPage({session}:{session:Session}) {
   async function toggleFeatured(item:any) {
     const {error}=await supabase.from("server_discovery").update({is_featured:!item.is_featured}).eq("id",item.id);
     if(error){setNotice(error.message);return;}
-    await log(item.is_featured?"unfeatured_server":"featured_users","server_discovery",item.id,{server_name:item.server_name});await load();
-  }
-  async function toggleFeatured(item:any) {
-    const {error}=await supabase.from("server_discovery").update({is_featured:!item.is_featured}).eq("id",item.id);
-    if(error){setNotice(error.message);return;}
     await log(item.is_featured?"unfeatured_server":"featured_server","server_discovery",item.id,{server_name:item.server_name});await load();
   }
   async function updateReport(item:any,status:"reviewing"|"resolved"|"dismissed") {
