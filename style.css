@@ -1663,15 +1663,21 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .discord-settings-nav {
   position: relative;
 }
+.discord-settings-nav {
+  position: relative;
+  padding-bottom: 76px;
+}
 .discord-settings-nav button.discord-settings-signout {
   display: flex !important;
-  flex: 0 0 auto;
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  width: 100%;
+  flex: 0 0 42px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 18px;
+  z-index: 5;
+  width: calc(100% - 24px);
   min-height: 42px;
-  margin-top: auto;
+  margin: 0;
   padding: 0 10px;
   border: 1px solid #fb718530;
   border-radius: 8px;
@@ -1681,8 +1687,7 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   visibility: visible;
 }
 .discord-settings-nav-spacer {
-  flex: 1 0 18px;
-  min-height: 18px;
+  display: none;
 }
 @media (max-height: 620px) {
   .discord-settings-layout { min-height: 0; }
@@ -2091,3 +2096,215 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .inbox-trigger{position:relative}
 .inbox-trigger-badge{position:absolute;top:-5px;right:-6px;min-width:17px;height:17px;padding:0 4px;display:grid;place-items:center;border:2px solid var(--panel,#202127);border-radius:10px;background:#ed4245;color:#fff;font-size:9px;line-height:1;font-weight:800}
 @media(max-width:560px){.inbox-heading{gap:8px}.inbox-heading>.btn{font-size:11px;padding:7px}.inbox-notification{padding:11px;gap:9px}.inbox-notification-icon{width:32px;height:32px;flex-basis:32px;border-radius:10px}}
+
+
+/* Keep both settings workspaces inside the viewport and make their panes scroll independently. */
+.discord-settings-modal,
+.discord-server-settings-modal {
+  height: min(760px, calc(100dvh - 36px));
+  max-height: calc(100dvh - 36px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.discord-settings-layout,
+.discord-server-settings-layout {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+}
+.discord-settings-nav,
+.discord-server-settings-nav,
+.discord-settings-content {
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.discord-settings-nav,
+.discord-server-settings-nav {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.discord-settings-content {
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.discord-server-settings-modal:has(.discord-role-settings) {
+  height: min(790px, calc(100dvh - 36px));
+  max-height: calc(100dvh - 36px);
+}
+.discord-role-settings {
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow: hidden;
+}
+.discord-role-workspace {
+  flex: 1 1 0;
+  min-height: 0;
+}
+.discord-role-list-panel,
+.discord-role-editor {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 700px) {
+  .discord-settings-modal,
+  .discord-server-settings-modal {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .discord-settings-layout,
+  .discord-server-settings-layout {
+    min-height: 0;
+    max-height: none;
+  }
+  .discord-server-settings-modal:has(.discord-role-settings) {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .discord-role-settings {
+    min-height: 0;
+    max-height: none;
+  }
+}
+
+
+/* Reliable fallback: let the settings dialog itself scroll as one document. */
+.modal-backdrop:has(.discord-settings-layout),
+.modal-backdrop:has(.discord-server-settings-layout),
+.modal-backdrop:has(.discord-role-settings) {
+  display: block;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: 18px;
+  -webkit-overflow-scrolling: touch;
+}
+.discord-settings-modal,
+.discord-server-settings-modal {
+  display: block;
+  width: min(960px, calc(100vw - 36px));
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  margin: 0 auto;
+  overflow: visible;
+}
+.discord-settings-layout,
+.discord-server-settings-layout {
+  display: grid;
+  height: auto;
+  min-height: 560px;
+  max-height: none;
+  overflow: visible;
+}
+.discord-settings-content {
+  min-height: 560px;
+  height: auto;
+  overflow: visible;
+}
+.discord-settings-nav,
+.discord-server-settings-nav {
+  overflow: visible;
+}
+.discord-server-settings-modal:has(.discord-role-settings) {
+  width: min(1040px, calc(100vw - 36px));
+  height: auto;
+  max-height: none;
+}
+.discord-role-settings {
+  height: auto;
+  min-height: 0;
+  max-height: none;
+  overflow: visible;
+}
+.discord-role-workspace {
+  min-height: 0;
+  overflow: visible;
+}
+.discord-role-list-panel,
+.discord-role-editor {
+  min-height: 0;
+  overflow: visible;
+}
+@media (max-width: 700px) {
+  .modal-backdrop:has(.discord-settings-layout),
+  .modal-backdrop:has(.discord-server-settings-layout),
+  .modal-backdrop:has(.discord-role-settings) {
+    padding: 8px;
+  }
+  .discord-settings-modal,
+  .discord-server-settings-modal,
+  .discord-server-settings-modal:has(.discord-role-settings) {
+    width: 100%;
+    max-height: none;
+  }
+  .discord-settings-layout,
+  .discord-server-settings-layout {
+    min-height: 0;
+    grid-template-columns: 142px minmax(0, 1fr);
+  }
+  .discord-settings-content {
+    min-height: 0;
+  }
+}
+@media (max-width: 430px) {
+  .discord-settings-layout,
+  .discord-server-settings-layout {
+    grid-template-columns: 112px minmax(0, 1fr);
+  }
+}
+
+
+/* Visible settings scrollbar + reliable touch scrolling on mobile. */
+.modal-backdrop:has(.discord-settings-layout),
+.modal-backdrop:has(.discord-server-settings-layout),
+.modal-backdrop:has(.discord-role-settings) {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent, #00e5ff) color-mix(in srgb, var(--panel, #111720) 88%, transparent);
+  scrollbar-gutter: stable;
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar {
+  width: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-track,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-track,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--panel, #111720) 88%, transparent);
+  border-radius: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-thumb,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-thumb,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent, #00e5ff) 62%, #64748b);
+  border: 2px solid var(--panel, #111720);
+  border-radius: 10px;
+}
+.modal-backdrop:has(.discord-settings-layout)::-webkit-scrollbar-thumb:hover,
+.modal-backdrop:has(.discord-server-settings-layout)::-webkit-scrollbar-thumb:hover,
+.modal-backdrop:has(.discord-role-settings)::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, #00e5ff);
+}
+.discord-settings-modal,
+.discord-server-settings-modal,
+.discord-role-settings,
+.discord-settings-content,
+.discord-settings-nav,
+.discord-server-settings-nav,
+.discord-role-list-panel,
+.discord-role-editor {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
