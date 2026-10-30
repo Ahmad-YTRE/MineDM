@@ -3158,3 +3158,25 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   overflow: visible !important;
   clip-path: none !important;
 }
+
+
+/* Restore rounded server-icon masks while keeping the full image visible. */
+.server-rail .server-rail-list > button.server-icon {
+  overflow: hidden !important;
+  border-radius: 14px !important;
+  clip-path: none !important;
+}
+.server-rail .server-rail-list > button.server-icon > img.server-icon-image {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: inherit !important;
+}
+.server-rail .server-rail-list > button.server-icon:hover,
+.server-rail .server-rail-list > button.server-icon.selected {
+  border-radius: 11px !important;
+}
