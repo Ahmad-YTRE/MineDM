@@ -1293,7 +1293,7 @@ function App({ session }: { session: Session }) {
       :await supabase.from("voax_account_blocks").insert({blocker_id:session.user.id,blocked_id:person.id});
     if(result.error){notify("Couldn't "+(currentlyBlocked?"unblock":"block")+" this account: "+result.error.message);return;}
     setBlockedUserIds(old=>{const next=new Set(old);if(currentlyBlocked)next.delete(person.id);else next.add(person.id);return next;});
-    setContextMenu(null);setSelectedProfile(null);notify(currentlyBlocked?"Account unblocked.":"Account blocked. Their messages are hidden and direct messages are restricted.");
+    setContextMenu(null);setSelectedProfile(null);if(currentlyBlocked)setBlockedPeople(old=>old.filter(item=>item.id!==person.id));notify(currentlyBlocked?"Account unblocked.":"Account blocked. Their messages are hidden and direct messages are restricted.");
   }
   function beginReport(target:VoaxReportTarget){setReportTarget(target);setReportDetails("");setReportReason(target.target_type==="server"?"Spam or misleading content":"Harassment or bullying");setContextMenu(null);setSelectedProfile(null);}
   async function submitBanAppeal(event:FormEvent){
