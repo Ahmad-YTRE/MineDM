@@ -28,13 +28,13 @@ function openServerPath(server: Pick<Listing, "server_id" | "server_public_id">,
     if (navigate) navigate(path); else window.location.assign(path);
   });
 }
-function PageFrame({children,active="explore",embedded=false}:{children:React.ReactNode;active?:"explore"|"admin";embedded?:boolean}) {
+function PageFrame({children,active="explore",embedded=false}:{children:React.ReactNode;active?:"explore"|"admin"|"mod";embedded?:boolean}) {
   if(embedded)return <>{children}</>;
   return <div className="discovery-shell">
     <aside className="discovery-rail">
       <a className="discovery-brand" href="/app" aria-label="Back to Voax"><img src="/logo.svg" alt="Voax"/></a>
       <a className={active==="explore"?"selected":""} href="/explore" title="Explore"><Icon name="search" size={19}/></a>
-      {active==="admin" && <a className="selected" href="/admin" title="Admin"><Icon name="shield" size={19}/></a>}
+      {active==="admin" && <a className="selected" href="/admin" title="Admin"><Icon name="shield-check" size={19}/></a>}{active==="mod" && <a className="selected" href="/mod" title="Moderation"><Icon name="shield" size={19}/></a>}
       <div className="discovery-rail-spacer"/>
       <a href="/app" title="Return to app"><Icon name="chevron" size={19}/></a>
     </aside>
@@ -111,7 +111,7 @@ export function ExplorePage({session,embedded=false,routePath,onNavigate,onlineC
   }
   async function submitReport(event:React.FormEvent) {
     event.preventDefault();if(!reportListing)return;setReportBusy(true);
-    const {error}=await supabase.from("server_discovery_reports").insert({listing_id:reportListing.listing_id,reporter_id:session.user.id,reason:reportReason,details:reportDetails.trim()});
+    const {error}=await supabase.from("voax_reports").insert({reporter_id:session.user.id,target_type:"server",target_server_id:reportListing.server_id,reason:reportReason,details:reportDetails.trim(),snapshot:{server_name:reportListing.server_name,listing_id:reportListing.listing_id,source:"explore"}});
     setReportBusy(false);
     if(error){setNotice("Couldn't submit report: "+error.message);return;}
     setReportListing(null);setReportDetails("");setNotice("Report submitted. Thank you for helping keep Voax safe.");
@@ -217,10 +217,12 @@ function DiscoveryManagePage({session,serverId,embedded=false,onNavigate}:{sessi
   </div></PageFrame>;
 }
 
-type AdminSection="overview"|"approvals"|"reports"|"servers"|"users"|"audit";
-export function AdminPage({session}:{session:Session}) {
+type AdminSection="overview"|"approvals"|"reports"|"servers"|"users"|"bans"|"appeals"|"staff"|"audit";
+type StaffRole = "owner"|"admin"|"moderator";
+export function AdminPage({session,mode="admin"}:{session:Session;mode?:"admin"|"moderator"}) {
   const [allowed,setAllowed]=useState<boolean|null>(null);
-  const [section,setSection]=useState<AdminSection>("overview");
+  const [staffRole,setStaffRole]=useState<StaffRole|null>(null);
+  const [section,setSection]=useState<AdminSection>(mode==="admin"?"overview":"reports");
   const [loading,setLoading]=useState(true);
   const [notice,setNotice]=useState("");
   const [pending,setPending]=useState<any[]>([]);
@@ -228,29 +230,44 @@ export function AdminPage({session}:{session:Session}) {
   const [servers,setServers]=useState<any[]>([]);
   const [allListings,setAllListings]=useState<any[]>([]);
   const [users,setUsers]=useState<any[]>([]);
+  const [bans,setBans]=useState<any[]>([]);
+  const [appeals,setAppeals]=useState<any[]>([]);
+  const [staff,setStaff]=useState<any[]>([]);
   const [audit,setAudit]=useState<any[]>([]);
-  const [stats,setStats]=useState({users:0,servers:0,listings:0,pending:0,reports:0});
+  const [stats,setStats]=useState({users:0,servers:0,listings:0,pending:0,reports:0,bans:0,appeals:0});
   async function load() {
     setLoading(true);
-    const check=await supabase.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle();
-    if(check.error||!check.data){setAllowed(false);setLoading(false);return;}
+    const check=await supabase.from("voax_staff_roles").select("role").eq("user_id",session.user.id).maybeSingle();
+    const role=(check.data?.role||null) as StaffRole|null;
+    setStaffRole(role);
+    const permitted=Boolean(role)&&(mode==="moderator"||role==="owner"||role==="admin");
+    if(check.error||!permitted){setAllowed(false);setLoading(false);return;}
     setAllowed(true);
-    const [profiles,serverRows,listings,queue,reportRows,auditRows,listingRows]=await Promise.all([
-      supabase.from("profiles").select("id,username,status,created_at",{count:"exact"}).order("created_at",{ascending:false}).limit(100),
+    const [profiles,serverRows,listings,queue,reportRows,banRows,appealRows,staffRows,auditRows]=await Promise.all([
+      supabase.from("profiles").select("id,username,status,created_at",{count:"exact"}).order("created_at",{ascending:false}).limit(200),
       supabase.from("servers").select("id,name,description,created_by,created_at,icon_url",{count:"exact"}).order("created_at",{ascending:false}).limit(100),
       supabase.from("server_discovery").select("id,listing_status,listing_enabled"),
       supabase.from("server_discovery").select("id,server_id,server_name,short_description,full_description,category,icon_url,banner_url,listing_status,listing_enabled,is_featured,owner_id,created_at,submitted_at,rejection_reason").eq("listing_status","pending").order("submitted_at",{ascending:true}).limit(100),
-      supabase.from("server_discovery_reports").select("id,listing_id,reporter_id,reason,details,status,created_at,server_discovery(server_name)").order("created_at",{ascending:false}).limit(100),
-      supabase.from("voax_admin_audit_log").select("id,admin_id,action,target_type,target_id,details,created_at").order("created_at",{ascending:false}).limit(100),
-      supabase.from("server_discovery").select("id,server_id,server_name,category,listing_status,listing_enabled,is_featured,created_at").order("created_at",{ascending:false}).limit(200)
+      supabase.from("voax_reports").select("id,reporter_id,target_type,target_user_id,target_message_id,target_server_id,reason,details,snapshot,status,created_at,reviewed_by,resolved_at").order("created_at",{ascending:false}).limit(200),
+      supabase.from("voax_account_bans").select("id,user_id,reason,duration,expires_at,status,banned_by,created_at,revoked_at").order("created_at",{ascending:false}).limit(200),
+      supabase.from("voax_ban_appeals").select("id,ban_id,user_id,message,status,response,created_at,reviewed_by,resolved_at").order("created_at",{ascending:false}).limit(200),
+      supabase.from("voax_staff_roles").select("user_id,role,granted_by,created_at").order("created_at",{ascending:false}),
+      supabase.from("voax_admin_audit_log").select("id,admin_id,action,target_type,target_id,details,created_at").order("created_at",{ascending:false}).limit(100)
     ]);
-    const failure=[profiles,serverRows,listings,queue,reportRows,auditRows,listingRows].find(result=>result.error);
-    if(failure?.error)setNotice("Some admin data couldn't load: "+failure.error.message);
-    setUsers(profiles.data||[]);setServers(serverRows.data||[]);setAllListings(listingRows.data||[]);setPending(queue.data||[]);setReports(reportRows.data||[]);setAudit(auditRows.data||[]);
-    setStats({users:profiles.count??(profiles.data||[]).length,servers:serverRows.count??(serverRows.data||[]).length,listings:(listings.data||[]).filter((x:any)=>x.listing_enabled&&x.listing_status==="approved").length,pending:(queue.data||[]).length,reports:(reportRows.data||[]).filter((x:any)=>x.status==="open").length});
+    const failure=[profiles,serverRows,listings,queue,reportRows,banRows,appealRows,staffRows,auditRows].find(result=>result.error);
+    if(failure?.error)setNotice("Some staff data couldn't load: "+failure.error.message);
+    setUsers(profiles.data||[]);setServers(serverRows.data||[]);setAllListings(listings.data||[]);setPending(queue.data||[]);
+    setReports(reportRows.data||[]);setBans(banRows.data||[]);setAppeals(appealRows.data||[]);setStaff(staffRows.data||[]);setAudit(auditRows.data||[]);
+    setStats({
+      users:profiles.count??(profiles.data||[]).length,servers:serverRows.count??(serverRows.data||[]).length,
+      listings:(listings.data||[]).filter((x:any)=>x.listing_enabled&&x.listing_status==="approved").length,
+      pending:(queue.data||[]).length,reports:(reportRows.data||[]).filter((x:any)=>x.status==="open").length,
+      bans:(banRows.data||[]).filter((x:any)=>x.status==="active"&&(!x.expires_at||new Date(x.expires_at)>new Date())).length,
+      appeals:(appealRows.data||[]).filter((x:any)=>x.status==="open").length
+    });
     setLoading(false);
   }
-  useEffect(()=>{void load();},[session.user.id]);
+  useEffect(()=>{void load();},[session.user.id,mode]);
   async function log(action:string,targetType:string,targetId:string,details:Record<string,unknown>={}) {
     await supabase.from("voax_admin_audit_log").insert({admin_id:session.user.id,action,target_type:targetType,target_id:targetId,details});
   }
@@ -266,25 +283,65 @@ export function AdminPage({session}:{session:Session}) {
     if(error){setNotice(error.message);return;}
     await log(item.is_featured?"unfeatured_server":"featured_server","server_discovery",item.id,{server_name:item.server_name});await load();
   }
-  async function updateReport(item:any,status:"reviewing"|"resolved"|"dismissed") {
-    const {error}=await supabase.from("server_discovery_reports").update({status,reviewed_by:session.user.id,resolved_at:status==="resolved"||status==="dismissed"?new Date().toISOString():null}).eq("id",item.id);
-    if(error){setNotice(error.message);return;}
-    await log("updated_server_report","server_discovery_report",item.id,{status});await load();
+  async function reviewReport(item:any,status:"reviewing"|"resolved"|"dismissed") {
+    const {error}=await supabase.from("voax_reports").update({status,reviewed_by:session.user.id,resolved_at:status==="resolved"||status==="dismissed"?new Date().toISOString():null}).eq("id",item.id);
+    if(error){setNotice("Couldn't update report: "+error.message);return;}
+    await log("updated_report","voax_reports",item.id,{status});setNotice("Report updated.");await load();
   }
-  if(loading)return <PageFrame active="admin"><div className="discovery-page"><div className="discovery-loading">Checking administrator access…</div></div></PageFrame>;
-  if(!allowed)return <PageFrame active="admin"><div className="discovery-page"><div className="admin-denied"><span><Icon name="shield" size={26}/></span><h1>Admin access required</h1><p>This account isn't listed as a Voax administrator. Ask an existing administrator to grant access.</p><a className="discovery-primary" href="/app">Return to Voax</a></div></div></PageFrame>;
-  type AdminNavIcon = "zap" | "shield" | "flag" | "users" | "inbox" | "explore";
-  const nav:[AdminSection,string,AdminNavIcon][]=[["overview","Overview","zap"],["approvals","Explore approvals","shield"],["reports","Reports","flag"],["servers","Servers","users"],["users","Users","users"],["audit","Audit log","inbox"]];
-  return <PageFrame active="admin"><div className="admin-layout">
-    <aside className="admin-sidebar"><span className="discovery-eyebrow">VOAX CONTROL CENTER</span><h2>Administration</h2>{nav.map(([id,label,icon])=><button key={id} className={section===id?"active":""} onClick={()=>setSection(id)}><Icon name={icon} size={17}/>{label}{id==="approvals"&&pending.length>0&&<i>{pending.length}</i>}{id==="reports"&&stats.reports>0&&<i>{stats.reports}</i>}</button>)}<div className="admin-sidebar-bottom"><a href="/explore"><Icon name="search" size={15}/> Explore</a><a href="/app"><Icon name="chevron" size={15}/> Back to Voax</a></div></aside>
-    <main className="admin-content"><header className="admin-header"><div><span className="discovery-eyebrow">VOAX ADMIN</span><h1>{nav.find(item=>item[0]===section)?.[1]}</h1><p>Manage the Voax community and discovery directory.</p></div><button className="discovery-secondary" onClick={()=>void load()}><Icon name="refresh" size={15}/> Refresh</button></header>
+  async function moderationAction(body:Record<string,unknown>) {
+    const {data,error}=await supabase.functions.invoke("voax-moderation",{body});
+    if(error||data?.error){setNotice(data?.error||error?.message||"Moderation action failed.");return null;}
+    return data;
+  }
+  async function issueBan(targetId:string) {
+    const reason=window.prompt("Reason for the account ban:");
+    if(!reason||reason.trim().length<3)return;
+    const choices=staffRole==="owner"? "1h, 24h, 7d, 30d, permanent":staffRole==="admin"?"1h, 24h, 7d, 30d":"1h, 24h, 7d";
+    const duration=(window.prompt("Choose a duration: "+choices,staffRole==="moderator"?"24h":"7d")||"").trim();
+    if(!choices.split(", ").includes(duration)){setNotice("Choose one of the available ban durations: "+choices);return;}
+    const result=await moderationAction({action:"ban_user",target_user_id:targetId,reason:reason.trim(),duration});
+    if(result){setNotice("Account banned.");await load();}
+  }
+  async function revokeBan(targetId:string) {
+    if(!window.confirm("Revoke the active Voax ban for this account?"))return;
+    const result=await moderationAction({action:"unban_user",target_user_id:targetId});
+    if(result){setNotice("Ban revoked.");await load();}
+  }
+  async function assignStaffRole(userId:string,role:StaffRole|null) {
+    const result=await moderationAction({action:"set_staff_role",target_user_id:userId,role});
+    if(result){setNotice(role?"Staff role updated.":"Staff role removed.");await load();}
+  }
+  async function reviewAppeal(item:any,status:"reviewing"|"accepted"|"rejected") {
+    if(status==="accepted") {
+      const result=await moderationAction({action:"unban_user",target_user_id:item.user_id});
+      if(!result)return;
+    }
+    const response=status==="rejected"?(window.prompt("Optional response to the user:")||"Your appeal was reviewed and declined."):"";
+    const {error}=await supabase.from("voax_ban_appeals").update({status,reviewed_by:session.user.id,response,resolved_at:status==="reviewing"?null:new Date().toISOString()}).eq("id",item.id);
+    if(error){setNotice("Couldn't update appeal: "+error.message);return;}
+    await log("reviewed_ban_appeal","voax_ban_appeals",item.id,{status});setNotice("Appeal updated.");await load();
+  }
+  if(loading)return <PageFrame active={mode==="admin"?"admin":"mod"}><div className="discovery-page"><div className="discovery-loading">Checking staff access…</div></div></PageFrame>;
+  if(!allowed)return <PageFrame active={mode==="admin"?"admin":"mod"}><div className="discovery-page"><div className="admin-denied"><span><Icon name="shield" size={26}/></span><h1>Staff access required</h1><p>This account doesn't have permission to open this panel.</p><a className="discovery-primary" href="/app">Return to Voax</a></div></div></PageFrame>;
+  const isAdmin=staffRole==="owner"||staffRole==="admin";
+  const nav:[AdminSection,string,string][] = mode==="admin"
+    ? [["overview","Overview","zap"],["approvals","Explore approvals","shield"],["reports","Reports","flag"],["bans","Account bans","lock"],["appeals","Ban appeals","inbox"],["servers","Servers","users"],["users","Users","users"],["staff","Staff & roles","shield-check"],["audit","Audit log","inbox"]]
+    : [["reports","Reports","flag"],["bans","Account bans","lock"],["appeals","Ban appeals","inbox"]];
+  const username=(id:string)=>users.find(user=>user.id===id)?.username||"Unknown user";
+  const reportTarget=(item:any)=>item.snapshot?.username||item.snapshot?.author_name||item.snapshot?.server_name||item.target_user_id||item.target_server_id||item.target_message_id||"Unknown target";
+  return <PageFrame active={mode==="admin"?"admin":"mod"}><div className="admin-layout">
+    <aside className="admin-sidebar"><span className="discovery-eyebrow">VOAX CONTROL CENTER</span><h2>{mode==="admin"?"Administration":"Moderation"}</h2>{nav.map(([id,label,icon])=><button key={id} className={section===id?"active":""} onClick={()=>setSection(id as AdminSection)}><Icon name={icon} size={17}/>{label}{id==="approvals"&&pending.length>0&&<i>{pending.length}</i>}{id==="reports"&&stats.reports>0&&<i>{stats.reports}</i>}{id==="appeals"&&stats.appeals>0&&<i>{stats.appeals}</i>}</button>)}<div className="admin-sidebar-bottom"><a href="/explore"><Icon name="search" size={15}/> Explore</a><a href="/app"><Icon name="chevron" size={15}/> Back to Voax</a></div></aside>
+    <main className="admin-content"><header className="admin-header"><div><span className="discovery-eyebrow">VOAX {mode==="admin"?"ADMIN":"MODERATION"} · {staffRole?.toUpperCase()}</span><h1>{nav.find(item=>item[0]===section)?.[1]||"Moderation"}</h1><p>{mode==="admin"?"Manage Voax staff, platform safety and community discovery.":"Review reports and protect the Voax community."}</p></div><button className="discovery-secondary" onClick={()=>void load()}><Icon name="refresh" size={15}/> Refresh</button></header>
       {notice&&<div className="discovery-notice">{notice}<button onClick={()=>setNotice("")}>×</button></div>}
-      {section==="overview"&&<><div className="admin-stat-grid">{[["Users",stats.users,"users"],["Servers",stats.servers,"users"],["Published listings",stats.listings,"explore"],["Pending approvals",stats.pending,"clock"],["Open reports",stats.reports,"flag"]].map(([label,value,icon])=><article key={String(label)}><span><Icon name={String(icon)} size={17}/>{label}</span><strong>{formatCount(Number(value))}</strong></article>)}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Needs your attention</h2><span>Moderation queue</span></div>{pending.slice(0,5).map(item=><div className="admin-queue-row" key={item.id}><ServerAvatar name={item.server_name} url={item.icon_url}/><div><strong>{item.server_name}</strong><small>{item.category} · Submitted {new Date(item.submitted_at).toLocaleDateString()}</small></div><button className="discovery-secondary" onClick={()=>setSection("approvals")}>Review</button></div>)}{!pending.length&&<p className="admin-muted">No pending server listings.</p>}</div></>}
-      {section==="approvals"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Pending Explore listings</h2><span>{pending.length} awaiting review</span></div>{pending.map(item=><article className="admin-listing-review" key={item.id}><div className="admin-review-banner">{item.banner_url&&<img src={item.banner_url} alt=""/>}</div><div className="admin-review-content"><div className="admin-review-heading"><ServerAvatar name={item.server_name} url={item.icon_url}/><div><h3>{item.server_name}</h3><span>{item.category} · {new Date(item.submitted_at).toLocaleString()}</span></div></div><strong>{item.short_description}</strong><p>{item.full_description}</p><div className="admin-review-actions"><button className="discovery-primary" onClick={()=>void reviewListing(item,"approved")}><Icon name="shield" size={15}/> Approve</button><button className="discovery-danger" onClick={()=>void reviewListing(item,"rejected")}><Icon name="close" size={15}/> Reject</button></div></div></article>)}{!pending.length&&<p className="admin-muted">The approval queue is clear.</p>}</div>}
-      {section==="reports"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Server listing reports</h2><span>{reports.filter(item=>item.status==="open").length} open</span></div>{reports.map(item=><article className="admin-report-row" key={item.id}><div><strong>{item.server_discovery?.server_name||"Server listing"}</strong><p>{item.reason}</p>{item.details&&<small>{item.details}</small>}<span>{new Date(item.created_at).toLocaleString()} · {item.status}</span></div><div className="admin-report-actions"><button onClick={()=>void updateReport(item,"reviewing")}>Review</button><button onClick={()=>void updateReport(item,"resolved")}>Resolve</button><button onClick={()=>void updateReport(item,"dismissed")}>Dismiss</button></div></article>)}{!reports.length&&<p className="admin-muted">No reports have been submitted.</p>}</div>}
-      {section==="servers"&&<><div className="admin-panel"><div className="admin-panel-heading"><h2>Explore listings</h2><span>{allListings.length} total</span></div>{allListings.map(item=><div className="admin-queue-row" key={item.id}><div><strong>{item.server_name}</strong><small>{item.category} · {item.listing_status}{item.listing_enabled?" · visible":" · hidden"}</small></div><button className="discovery-secondary" onClick={()=>void toggleFeatured(item)}>{item.is_featured?"Remove featured":"Feature server"}</button></div>)}{!allListings.length&&<p className="admin-muted">No server listings have been submitted.</p>}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Servers</h2><span>{servers.length} recently created</span></div><div className="admin-table"><div className="admin-table-head"><span>Server</span><span>Created</span><span>Owner ID</span></div>{servers.map(item=><div className="admin-table-row" key={item.id}><strong>{item.name}</strong><span>{new Date(item.created_at).toLocaleDateString()}</span><code>{item.created_by}</code></div>)}</div></div></>}
-      {section==="users"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Users</h2><span>Latest 100 accounts</span></div><div className="admin-table"><div className="admin-table-head"><span>Username</span><span>Status</span><span>Joined</span></div>{users.map(item=><div className="admin-table-row" key={item.id}><strong>{item.username||"Player"}</strong><span>{item.status||"Offline"}</span><span>{new Date(item.created_at).toLocaleDateString()}</span></div>)}</div></div>}
-      {section==="audit"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Administrative activity</h2><span>Latest 100 actions</span></div>{audit.map(item=><div className="admin-audit-row" key={item.id}><span><Icon name="shield" size={15}/></span><div><strong>{item.action.replaceAll("_"," ")}</strong><small>{item.target_type} · {item.target_id||"—"}</small></div><time>{new Date(item.created_at).toLocaleString()}</time></div>)}{!audit.length&&<p className="admin-muted">No administrative actions recorded yet.</p>}</div>}
+      {section==="overview"&&mode==="admin"&&<><div className="admin-stat-grid">{[["Users",stats.users,"users"],["Servers",stats.servers,"users"],["Published listings",stats.listings,"explore"],["Pending approvals",stats.pending,"clock"],["Open reports",stats.reports,"flag"],["Active bans",stats.bans,"lock"],["Open appeals",stats.appeals,"inbox"]].map(([label,value,icon])=><article key={String(label)}><span><Icon name={String(icon)} size={17}/>{label}</span><strong>{formatCount(Number(value))}</strong></article>)}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Needs your attention</h2><span>Moderation queue</span></div>{reports.filter(item=>item.status==="open").slice(0,5).map(item=><div className="admin-queue-row" key={item.id}><div><strong>{item.target_type} report · {reportTarget(item)}</strong><small>{item.reason} · {new Date(item.created_at).toLocaleDateString()}</small></div><button className="discovery-secondary" onClick={()=>setSection("reports")}>Review</button></div>)}{!reports.some(item=>item.status==="open")&&<p className="admin-muted">No open reports.</p>}</div></>}
+      {section==="approvals"&&mode==="admin"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Pending Explore listings</h2><span>{pending.length} awaiting review</span></div>{pending.map(item=><article className="admin-listing-review" key={item.id}><div className="admin-review-banner">{item.banner_url&&<img src={item.banner_url} alt=""/>}</div><div className="admin-review-content"><div className="admin-review-heading"><ServerAvatar name={item.server_name} url={item.icon_url}/><div><h3>{item.server_name}</h3><span>{item.category} · {new Date(item.submitted_at).toLocaleString()}</span></div></div><strong>{item.short_description}</strong><p>{item.full_description}</p><div className="admin-review-actions"><button className="discovery-primary" onClick={()=>void reviewListing(item,"approved")}><Icon name="shield" size={15}/> Approve</button><button className="discovery-danger" onClick={()=>void reviewListing(item,"rejected")}><Icon name="close" size={15}/> Reject</button></div></div></article>)}{!pending.length&&<p className="admin-muted">The approval queue is clear.</p>}</div>}
+      {section==="reports"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Community reports</h2><span>{reports.filter(item=>item.status==="open").length} open · {reports.length} total</span></div>{reports.map(item=><article className="admin-report-row" key={item.id}><div><strong>{item.target_type.toUpperCase()} report · {reportTarget(item)}</strong><p>{item.reason}</p>{item.details&&<small>{item.details}</small>}<span>{new Date(item.created_at).toLocaleString()} · {item.status}</span>{item.snapshot?.body&&<blockquote>{String(item.snapshot.body).slice(0,500)}</blockquote>}{Array.isArray(item.snapshot?.attachments)&&item.snapshot.attachments.map((attachment:any,index:number)=><a key={index} href={attachment.url||undefined} target="_blank" rel="noreferrer">{attachment.name||"Reported attachment"}</a>)}</div><div className="admin-report-actions"><button onClick={()=>void reviewReport(item,"reviewing")}>Review</button>{(item.target_user_id||item.snapshot?.author_id)&&<button onClick={()=>void issueBan(item.target_user_id||item.snapshot.author_id)}>Ban user</button>}<button onClick={()=>void reviewReport(item,"resolved")}>Resolve</button><button onClick={()=>void reviewReport(item,"dismissed")}>Dismiss</button></div></article>)}{!reports.length&&<p className="admin-muted">No reports have been submitted.</p>}</div>}
+      {section==="bans"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Account bans</h2><span>{bans.filter(item=>item.status==="active").length} active · {bans.length} total</span></div>{bans.map(item=><article className="admin-report-row" key={item.id}><div><strong>{username(item.user_id)} · {item.duration}</strong><p>{item.reason}</p><span>{item.status} · {new Date(item.created_at).toLocaleString()}{item.expires_at?" · Expires "+new Date(item.expires_at).toLocaleString():" · No expiry"}</span></div><div className="admin-report-actions">{item.status==="active"&&isAdmin&&<button onClick={()=>void revokeBan(item.user_id)}>Revoke ban</button>}</div></article>)}{!bans.length&&<p className="admin-muted">No account bans have been issued.</p>}</div>}
+      {section==="appeals"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Ban appeals</h2><span>{appeals.filter(item=>item.status==="open").length} open · {appeals.length} total</span></div>{appeals.map(item=><article className="admin-report-row" key={item.id}><div><strong>{username(item.user_id)} · {item.status}</strong><p>{item.message}</p>{item.response&&<small>{item.response}</small>}<span>{new Date(item.created_at).toLocaleString()}</span></div><div className="admin-report-actions"><button onClick={()=>void reviewAppeal(item,"reviewing")}>Review</button>{isAdmin&&<><button onClick={()=>void reviewAppeal(item,"accepted")}>Accept & unban</button><button onClick={()=>void reviewAppeal(item,"rejected")}>Reject</button></>}</div></article>)}{!appeals.length&&<p className="admin-muted">No ban appeals have been submitted.</p>}</div>}
+      {section==="servers"&&mode==="admin"&&<><div className="admin-panel"><div className="admin-panel-heading"><h2>Explore listings</h2><span>{allListings.length} total</span></div>{allListings.map(item=><div className="admin-queue-row" key={item.id}><div><strong>{item.server_name}</strong><small>{item.category} · {item.listing_status}{item.listing_enabled?" · visible":" · hidden"}</small></div><button className="discovery-secondary" onClick={()=>void toggleFeatured(item)}>{item.is_featured?"Remove featured":"Feature server"}</button></div>)}{!allListings.length&&<p className="admin-muted">No server listings have been submitted.</p>}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Servers</h2><span>{servers.length} recently created</span></div><div className="admin-table"><div className="admin-table-head"><span>Server</span><span>Created</span><span>Owner ID</span></div>{servers.map(item=><div className="admin-table-row" key={item.id}><strong>{item.name}</strong><span>{new Date(item.created_at).toLocaleDateString()}</span><code>{item.created_by}</code></div>)}</div></div></>}
+      {section==="users"&&mode==="admin"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Users</h2><span>Latest {users.length} accounts</span></div><div className="admin-table"><div className="admin-table-head"><span>Username</span><span>Status</span><span>Joined</span><span>Action</span></div>{users.map(item=><div className="admin-table-row" key={item.id}><strong>{item.username||"Player"}</strong><span>{item.status||"Offline"}</span><span>{new Date(item.created_at).toLocaleDateString()}</span><button className="discovery-danger" onClick={()=>void issueBan(item.id)}>Ban</button></div>)}</div></div>}
+      {section==="staff"&&mode==="admin"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Staff & roles</h2><span>{staff.length} staff members</span></div><p className="admin-muted">Owners have full control. Admins can manage moderators. Moderators can review reports and issue temporary bans.</p>{users.map(user=>{const current=staff.find(item=>item.user_id===user.id)?.role as StaffRole|undefined;const isProtected=current==="owner";return <div className="admin-queue-row" key={user.id}><div><strong>{user.username||"Player"}</strong><small>{current?current.toUpperCase():"Member"}</small></div><select aria-label={"Staff role for "+(user.username||"user")} value={current||"member"} disabled={user.id===session.user.id||isProtected||(staffRole==="admin"&&current&&current!=="moderator")} onChange={e=>void assignStaffRole(user.id,e.target.value==="member"?null:e.target.value as StaffRole)}><option value="member">Member</option><option value="moderator">Moderator</option>{staffRole==="owner"&&<><option value="admin">Admin</option><option value="owner">Owner</option></>}</select></div>;})}</div>}
+      {section==="audit"&&mode==="admin"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Administrative activity</h2><span>Latest {audit.length} actions</span></div>{audit.map(item=><div className="admin-audit-row" key={item.id}><span><Icon name="shield" size={15}/></span><div><strong>{item.action.replaceAll("_"," ")}</strong><small>{item.target_type} · {item.target_id||"—"}</small></div><time>{new Date(item.created_at).toLocaleString()}</time></div>)}{!audit.length&&<p className="admin-muted">No administrative actions recorded yet.</p>}</div>}
     </main>
   </div></PageFrame>;
 }
