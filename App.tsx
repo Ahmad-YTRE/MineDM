@@ -749,7 +749,7 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(viewRef.current==="channel"&&activeRef.current===row.channel_id))return;const key=keyFor("channel",row.channel_id);setUnread(old=>({...old,[key]:(old[key]||0)+1}));}).subscribe();return()=>{void supabase.removeChannel(channel);};},[session.user.id]);
 
   useEffect(()=>{
-    if(view!=="channel"||messagesLoading)return;
+    if((view!=="channel"&&view!=="dm")||messagesLoading)return;
     const scrollContainer=document.querySelector<HTMLElement>(".message-scroll");
     if(scrollContainer)scrollContainer.scrollTop=scrollContainer.scrollHeight;
   },[active,activeKey,view,messagesLoading]);
