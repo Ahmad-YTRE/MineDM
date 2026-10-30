@@ -1217,18 +1217,22 @@ function App({ session }: { session: Session }) {
     setPendingAttachments(old=>old.filter(item=>item.path!==attachment.path));
   }
   function updateMentionSuggestions(value:string){
-    if(view!=="channel"){setMentionMenu(null);return;}
-    const match=value.match(/(?:^|\s)@([A-Za-z0-9_ -]*)$/);
+    const match=value.match(/(?:^|\\s)@([A-Za-z0-9_ -]*)$/);
     if(!match){setMentionMenu(null);return;}
     const query=match[1].toLocaleLowerCase();
     const start=value.length-match[1].length-1;
-    const options:MentionSuggestion[]=[
-      {type:"everyone" as const,label:"everyone",detail:"Mention everyone in this server"},
-      {type:"here" as const,label:"here",detail:"Mention members who are Online or Idle"},
-      ...serverMemberPeople.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
-      ...customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"}))
-    ].filter(option=>option.label.toLocaleLowerCase().startsWith(query)).slice(0,8);
-    setMentionMenu(options.length?{start,options}:null);
+    const options:MentionSuggestion[]=view==="channel"
+      ? [
+          {type:"everyone",label:"everyone",detail:"Mention everyone in this server"},
+          {type:"here",label:"here",detail:"Mention members who are Online or Idle"},
+          ...serverMemberPeople.filter(person=>person.name&&person.name!=="Player"&&person.id!==session.user.id).map(person=>({type:"user" as const,id:person.id,label:person.name,detail:"Member"})),
+          ...customServerRoles.map(role=>({type:"role" as const,id:role.id,label:role.name,detail:"Role mention"}))
+        ]
+      : activePerson
+        ? [{type:"user",id:activePerson.id,label:activePerson.name,detail:"Direct message"}]
+        : [];
+    const filtered=options.filter(option=>option.label.toLocaleLowerCase().startsWith(query)).slice(0,8);
+    setMentionMenu(filtered.length?{start,options:filtered}:null);
   }
   function chooseMentionSuggestion(option:MentionSuggestion){
     if(!mentionMenu)return;
