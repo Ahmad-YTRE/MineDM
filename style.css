@@ -3463,3 +3463,29 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   width: 30px;
 }
 .message-group-continuation .message-body > p:first-child { margin-top: 0; }
+
+
+/* Numeric unread-message badges on DM avatar shortcuts */
+.server-rail .dm-unread-shortcut .dm-unread-count {
+  position: absolute;
+  right: -7px;
+  bottom: -6px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 5px;
+  border: 2px solid var(--panel, #111720);
+  border-radius: 999px;
+  background: #ed4245;
+  color: #fff;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  box-shadow: 0 1px 5px #0007;
+}
+:root[data-theme="light"] .server-rail .dm-unread-shortcut .dm-unread-count {
+  border-color: #edf2f8;
+}
