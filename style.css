@@ -3351,3 +3351,16 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+
+/* Platform staff controls */
+.staff-rail-button {
+  margin-top: 4px;
+  border: 1px solid rgba(110, 231, 183, .16) !important;
+  color: #9aa8bd;
+}
+.staff-rail-button:hover {
+  color: #d8fff0;
+  background: rgba(52, 211, 153, .12);
+  border-color: rgba(110, 231, 183, .36) !important;
+}
