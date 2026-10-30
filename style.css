@@ -2573,3 +2573,13 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 :root[data-theme="light"] .brand-unread-badge{border-color:#edf2f8}
 @media(max-width:650px){.brand-unread-badge{right:-4px;bottom:-4px;min-width:16px;height:16px;font-size:8px}}
+
+
+/* Unread channel messages are indicated by stronger channel-name text, not a count badge. */
+.nav-item.channel-unread .channel-name {
+  color: var(--text, #f2f3f5);
+  font-weight: 800;
+}
+.nav-item.channel-unread .hash {
+  color: var(--text, #f2f3f5);
+}
