@@ -62,6 +62,19 @@ async function loadCachedProfiles(ids: string[]): Promise<CachedProfile[]> {
   }
   return uniqueIds.map(id => profileCache.get(id)?.value).filter((profile): profile is CachedProfile => Boolean(profile));
 }
+type CachedNotificationOverride = { scope_type: "server" | "channel"; scope_id: string; mode: "all" | "mentions" | "none" | "muted" };
+const NOTIFICATION_OVERRIDE_CACHE_TTL_MS = 30_000;
+const notificationOverrideCache = new Map<string, { value: CachedNotificationOverride[]; expiresAt: number }>();
+async function loadCachedNotificationOverrides(userId: string): Promise<CachedNotificationOverride[]> {
+  const now = Date.now();
+  const cached = notificationOverrideCache.get(userId);
+  if (cached && cached.expiresAt > now) return cached.value;
+  const { data, error } = await supabase.from("notification_overrides").select("scope_type,scope_id,mode").eq("user_id", userId);
+  if (error) throw error;
+  const value = (data || []) as CachedNotificationOverride[];
+  notificationOverrideCache.set(userId, { value, expiresAt: now + NOTIFICATION_OVERRIDE_CACHE_TTL_MS });
+  return value;
+}
 function keyFor(view: "channel" | "dm", name: string) { return view === "channel" ? "channel:" + name : "dm:" + name.toLowerCase(); }
 function escapeMentionLabel(value: string) { return value.replace(/[.*+?^$()|[\]\\]/g, ch => "\\" + ch); }
 function buildMentionTokens(body: string, members: Person[], roles: ServerRole[]): MentionToken[] {
@@ -448,12 +461,11 @@ function App({ session }: { session: Session }) {
     channel.on("presence",{event:"sync"},sync).subscribe(async state=>{if(state==="SUBSCRIBED"){if(status==="Offline")await channel.untrack();else await channel.track({userId:session.user.id,status,online_at:new Date().toISOString()});sync();}});
     return()=>{void channel.untrack();void supabase.removeChannel(channel);};
   },[session.user.id,status]);
-  useEffect(()=>{const publish=async()=>{const stamp=new Date().toISOString();const {error}=await supabase.from("user_presence").upsert({user_id:session.user.id,status,last_seen_at:stamp},{onConflict:"user_id"});if(error)console.warn("Presence sync failed",error.message);};void publish();const heartbeat=window.setInterval(()=>{void publish();},30000);return()=>window.clearInterval(heartbeat);},[session.user.id,status]);
   useEffect(()=>{setPeople(old=>old.map(person=>({...person,online:Boolean(presenceByUser[person.id]&&presenceByUser[person.id]!=="Offline"),status:presenceByUser[person.id]||"Offline"})));},[presenceByUser]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_blocks").select("blocked_actor_id").eq("user_id",session.user.id);if(cancelled)return;if(error){console.warn("Notification blocks unavailable",error.message);}else setBlockedNotificationActors((data||[]).map(row=>row.blocked_actor_id));};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("user_notification_preferences").select("global_mode,direct_mentions_enabled,role_mentions_enabled,everyone_mentions_enabled,here_mentions_enabled").eq("user_id",session.user.id).maybeSingle();if(cancelled)return;if(error){notify("Unable to load notification preferences: "+error.message);return;}if(data){setGlobalNotificationMode(data.global_mode||"all");setDirectMentionsEnabled(data.direct_mentions_enabled!==false);setRoleMentionsEnabled(data.role_mentions_enabled!==false);setEveryoneMentionsEnabled(data.everyone_mentions_enabled!==false);setHereMentionsEnabled(data.here_mentions_enabled!==false);}};void load();return()=>{cancelled=true;};},[session.user.id]);
   useEffect(()=>{if(!activeServer)return;let cancelled=false;const load=async()=>{const {data,error}=await supabase.from("server_ping_settings").select("confirmation_threshold,cooldown_seconds,admin_mass_pings_enabled,direct_targets_per_10s,role_actions_per_60s,messages_per_5s").eq("server_id",activeServer).maybeSingle();if(cancelled)return;if(error){console.warn("Ping settings unavailable",error.message);return;}if(data)setServerPingSettings({confirmation_threshold:data.confirmation_threshold??25,cooldown_seconds:data.cooldown_seconds??60,admin_mass_pings_enabled:data.admin_mass_pings_enabled??true,direct_targets_per_10s:data.direct_targets_per_10s??10,role_actions_per_60s:data.role_actions_per_60s??5,messages_per_5s:data.messages_per_5s??5});};void load();return()=>{cancelled=true;};},[activeServer]);
-  useEffect(()=>{let cancelled=false;const load=async()=>{const scopes=[...(activeServer?[{type:"server",id:activeServer}]:[]),...(view==="channel"&&active?[{type:"channel",id:active}]:[])];if(!scopes.length){setServerNotificationMode("inherit");setChannelNotificationMode("inherit");return;}const {data,error}=await supabase.from("notification_overrides").select("scope_type,scope_id,mode").eq("user_id",session.user.id).in("scope_id",scopes.map(scope=>scope.id));if(cancelled)return;if(error){console.warn("Notification overrides unavailable",error.message);return;}const serverMode=data?.find(row=>row.scope_type==="server"&&row.scope_id===activeServer)?.mode;const channelMode=data?.find(row=>row.scope_type==="channel"&&row.scope_id===active)?.mode;setServerNotificationMode((serverMode as any)||"inherit");setChannelNotificationMode((channelMode as any)||"inherit");};void load();return()=>{cancelled=true;};},[session.user.id,activeServer,active,view]);
+  useEffect(()=>{let cancelled=false;const load=async()=>{if(!activeServer&&!(view==="channel"&&active)){setServerNotificationMode("inherit");setChannelNotificationMode("inherit");return;}try{const data=await loadCachedNotificationOverrides(session.user.id);if(cancelled)return;const serverMode=data.find(row=>row.scope_type==="server"&&row.scope_id===activeServer)?.mode;const channelMode=data.find(row=>row.scope_type==="channel"&&row.scope_id===active)?.mode;setServerNotificationMode(serverMode||"inherit");setChannelNotificationMode(channelMode||"inherit");}catch(error){if(!cancelled)console.warn("Notification overrides unavailable",error instanceof Error?error.message:error);}};void load();return()=>{cancelled=true;};},[session.user.id,activeServer,active,view]);
   useEffect(()=>{
     let cancelled=false;
     const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at,interruptive").order("created_at",{ascending:false}).limit(100);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}const rows=(data||[]) as AppNotification[];rows.forEach(row=>seenNotificationIdsRef.current.add(row.id));setNotifications(current=>[...current.filter(row=>!rows.some(loaded=>loaded.id===row.id)),...rows].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,100));};
@@ -942,9 +954,13 @@ function App({ session }: { session: Session }) {
     window.setTimeout(()=>document.querySelector<HTMLInputElement>(".composer input[aria-label='Message']")?.focus(),0);
   }
   async function saveNotificationOverride(scopeType:"server"|"channel",scopeId:string,mode:"inherit"|"all"|"mentions"|"none"|"muted"){
-    const {error:deleteError}=await supabase.from("notification_overrides").delete().eq("user_id",session.user.id).eq("scope_type",scopeType).eq("scope_id",scopeId);
-    if(deleteError){notify("Couldn’t update notification override: "+deleteError.message);return;}
-    if(mode!=="inherit"){const {error}=await supabase.from("notification_overrides").insert({user_id:session.user.id,scope_type:scopeType,scope_id:scopeId,mode});if(error){notify("Couldn’t save notification override: "+error.message);return;}}
+    const request=mode==="inherit"
+      ?supabase.from("notification_overrides").delete().eq("user_id",session.user.id).eq("scope_type",scopeType).eq("scope_id",scopeId)
+      :supabase.from("notification_overrides").upsert({user_id:session.user.id,scope_type:scopeType,scope_id:scopeId,mode},{onConflict:"user_id,scope_type,scope_id"});
+    const {error}=await request;
+    if(error){notify("Couldn’t save notification override: "+error.message);return;}
+    const cached=notificationOverrideCache.get(session.user.id);
+    if(cached){const value=cached.value.filter(row=>row.scope_type!==scopeType||row.scope_id!==scopeId);if(mode!=="inherit")value.push({scope_type:scopeType,scope_id:scopeId,mode});notificationOverrideCache.set(session.user.id,{value,expiresAt:Date.now()+NOTIFICATION_OVERRIDE_CACHE_TTL_MS});}
     if(scopeType==="server")setServerNotificationMode(mode);else setChannelNotificationMode(mode);notify("Notification override saved.");
   }
   async function saveUserNotificationPreferences(changes:Partial<{global_mode:"all"|"mentions"|"none";direct_mentions_enabled:boolean;role_mentions_enabled:boolean;everyone_mentions_enabled:boolean;here_mentions_enabled:boolean}>){
