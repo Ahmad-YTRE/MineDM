@@ -45,9 +45,9 @@ function EmojiPicker({ onSelect }: { onSelect: (emoji: string) => void }) {
         {options.map(({emoji,label}) => <button type="button" key={emoji + label} title={label} aria-label={label} onClick={() => choose(emoji)}><Twemoji emoji={emoji} /></button>)}
         {!options.length && <span className="emoji-picker-empty">No matching emoji</span>}
       </div>
-      <form className="emoji-picker-custom" onSubmit={event => { event.preventDefault(); const value = Array.from(customEmoji.trim()).filter(char => /\p{Extended_Pictographic}/u.test(char)).join(""); if (value) choose(value); }}>
+      <form className="emoji-picker-custom" onSubmit={event => { event.preventDefault(); const value = customEmoji.trim(); if (/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20E3]/u.test(value)) choose(value); }}>
         <input value={customEmoji} onChange={event => setCustomEmoji(event.target.value)} placeholder="Or paste any emoji…" aria-label="Paste any emoji" />
-        <button type="submit" disabled={!/\p{Extended_Pictographic}/u.test(customEmoji)}>React</button>
+        <button type="submit" disabled={!/[\p{Extended_Pictographic}\p{Regional_Indicator}\u20E3]/u.test(customEmoji)}>React</button>
       </form>
     </div>}
   </div>;
