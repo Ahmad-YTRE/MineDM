@@ -486,6 +486,7 @@ function App({ session }: { session: Session }) {
   const [people, setPeople] = useState<Person[]>([]);
   const [messages, setMessages] = useState<Record<string, Message[]>>({});
   const [conversationIds, setConversationIds] = useState<Record<string, string>>({});
+  const [dmActivity, setDmActivity] = useState<Record<string, number>>({});
   const [active, setActive] = useState("");
   const initialRouteHandled = useRef(false);
   const [view, setView] = useState<"channel" | "dm" | "friends" | "home">(path.startsWith("/dm/") ? "dm" : path.startsWith("/channels/") ? "channel" : window.location.search === "?view=friends" ? "friends" : "home");
@@ -797,7 +798,7 @@ function App({ session }: { session: Session }) {
   const visibleMessages = search.trim() && (view === "channel" || view === "dm")
     ? currentMessages.filter(message => message.text.toLowerCase().includes(search.trim().toLowerCase()) || message.author.toLowerCase().includes(search.trim().toLowerCase()))
     : currentMessages;
-  const filteredPeople = useMemo(() => people.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || p.online) && (view !== "friends" || p.isFriend) && (view !== "home" || p.hasConversation)), [people, search, filter, view]);
+  const filteredPeople = useMemo(() => people.filter(p => p.name.toLowerCase().includes(search.toLowerCase()) && (filter === "all" || p.online) && (view !== "friends" || p.isFriend) && (view !== "home" || p.hasConversation)).sort((a,b) => (dmActivity[b.id] || 0) - (dmActivity[a.id] || 0)), [people, search, filter, view, dmActivity]);
   const filteredChannels = serverChannels.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
   const channelGroups = useMemo(() => { const groups: Record<string, Channel[]> = {}; for (const channel of filteredChannels) (groups[channel.category || "Text Channels"] ||= []).push(channel); return Object.entries(groups); }, [filteredChannels]);
 
@@ -1042,12 +1043,18 @@ function App({ session }: { session: Session }) {
     const convMembersPromise=convIds.length
       ?supabase.from("conversation_members").select("conversation_id,user_id").in("conversation_id",convIds)
       :Promise.resolve({data:[],error:null});
+    const latestMessagesPromise=convIds.length
+      ?supabase.from("messages").select("conversation_id,created_at").in("conversation_id",convIds).order("created_at",{ascending:false}).limit(1000)
+      :Promise.resolve({data:[],error:null});
     const unreadCountsPromise=channelRows.length
       ?supabase.rpc("get_unread_channel_counts")
       :Promise.resolve({data:[],error:null});
-    const [convMembersResult,unreadCountsResult]=await Promise.all([convMembersPromise,unreadCountsPromise]);
+    const [convMembersResult,latestMessagesResult,unreadCountsResult]=await Promise.all([convMembersPromise,latestMessagesPromise,unreadCountsPromise]);
     if(convMembersResult.error)throw convMembersResult.error;
+    if(latestMessagesResult.error)throw latestMessagesResult.error;
     if(unreadCountsResult.error)throw unreadCountsResult.error;
+    const latestActivityByConversation:Record<string,number>={};
+    for(const row of latestMessagesResult.data||[])if(row.conversation_id&&!latestActivityByConversation[row.conversation_id])latestActivityByConversation[row.conversation_id]=new Date(row.created_at).getTime();
     const convMembers:any[]=convMembersResult.data||[];
     const unreadByChannel:Record<string,number>=Object.fromEntries((unreadCountsResult.data||[]).map((row:{channel_id:string;unread_count:number|string})=>[keyFor("channel",row.channel_id),Number(row.unread_count)||0]));
     const related=new Set<string>();
@@ -1057,8 +1064,9 @@ function App({ session }: { session: Session }) {
     const profiles=await loadCachedProfiles([...related]);
     const friendIds=new Set<string>();
     for(const row of friendships||[])if(row.status==="accepted")friendIds.add(row.requester_id===uid?row.addressee_id:row.requester_id);
-    const convMap:Record<string,string>={};
-    for(const row of convMembers)if(row.user_id!==uid&&convIds.includes(row.conversation_id)&&!convMap[row.user_id])convMap[row.user_id]=row.conversation_id;
+    const convMap:Record<string,string>={},activityByPerson:Record<string,number>={};
+    for(const row of convMembers)if(row.user_id!==uid&&convIds.includes(row.conversation_id)&&!convMap[row.user_id]){convMap[row.user_id]=row.conversation_id;activityByPerson[row.user_id]=latestActivityByConversation[row.conversation_id]||0;}
+    setDmActivity(activityByPerson);
     const colors=["green","purple","orange","blue","pink"];
     setServers(serverRows.map(row=>({id:row.id,publicId:row.public_id,name:row.name,description:row.description||"Community server",createdBy:row.created_by,inviteCode:row.invite_code,iconUrl:row.icon_url||null,role:ownMemberships?.find(m=>m.server_id===row.id)?.role||"member"})));
     const membersByServer:Record<string,string[]>={},rolesByServer:Record<string,Record<string,"owner"|"admin"|"member">>={};for(const row of serverMemberRows){(membersByServer[row.server_id] ||= []).push(row.user_id);(rolesByServer[row.server_id] ||= {})[row.user_id]=row.role;}setServerMembersByServer(membersByServer);setServerMemberRoles(rolesByServer);
@@ -1176,6 +1184,7 @@ function App({ session }: { session: Session }) {
       conversationId=conversation.id;
     }
     setConversationIds(old=>({...old,[target!.id]:conversationId!}));
+    setDmActivity(old=>({...old,[target!.id]:Date.now()}));
     setPeople(old=>old.some(p=>p.id===target!.id)?old.map(p=>p.id===target!.id?{...p,hasConversation:true}:p):[...old,{...target!,hasConversation:true}]);
     setActive(target.name);setView("dm");setTypingPerson(null);setShowLanding(false);setSidebarOpen(false);
     setUnread(old=>({...old,[keyFor("dm",target!.name)]:0}));const readAt=new Date().toISOString();void supabase.from("notifications").update({read_at:readAt}).eq("recipient_id",session.user.id).eq("entity_id",conversationId).is("read_at",null).then(({error})=>{if(!error)setNotifications(old=>old.map(n=>n.entity_id===conversationId&&!n.read_at?{...n,read_at:readAt}:n));});window.history.pushState({},"",`/dm/${target.publicId||target.id}`);setModal(null);
@@ -1273,7 +1282,8 @@ function App({ session }: { session: Session }) {
     if(!payload?.message?.id){notify("Message not sent: the server returned an invalid response.");return;}
     const data=payload.message;
     const signedAttachments=await signMessageAttachments(data.attachments);
-    const item:Message={id:data.id,author:name,text:data.body,time:formatClock(new Date(data.created_at), clockFormat),timestamp:data.created_at,own:true,...(replyingTo?{replyTo:{author:replyingTo.author,text:replyingTo.text}}:{}),...(signedAttachments.length?{attachments:signedAttachments}:{})};
+    if(activePerson)setDmActivity(old=>({...old,[activePerson.id]:new Date(data.created_at).getTime()}));
+     const item:Message={id:data.id,author:name,text:data.body,time:formatClock(new Date(data.created_at), clockFormat),timestamp:data.created_at,own:true,...(replyingTo?{replyTo:{author:replyingTo.author,text:replyingTo.text}}:{}),...(signedAttachments.length?{attachments:signedAttachments}:{})};
     setMessages(old=>{const list=old[activeKey]||old[active]||[];const next=list.some(m=>m.id===item.id)?list:[...list,item];return{...old,[activeKey]:next,[active]:next};});
     setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setMentionMenu(null);setReplyingTo(null);setPendingAttachments([]);
   }
