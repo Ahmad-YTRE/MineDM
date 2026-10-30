@@ -769,7 +769,7 @@ function App({ session }: { session: Session }) {
   },[pendingMentionJumpId,view,active,activeKey,messagesLoading,messages]);
 
   useEffect(()=>{
-    const conversationId=view==="dm"&&activePerson?conversationIds[activePerson.id]:null;
+    const conversationId=activeConversationId;
     if(!conversationId){voiceChannelRef.current=null;return;}
     const channel=supabase.channel("voax-voice-"+conversationId,{config:{broadcast:{self:false},private:true}});
     voiceChannelRef.current=channel;
@@ -783,7 +783,7 @@ function App({ session }: { session: Session }) {
       }catch(error){notify("Voice connection error: "+(error instanceof Error?error.message:"Please try again."));}
     }).subscribe();
     return()=>{if(voiceChannelRef.current===channel)voiceChannelRef.current=null;void supabase.removeChannel(channel);if(peerConnectionRef.current)stopVoiceCall(false);};
-  },[view,activePerson?.id,conversationIds,session.user.id]);
+  },[view,activePerson?.id,activeConversationId,session.user.id]);
   useEffect(()=>{
     if(typingTimeoutRef.current!==null)window.clearTimeout(typingTimeoutRef.current);
     const channel=supabase.channel("voax-typing-"+activeKey);
