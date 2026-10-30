@@ -1663,15 +1663,21 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 :root[data-theme="light"] .discord-settings-nav {
   position: relative;
 }
+.discord-settings-nav {
+  position: relative;
+  padding-bottom: 76px;
+}
 .discord-settings-nav button.discord-settings-signout {
   display: flex !important;
-  flex: 0 0 auto;
-  position: sticky;
-  bottom: 0;
-  z-index: 2;
-  width: 100%;
+  flex: 0 0 42px;
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 18px;
+  z-index: 5;
+  width: calc(100% - 24px);
   min-height: 42px;
-  margin-top: auto;
+  margin: 0;
   padding: 0 10px;
   border: 1px solid #fb718530;
   border-radius: 8px;
@@ -1681,8 +1687,7 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   visibility: visible;
 }
 .discord-settings-nav-spacer {
-  flex: 1 0 18px;
-  min-height: 18px;
+  display: none;
 }
 @media (max-height: 620px) {
   .discord-settings-layout { min-height: 0; }
