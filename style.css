@@ -3191,3 +3191,33 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .category-add-channel:hover { background:#ffffff12; color:#eafaff; }
 :root[data-theme="light"] .category-add-channel:hover { background:#e4ebf3; color:#172033; }
 @media (hover:none) { .category-add-channel { opacity:1; pointer-events:auto; } }
+
+
+.mention-suggestion-avatar { display:grid; place-items:center; flex:0 0 30px; width:30px; height:30px; overflow:hidden; border-radius:50%; background:var(--surface-2, #303846); color:var(--text, #fff); font-size:11px; font-weight:700; }
+.mention-suggestion-avatar img { display:block; width:100%; height:100%; object-fit:cover; }
+
+
+/* Composer emoji picker sits beside the optional send action. */
+.composer .emoji-picker-wrap { flex: 0 0 34px; }
+.composer .message-reaction-trigger {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #252e3b;
+  color: var(--text, #e8edf5);
+  cursor: pointer;
+}
+.composer .message-reaction-trigger:hover,
+.composer .message-reaction-trigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, #252e3b);
+}
+.composer .message-reaction-trigger .twemoji { width: 20px; height: 20px; }
+@media (max-width: 380px) {
+  .composer .emoji-picker-wrap,
+  .composer .message-reaction-trigger { width: 30px; height: 30px; flex-basis: 30px; }
+}
