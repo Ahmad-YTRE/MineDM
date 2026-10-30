@@ -2783,3 +2783,69 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .emoji-picker { width: min(304px, calc(100vw - 24px)); padding: 12px; }
   .emoji-picker-grid { grid-template-columns: repeat(7, minmax(0, 1fr)); }
 }
+
+
+/* Small alignment fixes: composer attachment control and profile role action */
+.composer .attach-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  flex: 0 0 36px;
+  line-height: 1;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--card) 82%, var(--panel));
+  color: var(--muted);
+}
+.composer .attach-btn > .ui-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  transform: none;
+  vertical-align: initial;
+}
+.composer .attach-btn:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+  background: color-mix(in srgb, var(--accent) 9%, var(--card));
+}
+.composer .attach-btn:disabled { opacity: .55; }
+.profile-server-roles-heading .profile-add-role {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  height: 28px;
+  min-height: 28px;
+  padding: 0;
+  flex: 0 0 28px;
+  line-height: 1;
+}
+.profile-server-roles-heading .profile-add-role > .ui-icon {
+  display: block;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
+  margin: 0;
+  transform: none;
+}
+.profile-role-picker {
+  width: min(230px, 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.profile-role-picker-option {
+  box-sizing: border-box;
+  min-height: 34px;
+}
