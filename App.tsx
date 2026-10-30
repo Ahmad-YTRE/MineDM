@@ -494,7 +494,8 @@ function App({ session }: { session: Session }) {
   const [view, setView] = useState<"channel" | "dm" | "friends" | "home">(path.startsWith("/dm/") ? "dm" : path.startsWith("/channels/") ? "channel" : window.location.search === "?view=friends" ? "friends" : "home");
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
-  const [modal, setModalState] = useState<"dm" | "friend" | "channel" | "server" | "joinServer" | "manageServer" | "manageRoles" | "manageChannel" | "confirmDelete" | "settings" | "inbox" | null>(null);
+  const [modal, setModalState] = useState<"dm" | "friend" | "channel" | "category" | "server" | "joinServer" | "manageServer" | "manageRoles" | "manageChannel" | "confirmDelete" | "settings" | "inbox" | null>(null);
+  const [categoryCreationMode, setCategoryCreationMode] = useState(false);
   const [modalClosing, setModalClosing] = useState(false);
   const modalCloseTimerRef = useRef<number | null>(null);
   function setModal(next: typeof modal) {
