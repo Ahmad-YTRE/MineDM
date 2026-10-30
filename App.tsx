@@ -496,6 +496,7 @@ function App({ session }: { session: Session }) {
   const canManageServer = Boolean(isOwnerOrAdmin || myCustomPermissions.manage_server);
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const logoUnreadTotal = notifications.filter(notification => !notification.read_at && notification.type === "mention").length;
+  useEffect(() => { document.title = logoUnreadTotal > 0 ? `Voax [${logoUnreadTotal}]` : "Voax"; }, [logoUnreadTotal]);
 
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
