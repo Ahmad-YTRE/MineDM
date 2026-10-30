@@ -2461,7 +2461,9 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .mention-pill-clickable {
   display: inline-flex;
   align-items: center;
-  vertical-align: baseline;
+  justify-content: center;
+  text-align: center;
+  vertical-align: middle;
   gap: 5px;
   border: 0;
   margin: 0 1px;
