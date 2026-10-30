@@ -2510,3 +2510,36 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 @media (prefers-reduced-motion: reduce) {
   .mention-pill-clickable { transition: none; }
 }
+
+
+/* Keep the mention avatar and label on the same centered row, overriding global button/span rules. */
+.message-content p > .mention-pill-clickable {
+  display: inline-grid !important;
+  grid-template-columns: 16px max-content;
+  grid-auto-flow: column;
+  align-items: center !important;
+  justify-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  height: 24px;
+  line-height: 24px;
+}
+.message-content p > .mention-pill-clickable > .mention-pill-avatar {
+  display: flex !important;
+  align-self: center !important;
+  justify-self: center;
+  position: static !important;
+  float: none !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+.message-content p > .mention-pill-clickable > span:last-child {
+  display: flex !important;
+  align-self: center !important;
+  align-items: center !important;
+  justify-self: center;
+  height: 24px;
+  line-height: 24px;
+  margin: 0 !important;
+  transform: none !important;
+}
