@@ -3180,3 +3180,14 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .server-rail .server-rail-list > button.server-icon.selected {
   border-radius: 11px !important;
 }
+
+
+/* Category headings reveal a compact add-channel action on hover and keyboard focus. */
+.channel-category-label { display:flex; align-items:center; justify-content:space-between; gap:8px; min-height:28px; }
+.channel-category-label > span { min-width:0; overflow:hidden; text-overflow:ellipsis; }
+.category-add-channel { display:grid; place-items:center; flex:0 0 24px; width:24px; height:24px; padding:0; border:0; border-radius:6px; background:transparent; color:#8794a8; opacity:0; pointer-events:none; cursor:pointer; transition:opacity .14s ease,background .14s ease,color .14s ease; }
+.channel-category-label:hover .category-add-channel,
+.channel-category-label:focus-within .category-add-channel { opacity:1; pointer-events:auto; }
+.category-add-channel:hover { background:#ffffff12; color:#eafaff; }
+:root[data-theme="light"] .category-add-channel:hover { background:#e4ebf3; color:#172033; }
+@media (hover:none) { .category-add-channel { opacity:1; pointer-events:auto; } }
