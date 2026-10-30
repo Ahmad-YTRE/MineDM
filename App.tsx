@@ -511,7 +511,8 @@ function App({ session }: { session: Session }) {
   const canManageServer = Boolean(isOwnerOrAdmin || myCustomPermissions.manage_server);
   const serverChannels = channels.filter(c => (c.serverId || "block-buddies") === activeServer);
   const unreadPingNotifications = notifications.filter(notification => !notification.read_at && notification.type === "mention" && notification.actor_id);
-  const inboxNotifications = notifications.filter(notification => notification.type !== "message");
+  const isMessageActivityNotification = (notification: AppNotification) => notification.type === "message" || /\b(sent a message|message sent)\b/i.test(`${notification.title} ${notification.body}`);
+  const inboxNotifications = notifications.filter(notification => !isMessageActivityNotification(notification));
   const inboxUnreadTotal = inboxNotifications.filter(notification => !notification.read_at).length;
   const logoUnreadTotal = unreadPingNotifications.length;
   const pingActors = [...new Map(unreadPingNotifications.map(notification => [notification.actor_id!, notification])).values()]
@@ -586,7 +587,7 @@ function App({ session }: { session: Session }) {
   useEffect(()=>{
     let cancelled=false;
     const load=async()=>{const {data,error}=await supabase.from("notifications").select("id,actor_id,type,title,body,entity_id,read_at,created_at,interruptive").order("created_at",{ascending:false}).limit(100);if(cancelled)return;if(error){notify("Unable to load notifications: "+error.message);return;}const rows=(data||[]) as AppNotification[];rows.forEach(row=>seenNotificationIdsRef.current.add(row.id));setNotifications(current=>[...current.filter(row=>!rows.some(loaded=>loaded.id===row.id)),...rows].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,100));};
-    void load();const channel=supabase.channel("voax-notifications-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+session.user.id},payload=>{const row=payload.new as AppNotification;const isNew=!seenNotificationIdsRef.current.has(row.id);seenNotificationIdsRef.current.add(row.id);setNotifications(old=>[row,...old.filter(n=>n.id!==row.id)].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,100));if(isNew&&row.interruptive!==false)notify(row.title);}).subscribe();
+    void load();const channel=supabase.channel("voax-notifications-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"notifications",filter:"recipient_id=eq."+session.user.id},payload=>{const row=payload.new as AppNotification;const isNew=!seenNotificationIdsRef.current.has(row.id);seenNotificationIdsRef.current.add(row.id);setNotifications(old=>[row,...old.filter(n=>n.id!==row.id)].sort((a,b)=>Date.parse(b.created_at)-Date.parse(a.created_at)).slice(0,100));if(isNew&&row.interruptive!==false&&!isMessageActivityNotification(row))notify(row.title);}).subscribe();
     return()=>{cancelled=true;void supabase.removeChannel(channel);};
   },[session.user.id]);
   useEffect(()=>{const channel=supabase.channel("voax-channel-unread-"+session.user.id).on("postgres_changes",{event:"INSERT",schema:"public",table:"messages"},payload=>{const row=payload.new as {id:string;channel_id:string|null;author_id:string;created_at:string};if(!row.channel_id||row.author_id===session.user.id||(viewRef.current==="channel"&&activeRef.current===row.channel_id))return;const key=keyFor("channel",row.channel_id);setUnread(old=>({...old,[key]:(old[key]||0)+1}));}).subscribe();return()=>{void supabase.removeChannel(channel);};},[session.user.id]);
@@ -1118,7 +1119,7 @@ function App({ session }: { session: Session }) {
     const signedAttachments=await signMessageAttachments(data.attachments);
     const item:Message={id:data.id,author:name,text:data.body,time:formatClock(new Date(data.created_at), clockFormat),timestamp:data.created_at,own:true,...(replyingTo?{replyTo:{author:replyingTo.author,text:replyingTo.text}}:{}),...(signedAttachments.length?{attachments:signedAttachments}:{})};
     setMessages(old=>{const list=old[activeKey]||old[active]||[];const next=list.some(m=>m.id===item.id)?list:[...list,item];return{...old,[activeKey]:next,[active]:next};});
-    setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setMentionMenu(null);setReplyingTo(null);setPendingAttachments([]);notify("Message sent.");
+    setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setMentionMenu(null);setReplyingTo(null);setPendingAttachments([]);
   }
   async function createItem(e:FormEvent){
     e.preventDefault();const value=modalInput.trim();if(!value)return;
