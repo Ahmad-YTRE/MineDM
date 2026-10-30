@@ -2543,3 +2543,18 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   margin: 0 !important;
   transform: none !important;
 }
+
+
+/* Keep settings close controls readable in light mode. */
+:root[data-theme="light"] .discord-settings-modal .modal-x,
+:root[data-theme="light"] .discord-server-settings-modal .modal-x {
+  color: #475569;
+  background: #ffffff;
+  border-color: #d8e1eb;
+}
+:root[data-theme="light"] .discord-settings-modal .modal-x:hover,
+:root[data-theme="light"] .discord-server-settings-modal .modal-x:hover {
+  color: #0f172a;
+  background: #eaf4f8;
+  border-color: #b8dce3;
+}
