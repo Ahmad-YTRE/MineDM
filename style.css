@@ -2558,3 +2558,18 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   background: #eaf4f8;
   border-color: #b8dce3;
 }
+
+/* Aggregate unread activity badge on the Voax home mark. */
+.server-rail .brand-mark{position:relative;overflow:visible}
+.brand-unread-badge{
+  position:absolute;right:-5px;bottom:-5px;z-index:2;
+  min-width:17px;height:17px;padding:0 4px;
+  display:grid;place-items:center;
+  border:2px solid #080a0e;border-radius:999px;
+  background:#ed4245;color:#fff;
+  font-size:9px;font-weight:900;line-height:1;
+  box-shadow:0 2px 7px #0006;
+  pointer-events:none;
+}
+:root[data-theme="light"] .brand-unread-badge{border-color:#edf2f8}
+@media(max-width:650px){.brand-unread-badge{right:-4px;bottom:-4px;min-width:16px;height:16px;font-size:8px}}
