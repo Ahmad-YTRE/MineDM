@@ -3061,3 +3061,30 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 
 /* Increase the mark's visible area when the SVG is used as the browser favicon. */
+
+/* Prevent server icons from being clipped when the rail is narrower than its desktop width. */
+.server-rail {
+  padding-inline: 4px;
+}
+.server-rail-list {
+  align-items: stretch;
+  overflow-x: clip;
+}
+.server-rail-list .server-icon {
+  width: min(43px, 100%);
+  min-width: 0;
+  max-width: 43px;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  align-self: center;
+}
+.server-rail > .brand-mark,
+.server-rail > .server-icon {
+  width: min(43px, 100%);
+  min-width: 0;
+  max-width: 43px;
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+}
