@@ -2432,3 +2432,26 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
     grid-template-columns: 112px minmax(0, 1fr);
   }
 }
+
+
+/* Smooth, coordinated popup dismissal. Keep the dialog mounted until the exit finishes. */
+@keyframes voax-modal-backdrop-out {
+  from { opacity: 1; backdrop-filter: blur(7px); }
+  to { opacity: 0; backdrop-filter: blur(0); }
+}
+@keyframes voax-modal-dialog-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(10px) scale(.975); }
+}
+.modal-backdrop.is-closing {
+  pointer-events: none;
+  animation: voax-modal-backdrop-out .19s ease-in both;
+}
+.modal.is-closing {
+  pointer-events: none;
+  animation: voax-modal-dialog-out .19s cubic-bezier(.4,0,1,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .modal-backdrop.is-closing,
+  .modal.is-closing { animation-duration: .01ms; }
+}
