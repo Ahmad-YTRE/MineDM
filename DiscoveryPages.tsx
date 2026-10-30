@@ -30,9 +30,8 @@ function openServerPath(server: Pick<Listing, "server_id" | "server_public_id">)
 function PageFrame({children,active="explore"}:{children:React.ReactNode;active?:"explore"|"admin"}) {
   return <div className="discovery-shell">
     <aside className="discovery-rail">
-      <a className="discovery-brand" href="/app" aria-label="Back to Voax"><span>V</span></a>
+      <a className="discovery-brand" href="/app" aria-label="Back to Voax"><img src="/logo.svg" alt="Voax"/></a>
       <a className={active==="explore"?"selected":""} href="/explore" title="Explore"><Icon name="search" size={19}/></a>
-      <a href="/app" title="Open Voax"><Icon name="message" size={19}/></a>
       {active==="admin" && <a className="selected" href="/admin" title="Admin"><Icon name="shield" size={19}/></a>}
       <div className="discovery-rail-spacer"/>
       <a href="/app" title="Return to app"><Icon name="chevron" size={19}/></a>
