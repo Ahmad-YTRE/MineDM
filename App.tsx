@@ -102,7 +102,7 @@ type AppNotification = { id: string; actor_id: string | null; type: string; titl
 
 // Keep message activity in the inbox, but do not interrupt users with a toast for it.
 function isMessageActivityNotification(notification: AppNotification) {
-  return notification.type === "message" || /\\b(sent a message|message sent)\\b/i.test(`${notification.title} ${notification.body}`);
+  return notification.type === "message" || /\b(sent a message|message sent)\b/i.test(`${notification.title} ${notification.body}`);
 }
 type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string };
 type ContextMenuTarget = { kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message } | { kind: "channels" };
