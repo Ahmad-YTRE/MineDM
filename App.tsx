@@ -99,6 +99,11 @@ type MentionToken = { type: "user" | "role" | "everyone" | "here"; id?: string }
 type MentionSuggestion = { type: "user" | "role" | "everyone" | "here"; id?: string; label: string; detail: string };
 type FriendRequest = { id: string; requester_id: string; addressee_id: string; name: string; avatarUrl?: string | null };
 type AppNotification = { id: string; actor_id: string | null; type: string; title: string; body: string; entity_id: string | null; read_at: string | null; created_at: string; interruptive?: boolean };
+
+// Keep message activity in the inbox, but do not interrupt users with a toast for it.
+function isMessageActivityNotification(notification: AppNotification) {
+  return notification.type === "message" || /\\b(sent a message|message sent)\\b/i.test(`${notification.title} ${notification.body}`);
+}
 type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string };
 type ContextMenuTarget = { kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message } | { kind: "channels" };
 type ContextMenuState = { x: number; y: number } & ContextMenuTarget;
