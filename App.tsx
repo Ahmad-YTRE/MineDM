@@ -34,13 +34,24 @@ function readSaved(): SavedState | null {
 const saved = typeof window !== "undefined" ? readSaved() : null;
 function initials(name: string) { return name.trim().split(/\s+/).map(x => x[0]).join("").slice(0, 2).toUpperCase() || "??"; }
 function formatClock(date: Date, format: "12h" | "24h") { return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: format === "12h" }); }
+const SIGNED_ATTACHMENT_URL_TTL_MS = 55 * 60 * 1000;
+const signedAttachmentUrlCache = new Map<string, { url: string; expiresAt: number }>();
 async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   const attachments = Array.isArray(value) ? value as Omit<Attachment, "url">[] : [];
   if (!attachments.length) return [];
   const paths = [...new Set(attachments.map(attachment => attachment.path))];
-  const { data } = await supabase.storage.from("message-attachments").createSignedUrls(paths, 3600);
-  const urls = new Map((data || []).map(item => [item.path, item.signedUrl] as const));
-  return attachments.map(attachment => ({ ...attachment, url: urls.get(attachment.path) ?? undefined }));
+  const now = Date.now();
+  const missingPaths = paths.filter(path => {
+    const cached = signedAttachmentUrlCache.get(path);
+    return !cached || cached.expiresAt <= now;
+  });
+  if (missingPaths.length) {
+    const { data } = await supabase.storage.from("message-attachments").createSignedUrls(missingPaths, 3600);
+    for (const item of data || []) {
+      if (item.path && item.signedUrl) signedAttachmentUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + SIGNED_ATTACHMENT_URL_TTL_MS });
+    }
+  }
+  return attachments.map(attachment => ({ ...attachment, url: signedAttachmentUrlCache.get(attachment.path)?.url }));
 }
 
 type CachedProfile = { id: string; public_id: string | null; username: string | null; status: string | null; avatar_url: string | null };
