@@ -101,7 +101,7 @@ export function ExplorePage({session}:{session:Session}) {
   async function join(listing:Listing) {
     if(members.has(listing.server_id)){openServerPath(listing);return;}
     setNotice("");
-    const {error}=await supabase.rpc("join_discovered_users",{p_server_id:listing.server_id});
+    const {error}=await supabase.rpc("join_discovered_server",{p_server_id:listing.server_id});
     if(error){setNotice("Couldn't join this server: "+error.message);return;}
     setMembers(old=>new Set(old).add(listing.server_id));
     openServerPath(listing);
@@ -294,7 +294,7 @@ export function InvitePreviewCard({code,onJoin}:{code:string;onJoin:()=>void}) {
   return <section className="invite-preview-card invite-preview-card-v2" aria-label="Server invite">
     <div className="invite-preview-cover">{preview?.banner_url&&<img src={preview.banner_url} alt=""/>}<span>VOAX INVITE</span></div>
     <div className="invite-preview-content">
-      <div className="invite-preview-heading"><ServerAvatar name={preview?.server_name||"Voax users"} url={preview?.icon_url||null}/><div><strong>{loading?"Loading invitation…":preview?.server_name||"Server invitation"}</strong><span>{preview?formatCount(Number(preview.member_count)||0)+" members · "+formatCount(Number(preview.online_count)||0)+" online":"Invite link"}</span></div></div>
+      <div className="invite-preview-heading"><ServerAvatar name={preview?.server_name||"Voax server"} url={preview?.icon_url||null}/><div><strong>{loading?"Loading invitation…":preview?.server_name||"Server invitation"}</strong><span>{preview?formatCount(Number(preview.member_count)||0)+" members · "+formatCount(Number(preview.online_count)||0)+" online":"Invite link"}</span></div></div>
       {preview?.description&&<p>{preview.description}</p>}
       <div className="invite-preview-footer"><span><Icon name="shield" size={14}/> {preview?"You're invited":"Invite link"}</span>{member&&listing?<button className="btn primary invite-join-button" type="button" onClick={()=>openServerPath(listing)}>Open Server <Icon name="arrowRight" size={14}/></button>:<button className="btn primary invite-join-button" type="button" onClick={onJoin} disabled={loading||!preview}>{loading?"Loading…":"Join Server"} <Icon name="arrowRight" size={14}/></button>}</div>
     </div>
