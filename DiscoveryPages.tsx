@@ -41,31 +41,6 @@ function PageFrame({children,active="explore",embedded=false}:{children:React.Re
     <main className="discovery-main">{children}</main>
   </div>;
 }
-function useLiveServerOnlineCounts(serverIds:string[]) {
-  const serverKey=[...new Set(serverIds)].sort().join(",");
-  const [counts,setCounts]=useState<Record<string,number>>({});
-  useEffect(()=>{
-    const ids=serverKey?serverKey.split(","):[];
-    if(!ids.length){setCounts({});return;}
-    let alive=true;
-    const channel=supabase.channel("voax-presence",{config:{presence:{key:"voax-live-count-reader"}}});
-    const sync=()=>{
-      if(!alive)return;
-      const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:string;serverIds?:string[]}>>;
-      const onlineByServer:Record<string,Set<string>>={};
-      for(const entries of Object.values(state))for(const entry of entries){
-        if(!entry.userId||entry.status==="Offline")continue;
-        for(const serverId of entry.serverIds||[])if(ids.includes(serverId))(onlineByServer[serverId]||=new Set()).add(entry.userId);
-      }
-      const next:Record<string,number>={};
-      for(const id of ids)next[id]=(onlineByServer[id]||new Set()).size;
-      setCounts(next);
-    };
-    channel.on("presence",{event:"sync"},sync).subscribe(state=>{if(state==="SUBSCRIBED")sync();});
-    return()=>{alive=false;void supabase.removeChannel(channel);};
-  },[serverKey]);
-  return counts;
-}
 function ServerAvatar({name,url}:{name:string;url:string|null}) {
   return <span className="discovery-avatar">{url?<img src={url} alt=""/>:initials(name)}</span>;
 }
@@ -83,7 +58,7 @@ function ListingCard({listing,member,onOpen,onJoin}:{listing:Listing;member:bool
     </div>
   </article>;
 }
-export function ExplorePage({session,embedded=false,routePath,onNavigate}:{session:Session;embedded?:boolean;routePath?:string;onNavigate?:(path:string)=>void}) {
+export function ExplorePage({session,embedded=false,routePath,onNavigate,onlineCounts={}}:{session:Session;embedded?:boolean;routePath?:string;onNavigate?:(path:string)=>void;onlineCounts?:Record<string,number>}) {
   const path = routePath || window.location.pathname;
   const navigate=(target:string)=>{if(onNavigate)onNavigate(target);else window.location.assign(target);};
   const isManagePath = path === "/explore/manage" || path === "/explore/manage/" || path.startsWith("/explore/manage/");
@@ -100,8 +75,7 @@ export function ExplorePage({session,embedded=false,routePath,onNavigate}:{sessi
   const [reportReason,setReportReason] = useState("Spam or misleading content");
   const [reportDetails,setReportDetails] = useState("");
   const [reportBusy,setReportBusy] = useState(false);
-  const liveCounts=useLiveServerOnlineCounts(listings.map(item=>item.server_id));
-  useEffect(()=>{setListings(old=>old.map(item=>({...item,online_count:liveCounts[item.server_id]??0})));},[liveCounts]);
+  useEffect(()=>{setListings(old=>old.map(item=>({...item,online_count:onlineCounts[item.server_id]??0})));},[onlineCounts]);
   useEffect(() => {
     let alive=true;
     if(isManagePath){setLoading(false);return;}
