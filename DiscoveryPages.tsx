@@ -232,8 +232,8 @@ export function AdminPage({session}:{session:Session}) {
     if(check.error||!check.data){setAllowed(false);setLoading(false);return;}
     setAllowed(true);
     const [profiles,serverRows,listings,queue,reportRows,auditRows,listingRows]=await Promise.all([
-      supabase.from("profiles").select("id,username,status,created_at").order("created_at",{ascending:false}).limit(100),
-      supabase.from("servers").select("id,name,description,created_by,created_at,icon_url").order("created_at",{ascending:false}).limit(100),
+      supabase.from("profiles").select("id,username,status,created_at",{count:"exact"}).order("created_at",{ascending:false}).limit(100),
+      supabase.from("servers").select("id,name,description,created_by,created_at,icon_url",{count:"exact"}).order("created_at",{ascending:false}).limit(100),
       supabase.from("server_discovery").select("id,listing_status,listing_enabled"),
       supabase.from("server_discovery").select("id,server_id,server_name,short_description,full_description,category,icon_url,banner_url,listing_status,listing_enabled,is_featured,owner_id,created_at,submitted_at,rejection_reason").eq("listing_status","pending").order("submitted_at",{ascending:true}).limit(100),
       supabase.from("server_discovery_reports").select("id,listing_id,reporter_id,reason,details,status,created_at,server_discovery(server_name)").order("created_at",{ascending:false}).limit(100),
