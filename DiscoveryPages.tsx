@@ -289,12 +289,11 @@ export function AdminPage({session}:{session:Session}) {
   </div></PageFrame>;
 }
 
-export function InvitePreviewCard({code,onJoin}:{code:string;onJoin:()=>void}) {
+export function InvitePreviewCard({code,onJoin,onlineCounts={}}:{code:string;onJoin:()=>void;onlineCounts?:Record<string,number>}) {
   const [preview,setPreview]=useState<any>(null);
   const [loading,setLoading]=useState(true);
   useEffect(()=>{let alive=true;supabase.rpc("get_server_invite_preview",{p_invite_code:code}).then(({data,error})=>{if(!alive)return;setPreview(!error&&data?.[0]?data[0]:null);setLoading(false);});return()=>{alive=false;};},[code]);
-  const liveCounts=useLiveServerOnlineCounts(preview?.server_id?[preview.server_id]:[]);
-  const liveOnlineCount=preview?.server_id?liveCounts[preview.server_id]??0:0;
+  const liveOnlineCount=preview?.server_id?onlineCounts[preview.server_id]??0:0;
   const member=Boolean(preview?.is_member);
   const listing:Listing|undefined=preview?{listing_id:"",server_id:preview.server_id,server_public_id:preview.server_public_id,server_name:preview.server_name,icon_url:preview.icon_url,banner_url:preview.banner_url,short_description:preview.description||"A Voax community",full_description:preview.description||"",category:"Community",tags:[],language:"",owner_id:"",created_at:"",member_count:Number(preview.member_count)||0,online_count:liveOnlineCount,is_featured:false}:undefined;
   return <section className="invite-preview-card invite-preview-card-v2" aria-label="Server invite">
