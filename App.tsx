@@ -404,9 +404,9 @@ function App({ session }: { session: Session }) {
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId){setMessagesLoading(false);return;}let cancelled=false;setMessagesLoading(true);
     const loadMessages=async()=>{
-      const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:true}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:true}).limit(200);
+      const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:false}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:false}).limit(200);
       if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
-      const rows=result.data||[],authorIds=[...new Set(rows.map(row=>row.author_id))];
+      const rows=[...(result.data||[])].reverse(),authorIds=[...new Set(rows.map(row=>row.author_id))];
       const names=new Map<string,string>(peopleRef.current.map(person=>[person.id,person.name] as const));names.set(session.user.id,nameRef.current);
       const missingAuthorIds=authorIds.filter(id=>!names.has(id));
       if(missingAuthorIds.length){const profiles=await loadCachedProfiles(missingAuthorIds);for(const profile of profiles)names.set(profile.id,profile.username||"Player");}
