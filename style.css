@@ -3364,3 +3364,51 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   background: rgba(52, 211, 153, .12);
   border-color: rgba(110, 231, 183, .36) !important;
 }
+
+
+/* Suspended account and appeal screen */
+.voax-suspended-screen {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 28px 16px;
+  background: #090b10;
+  color: #eef2f8;
+}
+.voax-suspended-card {
+  width: min(100%, 520px);
+  padding: 32px;
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 20px;
+  background: #111722;
+  box-shadow: 0 24px 80px rgba(0,0,0,.38);
+}
+.voax-suspended-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  color: #f0b56b;
+  background: rgba(240,181,107,.12);
+}
+.voax-suspended-card h1 { margin: 8px 0; font-size: 28px; }
+.voax-suspended-card > p { color: #aab4c5; line-height: 1.6; }
+.voax-suspended-detail {
+  display: grid;
+  grid-template-columns: 100px minmax(0,1fr);
+  gap: 12px;
+  margin: 22px 0;
+  padding: 16px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.035);
+}
+.voax-suspended-detail strong { color: #9ba8ba; }
+.voax-suspended-detail span { overflow-wrap: anywhere; }
+.voax-suspended-card form { display: grid; gap: 12px; margin: 20px 0; }
+.voax-suspended-card form label { font-weight: 700; }
+.voax-suspended-card textarea { width: 100%; min-height: 120px; resize: vertical; }
+.voax-appeal-confirmation { margin: 20px 0; padding: 16px; border-radius: 12px; background: rgba(52,211,153,.08); }
+.voax-appeal-confirmation p { margin-bottom: 0; color: #aab4c5; }
+@media (max-width: 560px) { .voax-suspended-card { padding: 22px; } }
