@@ -77,7 +77,8 @@ export function AuthScreen() {
           </svg>
           {busy ? "Please wait…" : "Continue with Google"}
         </button>
-        <button type="button" className="btn secondary large" style={{width:"100%"}} disabled={busy} onClick={signInWithDiscord}>
+        <button type="button" className="btn secondary large" style={{width:"100%",display:"flex",alignItems:"center",justifyContent:"center",gap:10}} disabled={busy} onClick={signInWithDiscord}>
+          <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style={{flexShrink:0}}><path d="M19.73 5.14A18.2 18.2 0 0 0 15.2 3.75l-.57 1.16a16.8 16.8 0 0 0-5.26 0L8.8 3.75a18.2 18.2 0 0 0-4.53 1.39C1.4 9.35.62 13.46 1.01 17.52a18.3 18.3 0 0 0 5.56 2.8l1.2-1.95c-.66-.24-1.3-.55-1.9-.91l.47-.37c3.66 1.7 7.64 1.7 11.26 0l.48.37c-.61.36-1.25.67-1.91.91l1.2 1.95a18.2 18.2 0 0 0 5.56-2.8c.46-4.71-.79-8.78-3.2-12.38ZM8.55 15.1c-1.1 0-2-.99-2-2.2s.88-2.2 2-2.2 2.02.99 2 2.2c0 1.21-.88 2.2-2 2.2Zm6.9 0c-1.1 0-2-.99-2-2.2s.88-2.2 2-2.2 2.02.99 2 2.2c0 1.21-.88 2.2-2 2.2Z"/></svg>
           {busy ? "Please wait…" : "Continue with Discord"}
         </button>
       </form>
