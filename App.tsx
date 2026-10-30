@@ -212,7 +212,7 @@ function buildMentionTokens(body: string, members: Person[], roles: ServerRole[]
 }
 
 function Logo({ size = 28, className = "" }: { size?: number; className?: string }) {
-  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src="/logo.png" alt="" /></span>;
+  return <span className={`logo-mark ${className}`} style={{ "--logo-size": `${size}px` } as React.CSSProperties} aria-hidden="true"><img src={import.meta.env.BASE_URL + "logo.svg"} alt="" /></span>;
 }
 
 function SkeletonBar({ className = "" }: { className?: string }) {
