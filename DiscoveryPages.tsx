@@ -59,7 +59,7 @@ function ListingCard({listing,member,onOpen,onJoin}:{listing:Listing;member:bool
 }
 export function ExplorePage({session}:{session:Session}) {
   const path = window.location.pathname;
-  if (path === "/explore/manage" || path === "/explore/manage/" || path.startsWith("/explore/manage/")) return <DiscoveryManagePage session={session} serverId={decodeURIComponent(path.split("/")[3]||"")}/>;
+  const isManagePath = path === "/explore/manage" || path === "/explore/manage/" || path.startsWith("/explore/manage/");
   const detailId = path.startsWith("/explore/server/") ? decodeURIComponent(path.split("/")[3]||"") : "";
   const [listings,setListings] = useState<Listing[]>([]);
   const [members,setMembers] = useState<Set<string>>(new Set());
@@ -75,6 +75,7 @@ export function ExplorePage({session}:{session:Session}) {
   const [reportBusy,setReportBusy] = useState(false);
   useEffect(() => {
     let alive=true;
+    if(isManagePath){setLoading(false);return;}
     (async()=>{
       setLoading(true);
       const [cards,membership] = await Promise.all([
@@ -89,13 +90,14 @@ export function ExplorePage({session}:{session:Session}) {
       setLoading(false);
     })();
     return()=>{alive=false;};
-  },[session.user.id]);
+  },[session.user.id,isManagePath]);
   useEffect(()=>{if(detailId&&listings.length){setSelected(listings.find(item=>item.server_id===detailId||item.server_public_id===detailId)||null);}},[detailId,listings]);
   const filtered=useMemo(()=>{
     const needle=query.trim().toLowerCase();
     return listings.filter(item=>(category==="All"||item.category===category)&&(!needle||[item.server_name,item.short_description,item.full_description,item.category,...item.tags].join(" ").toLowerCase().includes(needle)));
   },[listings,query,category]);
   const sorted=useMemo(()=>[...filtered].sort((a,b)=>sort==="popular"?b.member_count-a.member_count:sort==="new"?new Date(b.created_at).getTime()-new Date(a.created_at).getTime():Number(b.is_featured)-Number(a.is_featured)||b.member_count-a.member_count),[filtered,sort]);
+  if(isManagePath) return <DiscoveryManagePage session={session} serverId={decodeURIComponent(path.split("/")[3]||"")}/>;
   async function join(listing:Listing) {
     if(members.has(listing.server_id)){openServerPath(listing);return;}
     setNotice("");
