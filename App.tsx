@@ -213,7 +213,23 @@ function App({ session }: { session: Session }) {
   const [view, setView] = useState<"channel" | "dm" | "friends" | "home">(path.startsWith("/dm/") ? "dm" : path.startsWith("/channels/") ? "channel" : window.location.search === "?view=friends" ? "friends" : "home");
   const [search, setSearch] = useState("");
   const [draft, setDraft] = useState("");
-  const [modal, setModal] = useState<"dm" | "friend" | "channel" | "server" | "joinServer" | "manageServer" | "manageRoles" | "manageChannel" | "confirmDelete" | "settings" | "inbox" | null>(null);
+  const [modal, setModalState] = useState<"dm" | "friend" | "channel" | "server" | "joinServer" | "manageServer" | "manageRoles" | "manageChannel" | "confirmDelete" | "settings" | "inbox" | null>(null);
+  const [modalClosing, setModalClosing] = useState(false);
+  const modalCloseTimerRef = useRef<number | null>(null);
+  function setModal(next: typeof modal) {
+    if (modalCloseTimerRef.current !== null) window.clearTimeout(modalCloseTimerRef.current);
+    if (next === null && modal !== null) {
+      setModalClosing(true);
+      modalCloseTimerRef.current = window.setTimeout(() => {
+        setModalState(null);
+        setModalClosing(false);
+        modalCloseTimerRef.current = null;
+      }, 190);
+      return;
+    }
+    setModalClosing(false);
+    setModalState(next);
+  }
   const [pendingDelete, setPendingDelete] = useState<{ type: "server" | "channel"; id: string; name: string } | null>(null);
   const [selectedProfile, setSelectedProfile] = useState<Person | null>(null);
   const [profileRolePickerOpen, setProfileRolePickerOpen] = useState(false);
@@ -1138,7 +1154,7 @@ function App({ session }: { session: Session }) {
       })()}
       <div className="member-panel-note">Members grouped by custom role · Live presence</div>
     </aside>}
-    {modal && <div className="modal-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) { setModal(null); setCategoryCreationMode(false); } }}><section className={"modal " + (modal === "settings" ? "discord-settings-modal" : modal === "manageServer" || modal === "manageRoles" ? "discord-server-settings-modal" : "")} role="dialog" aria-modal="true"><button className="modal-x" onClick={() => {setModal(null);setCategoryCreationMode(false);}} aria-label="Close"><Icon name="close" size={18} /></button>
+    {modal && <div className={"modal-backdrop " + (modalClosing ? "is-closing" : "")} onMouseDown={e => { if (e.target === e.currentTarget) { setModal(null); setCategoryCreationMode(false); } }}><section className={"modal " + (modalClosing ? "is-closing" : "") + " " + (modal === "settings" ? "discord-settings-modal" : modal === "manageServer" || modal === "manageRoles" ? "discord-server-settings-modal" : "")} role="dialog" aria-modal="true"><button className="modal-x" onClick={() => {setModal(null);setCategoryCreationMode(false);}} aria-label="Close"><Icon name="close" size={18} /></button>
       {modal === "dm" && <><span className="section-kicker">DIRECT MESSAGES</span><h2>New direct message</h2><p>Enter the username of someone with a Voax account.</p><form onSubmit={e => { e.preventDefault(); void withBusyAction("create-dm", () => createItem(e)); }}><label htmlFor="modalInput">Username</label><input id="modalInput" autoFocus maxLength={32} value={modalInput} onChange={e => setModalInput(e.target.value)} placeholder="e.g. AlexTheBuilder" required/><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => setModal(null)}>Cancel</button><button className="btn primary" disabled={busyAction !== null}>{busyAction === "create-dm" ? <>Creating <span className="button-spinner" aria-hidden="true" /></> : "Create DM"}</button></div></form></>}
       {modal === "friend" && <><h2>Add a friend</h2><p>Send a request using the player’s exact Voax username.</p><form onSubmit={e => { e.preventDefault(); void withBusyAction("send-friend-request", () => sendFriendRequest(e)); }}><label htmlFor="modalInput">Voax username</label><input id="modalInput" autoFocus maxLength={32} value={modalInput} onChange={e=>setModalInput(e.target.value)} placeholder="e.g. AlexTheBuilder" required/><div className="modal-actions"><button type="button" className="btn secondary" onClick={()=>setModal(null)}>Cancel</button><button className="btn primary" disabled={busyAction !== null}>{busyAction === "send-friend-request" ? <>Sending <span className="button-spinner" aria-hidden="true" /></> : "Send request"}</button></div></form></>}
       {modal === "server" && <><span className="section-kicker">NEW COMMUNITY</span><h2>Create a server</h2><p>Give your community a name. We will create a #general channel automatically.</p><form onSubmit={e => { e.preventDefault(); void withBusyAction("create-server", () => createServer(e)); }}><label htmlFor="modalInput">Server name</label><input id="modalInput" autoFocus maxLength={40} value={modalInput} onChange={e => setModalInput(e.target.value)} placeholder="Survival Squad" required/><div className="modal-actions"><button type="button" className="btn secondary" onClick={() => {setModalInput("");setModal("joinServer");}}>Join with invite</button><button type="button" className="btn secondary" onClick={() => setModal(null)}>Cancel</button><button className="btn primary" disabled={busyAction !== null}>{busyAction === "create-server" ? <>Creating <span className="button-spinner" aria-hidden="true" /></> : "Create server"}</button></div></form></>}
