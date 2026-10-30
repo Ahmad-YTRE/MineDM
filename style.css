@@ -3088,3 +3088,26 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   aspect-ratio: 1;
   flex: 0 0 auto;
 }
+
+
+/* Give the server rail enough real layout width so icons and badges never sit against the edge. */
+.app-shell { grid-template-columns: 76px clamp(190px, 19vw, 280px) minmax(0, 1fr); }
+.server-rail { padding-inline: 8px; }
+.server-rail-list { align-items: center; }
+.server-rail-list .server-icon,
+.server-rail > .brand-mark,
+.server-rail > .server-icon { width: 46px; max-width: 46px; }
+@media (max-width: 900px) and (min-width: 651px) {
+  .app-shell { grid-template-columns: 68px minmax(185px, 230px) minmax(0, 1fr); }
+  .server-rail { padding-inline: 7px; }
+}
+@media (max-width: 650px) {
+  .app-shell { grid-template-columns: 60px minmax(0, 1fr); }
+  .server-rail { padding-inline: 7px; }
+  .sidebar.sidebar-open { left: 60px; width: min(275px, calc(100vw - 60px)); }
+}
+@media (max-width: 380px) {
+  .app-shell { grid-template-columns: 56px minmax(0, 1fr); }
+  .server-rail { padding-inline: 6px; }
+  .sidebar.sidebar-open { left: 56px; width: calc(100vw - 56px); }
+}
