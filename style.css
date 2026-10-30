@@ -3139,3 +3139,22 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   object-position: center;
   border-radius: 7px !important;
 }
+
+
+/* Final server-rail artwork override: don't crop the image at the button boundary. */
+.server-rail .server-rail-list > button.server-icon {
+  overflow: visible !important;
+  clip-path: none !important;
+  contain: none !important;
+}
+.server-rail .server-rail-list > button.server-icon > img.server-icon-image {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 10px !important;
+  overflow: visible !important;
+  clip-path: none !important;
+}
