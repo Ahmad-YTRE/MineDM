@@ -3116,3 +3116,26 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 /* Show the complete uploaded server artwork instead of cropping its left/right edges. */
 .server-icon { overflow: hidden; }
 .server-icon-image { display:block; width:100%; height:100%; max-width:100%; max-height:100%; object-fit:contain; object-position:center; padding:2px; border-radius:inherit; }
+
+
+/* Keep every server icon image inset from the rounded button so no artwork touches or gets clipped by its edges. */
+.server-rail .server-rail-list > .server-icon {
+  display: grid;
+  place-items: center;
+  padding: 0 !important;
+  overflow: hidden;
+}
+.server-rail .server-rail-list > .server-icon > img.server-icon-image {
+  display: block;
+  width: calc(100% - 10px) !important;
+  height: calc(100% - 10px) !important;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0 !important;
+  object-fit: contain !important;
+  object-position: center;
+  border-radius: 7px !important;
+}
