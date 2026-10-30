@@ -3412,3 +3412,54 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .voax-appeal-confirmation { margin: 20px 0; padding: 16px; border-radius: 12px; background: rgba(52,211,153,.08); }
 .voax-appeal-confirmation p { margin-bottom: 0; color: #aab4c5; }
 @media (max-width: 560px) { .voax-suspended-card { padding: 22px; } }
+
+
+/* Distinct platform staff shields */
+.staff-rail-button.admin-rail-button {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, .28) !important;
+  background: rgba(248, 113, 113, .08);
+}
+.staff-rail-button.admin-rail-button:hover {
+  color: #fecaca;
+  border-color: rgba(248, 113, 113, .58) !important;
+  background: rgba(239, 68, 68, .18);
+}
+.staff-rail-button.mod-rail-button {
+  color: #facc15;
+  border-color: rgba(250, 204, 21, .28) !important;
+  background: rgba(250, 204, 21, .08);
+}
+.staff-rail-button.mod-rail-button:hover {
+  color: #fef08a;
+  border-color: rgba(250, 204, 21, .58) !important;
+  background: rgba(234, 179, 8, .17);
+}
+
+/* Discord-style consecutive message groups */
+.message-group-continuation { margin-top: -16px; }
+.compact .message-group-continuation { margin-top: -8px; }
+.message-avatar-spacer {
+  position: relative;
+  display: flex;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+}
+.message-avatar-spacer time {
+  color: #778398;
+  font-size: 8px;
+  opacity: 0;
+  transition: opacity .12s ease;
+}
+.message-group-continuation:hover .message-avatar-spacer time,
+.message-group-continuation:focus-within .message-avatar-spacer time {
+  opacity: 1;
+}
+.compact .message-avatar-spacer {
+  flex-basis: 30px;
+  width: 30px;
+}
+.message-group-continuation .message-body > p:first-child { margin-top: 0; }
