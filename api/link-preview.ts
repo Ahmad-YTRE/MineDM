@@ -1,6 +1,8 @@
 import { lookup } from "node:dns/promises";
 import { isIP } from "node:net";
+// @ts-ignore Node built-ins are available in the Vercel Node runtime.
 import { request as httpRequest } from "node:http";
+// @ts-ignore Node built-ins are available in the Vercel Node runtime.
 import { request as httpsRequest } from "node:https";
 
 type ResolvedTarget = { url: URL; address: string; family: 4 | 6 };
@@ -95,7 +97,7 @@ function requestPinned(target: ResolvedTarget): Promise<{ status: number; header
         if (options?.all) callback(null, [{ address, family }]);
         else callback(null, address, family);
       },
-    }, response => {
+    }, (response: any) => {
       const status = response.statusCode || 0;
       const headers = response.headers as Record<string, string | string[] | undefined>;
       if ([301, 302, 303, 307, 308].includes(status)) {
@@ -115,10 +117,10 @@ function requestPinned(target: ResolvedTarget): Promise<{ status: number; header
         reject(new Error("Response too large"));
         return;
       }
-      const chunks: Buffer[] = [];
+      const chunks: Uint8Array[] = [];
       let size = 0;
       response.on("data", (chunk: Buffer | string) => {
-        const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+        const buffer = typeof chunk === "string" ? new TextEncoder().encode(chunk) : new Uint8Array(chunk);
         size += buffer.length;
         if (size > 1024 * 1024) {
           response.destroy(new Error("Response too large"));
@@ -126,7 +128,7 @@ function requestPinned(target: ResolvedTarget): Promise<{ status: number; header
         }
         chunks.push(buffer);
       });
-      response.on("end", () => resolve({ status, headers, body: Buffer.concat(chunks).toString("utf8") }));
+      response.on("end", () => { const body = new Uint8Array(size); let offset = 0; for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.length; } resolve({ status, headers, body: new TextDecoder().decode(body) }); });
       response.on("error", reject);
     });
     request.setTimeout(5000, () => request.destroy(new Error("Request timed out")));
