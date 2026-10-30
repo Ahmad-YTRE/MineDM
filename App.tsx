@@ -1564,6 +1564,7 @@ function Root() {
     return () => { mounted = false; subscription.unsubscribe(); };
   }, []);
   if (window.location.pathname === "/docs" || window.location.pathname === "/docs/") return <DocsPage />;
+  if (window.location.pathname === "/" || window.location.pathname === "") return <Landing openApp={() => window.location.assign("/app")} />;
   if (!authReady) return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",background:"#090b10",color:"#5eead4",fontFamily:"system-ui"}}>Connecting to Voax…</main>;
   if (!session) return <AuthScreen />;
   return <App session={session}/>;
