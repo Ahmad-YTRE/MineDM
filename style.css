@@ -3254,3 +3254,100 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .account-switcher-security-note{margin:12px 2px 0;color:#738197;font-size:10px;line-height:1.65}
 @media(max-width:760px){.account-switcher-add{grid-template-columns:1fr}.account-switcher-add>.btn{justify-self:start}.account-switcher-actions .btn{min-width:58px}}
 @media(max-width:520px){.account-switcher-row{gap:9px;padding:11px}.account-switcher-avatar{width:34px;height:34px;flex-basis:34px}.account-switcher-current{font-size:8px;padding:4px 7px}.account-switcher-actions{gap:4px}.account-switcher-actions .btn{min-width:0;padding:6px 8px}}
+
+
+/* Explore is a first-class workspace view inside the normal app shell. */
+.explore-mode .main-panel > .discovery-page {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: min(1180px, 100%);
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.explore-mode .main-panel > .discovery-page.discovery-manage-page {
+  width: min(1080px, 100%);
+}
+.server-banner-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 86px;
+  margin: 3px 0 8px;
+  padding: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--card) 76%, transparent);
+}
+.server-banner-upload-row > img {
+  display: block;
+  width: min(260px, 55%);
+  height: 84px;
+  flex: 0 0 min(260px, 55%);
+  border-radius: 8px;
+  object-fit: cover;
+}
+.server-banner-upload-row > span {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  min-height: 64px;
+  place-items: center;
+  border-radius: 8px;
+  background: #192433;
+  color: #8292a7;
+  font-size: 11px;
+}
+.server-banner-upload-row > div {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 7px;
+}
+.server-banner-upload-row small,
+.server-discovery-settings label small {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 450;
+}
+.server-discovery-settings {
+  max-width: 760px;
+}
+.server-discovery-settings form {
+  display: grid;
+  gap: 13px;
+}
+.server-discovery-settings form > label {
+  display: grid;
+  gap: 7px;
+  color: #aab8ca;
+  font-size: 11px;
+  font-weight: 700;
+}
+.server-discovery-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.server-discovery-fields label {
+  display: grid;
+  gap: 7px;
+  color: #aab8ca;
+  font-size: 11px;
+  font-weight: 700;
+}
+@media (max-width: 520px) {
+  .server-banner-upload-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .server-banner-upload-row > img {
+    width: 100%;
+    height: 110px;
+    flex-basis: auto;
+  }
+  .server-discovery-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
