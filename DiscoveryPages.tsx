@@ -32,10 +32,10 @@ function PageFrame({children,active="explore"}:{children:React.ReactNode;active?
     <aside className="discovery-rail">
       <a className="discovery-brand" href="/app" aria-label="Back to Voax"><span>V</span></a>
       <a className={active==="explore"?"selected":""} href="/explore" title="Explore"><Icon name="search" size={19}/></a>
-      <a href="/app" title="Open Voax"><Icon name="message-circle" size={19}/></a>
+      <a href="/app" title="Open Voax"><Icon name="message" size={19}/></a>
       {active==="admin" && <a className="selected" href="/admin" title="Admin"><Icon name="shield" size={19}/></a>}
       <div className="discovery-rail-spacer"/>
-      <a href="/app" title="Return to app"><Icon name="arrow-left" size={19}/></a>
+      <a href="/app" title="Return to app"><Icon name="chevron" size={19}/></a>
     </aside>
     <main className="discovery-main">{children}</main>
   </div>;
@@ -53,13 +53,13 @@ function ListingCard({listing,member,onOpen,onJoin}:{listing:Listing;member:bool
       <div className="discovery-card-heading"><ServerAvatar name={listing.server_name} url={listing.icon_url}/><div className="discovery-card-title"><h3>{listing.server_name}</h3><span>{listing.category} · {listing.language}</span></div></div>
       <p>{listing.short_description}</p>
       <div className="discovery-card-meta"><span><Icon name="users" size={14}/> {formatCount(listing.member_count)} members</span><span><i className="discovery-online-dot"/> {formatCount(listing.online_count)} online</span></div>
-      <div className="discovery-card-actions"><button className="discovery-secondary" type="button" onClick={onOpen}>View details</button><button className="discovery-primary" type="button" onClick={member?onOpen:onJoin}>{member?"Open Server":"Join Server"} <Icon name="arrow-right" size={15}/></button></div>
+      <div className="discovery-card-actions"><button className="discovery-secondary" type="button" onClick={onOpen}>View details</button><button className="discovery-primary" type="button" onClick={member?onOpen:onJoin}>{member?"Open Server":"Join Server"} <Icon name="arrowRight" size={15}/></button></div>
     </div>
   </article>;
 }
 export function ExplorePage({session}:{session:Session}) {
   const path = window.location.pathname;
-  if (path.startsWith("/explore/manage/")) return <DiscoveryManagePage session={session} serverId={decodeURIComponent(path.split("/")[3]||"")}/>;
+  if (path === "/explore/manage" || path === "/explore/manage/" || path.startsWith("/explore/manage/")) return <DiscoveryManagePage session={session} serverId={decodeURIComponent(path.split("/")[3]||"")}/>;
   const detailId = path.startsWith("/explore/server/") ? decodeURIComponent(path.split("/")[3]||"") : "";
   const [listings,setListings] = useState<Listing[]>([]);
   const [members,setMembers] = useState<Set<string>>(new Set());
@@ -99,7 +99,7 @@ export function ExplorePage({session}:{session:Session}) {
   async function join(listing:Listing) {
     if(members.has(listing.server_id)){openServerPath(listing);return;}
     setNotice("");
-    const {error}=await supabase.rpc("join_discovered_server",{p_server_id:listing.server_id});
+    const {error}=await supabase.rpc("join_discovered_users",{p_server_id:listing.server_id});
     if(error){setNotice("Couldn't join this server: "+error.message);return;}
     setMembers(old=>new Set(old).add(listing.server_id));
     openServerPath(listing);
@@ -112,9 +112,9 @@ export function ExplorePage({session}:{session:Session}) {
     setReportListing(null);setReportDetails("");setNotice("Report submitted. Thank you for helping keep Voax safe.");
   }
   if(selected) return <PageFrame><div className="discovery-page">
-    <button className="discovery-back" onClick={()=>window.location.assign("/explore")}><Icon name="arrow-left" size={16}/> Back to Explore</button>
+    <button className="discovery-back" onClick={()=>window.location.assign("/explore")}><Icon name="chevron" size={16}/> Back to Explore</button>
     <div className="discovery-detail-banner">{selected.banner_url?<img src={selected.banner_url} alt=""/>:<span className="discovery-banner-fallback"/>}</div>
-    <div className="discovery-detail-head"><ServerAvatar name={selected.server_name} url={selected.icon_url}/><div><h1>{selected.server_name}</h1><p>{selected.category} · {selected.language} · {formatCount(selected.member_count)} members</p></div><button className="discovery-primary" onClick={()=>members.has(selected.server_id)?openServerPath(selected):void join(selected)}>{members.has(selected.server_id)?"Open Server":"Join Server"} <Icon name="arrow-right" size={15}/></button></div>
+    <div className="discovery-detail-head"><ServerAvatar name={selected.server_name} url={selected.icon_url}/><div><h1>{selected.server_name}</h1><p>{selected.category} · {selected.language} · {formatCount(selected.member_count)} members</p></div><button className="discovery-primary" onClick={()=>members.has(selected.server_id)?openServerPath(selected):void join(selected)}>{members.has(selected.server_id)?"Open Server":"Join Server"} <Icon name="arrowRight" size={15}/></button></div>
     <div className="discovery-detail-grid"><section className="discovery-detail-panel"><span className="discovery-eyebrow">ABOUT THIS SERVER</span><h2>{selected.short_description}</h2><p className="discovery-full-description">{selected.full_description||selected.short_description}</p>{selected.tags.length>0&&<div className="discovery-tags">{selected.tags.map(tag=><span key={tag}>{tag}</span>)}</div>}</section><aside className="discovery-detail-panel discovery-stats"><span className="discovery-eyebrow">COMMUNITY</span><strong>{formatCount(selected.member_count)}</strong><span>Members</span><strong>{formatCount(selected.online_count)}</strong><span>Online now</span><button className="discovery-report-link" onClick={()=>setReportListing(selected)}><Icon name="flag" size={14}/> Report this server</button></aside></div>
     {reportListing&&<div className="discovery-modal-backdrop"><form className="discovery-modal" onSubmit={submitReport}><button type="button" className="discovery-modal-close" onClick={()=>setReportListing(null)}>×</button><h2>Report server</h2><p>Tell the moderation team what's wrong with this listing.</p><label>Reason<select value={reportReason} onChange={e=>setReportReason(e.target.value)}><option>Spam or misleading content</option><option>Harassment or hateful content</option><option>Inappropriate content</option><option>Impersonation</option><option>Other</option></select></label><label>Details (optional)<textarea maxLength={500} value={reportDetails} onChange={e=>setReportDetails(e.target.value)} rows={4}/></label><button className="discovery-primary" disabled={reportBusy}>{reportBusy?"Submitting…":"Submit report"}</button></form></div>}
   </div></PageFrame>;
@@ -189,7 +189,7 @@ function DiscoveryManagePage({session,serverId}:{session:Session;serverId:string
   }
   if(loading)return <PageFrame><div className="discovery-page"><div className="discovery-loading">Loading your servers…</div></div></PageFrame>;
   return <PageFrame><div className="discovery-page discovery-manage-page">
-    <button className="discovery-back" onClick={()=>window.location.assign("/explore")}><Icon name="arrow-left" size={16}/> Back to Explore</button>
+    <button className="discovery-back" onClick={()=>window.location.assign("/explore")}><Icon name="chevron" size={16}/> Back to Explore</button>
     <header className="discovery-header"><div><span className="discovery-eyebrow">SERVER OWNER TOOLS</span><h1>Manage Explore listing</h1><p>Choose which of your communities can be discovered on Voax.</p></div></header>
     {notice&&<div className="discovery-notice">{notice}<button onClick={()=>setNotice("")}>×</button></div>}
     {!servers.length?<div className="discovery-empty"><h2>No owned servers yet</h2><p>Only server owners can submit a community to Explore.</p><a className="discovery-primary" href="/app">Go to Voax</a></div>:<div className="discovery-manage-layout">
@@ -220,6 +220,7 @@ export function AdminPage({session}:{session:Session}) {
   const [pending,setPending]=useState<any[]>([]);
   const [reports,setReports]=useState<any[]>([]);
   const [servers,setServers]=useState<any[]>([]);
+  const [allListings,setAllListings]=useState<any[]>([]);
   const [users,setUsers]=useState<any[]>([]);
   const [audit,setAudit]=useState<any[]>([]);
   const [stats,setStats]=useState({users:0,servers:0,listings:0,pending:0,reports:0});
@@ -228,17 +229,18 @@ export function AdminPage({session}:{session:Session}) {
     const check=await supabase.from("admin_users").select("user_id").eq("user_id",session.user.id).maybeSingle();
     if(check.error||!check.data){setAllowed(false);setLoading(false);return;}
     setAllowed(true);
-    const [profiles,serverRows,listings,queue,reportRows,auditRows]=await Promise.all([
+    const [profiles,serverRows,listings,queue,reportRows,auditRows,listingRows]=await Promise.all([
       supabase.from("profiles").select("id,username,status,created_at").order("created_at",{ascending:false}).limit(100),
       supabase.from("servers").select("id,name,description,created_by,created_at,icon_url").order("created_at",{ascending:false}).limit(100),
       supabase.from("server_discovery").select("id,listing_status,listing_enabled"),
       supabase.from("server_discovery").select("id,server_id,server_name,short_description,full_description,category,icon_url,banner_url,listing_status,listing_enabled,is_featured,owner_id,created_at,submitted_at,rejection_reason").eq("listing_status","pending").order("submitted_at",{ascending:true}).limit(100),
       supabase.from("server_discovery_reports").select("id,listing_id,reporter_id,reason,details,status,created_at,server_discovery(server_name)").order("created_at",{ascending:false}).limit(100),
-      supabase.from("voax_admin_audit_log").select("id,admin_id,action,target_type,target_id,details,created_at").order("created_at",{ascending:false}).limit(100)
+      supabase.from("voax_admin_audit_log").select("id,admin_id,action,target_type,target_id,details,created_at").order("created_at",{ascending:false}).limit(100),
+      supabase.from("server_discovery").select("id,server_id,server_name,category,listing_status,listing_enabled,is_featured,created_at").order("created_at",{ascending:false}).limit(200)
     ]);
-    const failure=[profiles,serverRows,listings,queue,reportRows,auditRows].find(result=>result.error);
+    const failure=[profiles,serverRows,listings,queue,reportRows,auditRows,listingRows].find(result=>result.error);
     if(failure?.error)setNotice("Some admin data couldn't load: "+failure.error.message);
-    setUsers(profiles.data||[]);setServers(serverRows.data||[]);setPending(queue.data||[]);setReports(reportRows.data||[]);setAudit(auditRows.data||[]);
+    setUsers(profiles.data||[]);setServers(serverRows.data||[]);setAllListings(listingRows.data||[]);setPending(queue.data||[]);setReports(reportRows.data||[]);setAudit(auditRows.data||[]);
     setStats({users:profiles.count??(profiles.data||[]).length,servers:serverRows.count??(serverRows.data||[]).length,listings:(listings.data||[]).filter((x:any)=>x.listing_enabled&&x.listing_status==="approved").length,pending:(queue.data||[]).length,reports:(reportRows.data||[]).filter((x:any)=>x.status==="open").length});
     setLoading(false);
   }
@@ -256,6 +258,11 @@ export function AdminPage({session}:{session:Session}) {
   async function toggleFeatured(item:any) {
     const {error}=await supabase.from("server_discovery").update({is_featured:!item.is_featured}).eq("id",item.id);
     if(error){setNotice(error.message);return;}
+    await log(item.is_featured?"unfeatured_users":"featured_users","server_discovery",item.id,{server_name:item.server_name});await load();
+  }
+  async function toggleFeatured(item:any) {
+    const {error}=await supabase.from("server_discovery").update({is_featured:!item.is_featured}).eq("id",item.id);
+    if(error){setNotice(error.message);return;}
     await log(item.is_featured?"unfeatured_server":"featured_server","server_discovery",item.id,{server_name:item.server_name});await load();
   }
   async function updateReport(item:any,status:"reviewing"|"resolved"|"dismissed") {
@@ -265,22 +272,23 @@ export function AdminPage({session}:{session:Session}) {
   }
   if(loading)return <PageFrame active="admin"><div className="discovery-page"><div className="discovery-loading">Checking administrator access…</div></div></PageFrame>;
   if(!allowed)return <PageFrame active="admin"><div className="discovery-page"><div className="admin-denied"><span><Icon name="shield" size={26}/></span><h1>Admin access required</h1><p>This account isn't listed as a Voax administrator. Ask an existing administrator to grant access.</p><a className="discovery-primary" href="/app">Return to Voax</a></div></div></PageFrame>;
-  const nav:[AdminSection,string,string][]=[["overview","Overview","activity"],["approvals","Explore approvals","check-circle"],["reports","Reports","flag"],["servers","Servers","server"],["users","Users","users"],["audit","Audit log","clipboard-list"]];
+  type AdminNavIcon = "zap" | "shield" | "flag" | "users" | "inbox" | "explore";
+  const nav:[AdminSection,string,AdminNavIcon][]=[["overview","Overview","zap"],["approvals","Explore approvals","shield"],["reports","Reports","flag"],["servers","Servers","users"],["users","Users","users"],["audit","Audit log","inbox"]];
   return <PageFrame active="admin"><div className="admin-layout">
-    <aside className="admin-sidebar"><span className="discovery-eyebrow">VOAX CONTROL CENTER</span><h2>Administration</h2>{nav.map(([id,label,icon])=><button key={id} className={section===id?"active":""} onClick={()=>setSection(id)}><Icon name={icon} size={17}/>{label}{id==="approvals"&&pending.length>0&&<i>{pending.length}</i>}{id==="reports"&&stats.reports>0&&<i>{stats.reports}</i>}</button>)}<div className="admin-sidebar-bottom"><a href="/explore"><Icon name="search" size={15}/> Explore</a><a href="/app"><Icon name="arrow-left" size={15}/> Back to Voax</a></div></aside>
-    <main className="admin-content"><header className="admin-header"><div><span className="discovery-eyebrow">VOAX ADMIN</span><h1>{nav.find(item=>item[0]===section)?.[1]}</h1><p>Manage the Voax community and discovery directory.</p></div><button className="discovery-secondary" onClick={()=>void load()}><Icon name="refresh-cw" size={15}/> Refresh</button></header>
+    <aside className="admin-sidebar"><span className="discovery-eyebrow">VOAX CONTROL CENTER</span><h2>Administration</h2>{nav.map(([id,label,icon])=><button key={id} className={section===id?"active":""} onClick={()=>setSection(id)}><Icon name={icon} size={17}/>{label}{id==="approvals"&&pending.length>0&&<i>{pending.length}</i>}{id==="reports"&&stats.reports>0&&<i>{stats.reports}</i>}</button>)}<div className="admin-sidebar-bottom"><a href="/explore"><Icon name="search" size={15}/> Explore</a><a href="/app"><Icon name="chevron" size={15}/> Back to Voax</a></div></aside>
+    <main className="admin-content"><header className="admin-header"><div><span className="discovery-eyebrow">VOAX ADMIN</span><h1>{nav.find(item=>item[0]===section)?.[1]}</h1><p>Manage the Voax community and discovery directory.</p></div><button className="discovery-secondary" onClick={()=>void load()}><Icon name="refresh" size={15}/> Refresh</button></header>
       {notice&&<div className="discovery-notice">{notice}<button onClick={()=>setNotice("")}>×</button></div>}
-      {section==="overview"&&<><div className="admin-stat-grid">{[["Users",stats.users,"users"],["Servers",stats.servers,"server"],["Published listings",stats.listings,"compass"],["Pending approvals",stats.pending,"clock"],["Open reports",stats.reports,"flag"]].map(([label,value,icon])=><article key={String(label)}><span><Icon name={String(icon)} size={17}/>{label}</span><strong>{formatCount(Number(value))}</strong></article>)}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Needs your attention</h2><span>Moderation queue</span></div>{pending.slice(0,5).map(item=><div className="admin-queue-row" key={item.id}><ServerAvatar name={item.server_name} url={item.icon_url}/><div><strong>{item.server_name}</strong><small>{item.category} · Submitted {new Date(item.submitted_at).toLocaleDateString()}</small></div><button className="discovery-secondary" onClick={()=>setSection("approvals")}>Review</button></div>)}{!pending.length&&<p className="admin-muted">No pending server listings.</p>}</div></>}
-      {section==="approvals"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Pending Explore listings</h2><span>{pending.length} awaiting review</span></div>{pending.map(item=><article className="admin-listing-review" key={item.id}><div className="admin-review-banner">{item.banner_url&&<img src={item.banner_url} alt=""/>}</div><div className="admin-review-content"><div className="admin-review-heading"><ServerAvatar name={item.server_name} url={item.icon_url}/><div><h3>{item.server_name}</h3><span>{item.category} · {new Date(item.submitted_at).toLocaleString()}</span></div></div><strong>{item.short_description}</strong><p>{item.full_description}</p><div className="admin-review-actions"><button className="discovery-primary" onClick={()=>void reviewListing(item,"approved")}><Icon name="check" size={15}/> Approve</button><button className="discovery-danger" onClick={()=>void reviewListing(item,"rejected")}><Icon name="x" size={15}/> Reject</button></div></div></article>)}{!pending.length&&<p className="admin-muted">The approval queue is clear.</p>}</div>}
+      {section==="overview"&&<><div className="admin-stat-grid">{[["Users",stats.users,"users"],["Servers",stats.servers,"users"],["Published listings",stats.listings,"compass"],["Pending approvals",stats.pending,"clock"],["Open reports",stats.reports,"flag"]].map(([label,value,icon])=><article key={String(label)}><span><Icon name={String(icon)} size={17}/>{label}</span><strong>{formatCount(Number(value))}</strong></article>)}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Needs your attention</h2><span>Moderation queue</span></div>{pending.slice(0,5).map(item=><div className="admin-queue-row" key={item.id}><ServerAvatar name={item.server_name} url={item.icon_url}/><div><strong>{item.server_name}</strong><small>{item.category} · Submitted {new Date(item.submitted_at).toLocaleDateString()}</small></div><button className="discovery-secondary" onClick={()=>setSection("approvals")}>Review</button></div>)}{!pending.length&&<p className="admin-muted">No pending server listings.</p>}</div></>}
+      {section==="approvals"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Pending Explore listings</h2><span>{pending.length} awaiting review</span></div>{pending.map(item=><article className="admin-listing-review" key={item.id}><div className="admin-review-banner">{item.banner_url&&<img src={item.banner_url} alt=""/>}</div><div className="admin-review-content"><div className="admin-review-heading"><ServerAvatar name={item.server_name} url={item.icon_url}/><div><h3>{item.server_name}</h3><span>{item.category} · {new Date(item.submitted_at).toLocaleString()}</span></div></div><strong>{item.short_description}</strong><p>{item.full_description}</p><div className="admin-review-actions"><button className="discovery-primary" onClick={()=>void reviewListing(item,"approved")}><Icon name="shield" size={15}/> Approve</button><button className="discovery-danger" onClick={()=>void reviewListing(item,"rejected")}><Icon name="close" size={15}/> Reject</button></div></div></article>)}{!pending.length&&<p className="admin-muted">The approval queue is clear.</p>}</div>}
       {section==="reports"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Server listing reports</h2><span>{reports.filter(item=>item.status==="open").length} open</span></div>{reports.map(item=><article className="admin-report-row" key={item.id}><div><strong>{item.server_discovery?.server_name||"Server listing"}</strong><p>{item.reason}</p>{item.details&&<small>{item.details}</small>}<span>{new Date(item.created_at).toLocaleString()} · {item.status}</span></div><div className="admin-report-actions"><button onClick={()=>void updateReport(item,"reviewing")}>Review</button><button onClick={()=>void updateReport(item,"resolved")}>Resolve</button><button onClick={()=>void updateReport(item,"dismissed")}>Dismiss</button></div></article>)}{!reports.length&&<p className="admin-muted">No reports have been submitted.</p>}</div>}
-      {section==="servers"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Servers</h2><span>{servers.length} recently created</span></div><div className="admin-table"><div className="admin-table-head"><span>Server</span><span>Created</span><span>Owner ID</span></div>{servers.map(item=><div className="admin-table-row" key={item.id}><strong>{item.name}</strong><span>{new Date(item.created_at).toLocaleDateString()}</span><code>{item.created_by}</code></div>)}</div></div>}
+      {section==="servers"&&<><div className="admin-panel"><div className="admin-panel-heading"><h2>Explore listings</h2><span>{allListings.length} total</span></div>{allListings.map(item=><div className="admin-queue-row" key={item.id}><div><strong>{item.server_name}</strong><small>{item.category} · {item.listing_status}{item.listing_enabled?" · visible":" · hidden"}</small></div><button className="discovery-secondary" onClick={()=>void toggleFeatured(item)}>{item.is_featured?"Remove featured":"Feature server"}</button></div>)}{!allListings.length&&<p className="admin-muted">No server listings have been submitted.</p>}</div><div className="admin-panel"><div className="admin-panel-heading"><h2>Servers</h2><span>{servers.length} recently created</span></div><div className="admin-table"><div className="admin-table-head"><span>Server</span><span>Created</span><span>Owner ID</span></div>{servers.map(item=><div className="admin-table-row" key={item.id}><strong>{item.name}</strong><span>{new Date(item.created_at).toLocaleDateString()}</span><code>{item.created_by}</code></div>)}</div></div></>}
       {section==="users"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Users</h2><span>Latest 100 accounts</span></div><div className="admin-table"><div className="admin-table-head"><span>Username</span><span>Status</span><span>Joined</span></div>{users.map(item=><div className="admin-table-row" key={item.id}><strong>{item.username||"Player"}</strong><span>{item.status||"Offline"}</span><span>{new Date(item.created_at).toLocaleDateString()}</span></div>)}</div></div>}
       {section==="audit"&&<div className="admin-panel"><div className="admin-panel-heading"><h2>Administrative activity</h2><span>Latest 100 actions</span></div>{audit.map(item=><div className="admin-audit-row" key={item.id}><span><Icon name="shield" size={15}/></span><div><strong>{item.action.replaceAll("_"," ")}</strong><small>{item.target_type} · {item.target_id||"—"}</small></div><time>{new Date(item.created_at).toLocaleString()}</time></div>)}{!audit.length&&<p className="admin-muted">No administrative actions recorded yet.</p>}</div>}
     </main>
   </div></PageFrame>;
 }
 
-export function InvitePreviewCard({code,userId,onJoin}:{code:string;userId:string;onJoin:()=>void}) {
+export function InvitePreviewCard({code,onJoin}:{code:string;onJoin:()=>void}) {
   const [preview,setPreview]=useState<any>(null);
   const [loading,setLoading]=useState(true);
   useEffect(()=>{let alive=true;supabase.rpc("get_server_invite_preview",{p_invite_code:code}).then(({data,error})=>{if(!alive)return;setPreview(!error&&data?.[0]?data[0]:null);setLoading(false);});return()=>{alive=false;};},[code]);
@@ -289,9 +297,9 @@ export function InvitePreviewCard({code,userId,onJoin}:{code:string;userId:strin
   return <section className="invite-preview-card invite-preview-card-v2" aria-label="Server invite">
     <div className="invite-preview-cover">{preview?.banner_url&&<img src={preview.banner_url} alt=""/>}<span>VOAX INVITE</span></div>
     <div className="invite-preview-content">
-      <div className="invite-preview-heading"><ServerAvatar name={preview?.server_name||"Voax server"} url={preview?.icon_url||null}/><div><strong>{loading?"Loading invitation…":preview?.server_name||"Server invitation"}</strong><span>{preview?formatCount(Number(preview.member_count)||0)+" members · "+formatCount(Number(preview.online_count)||0)+" online":"Invite link"}</span></div></div>
+      <div className="invite-preview-heading"><ServerAvatar name={preview?.server_name||"Voax users"} url={preview?.icon_url||null}/><div><strong>{loading?"Loading invitation…":preview?.server_name||"Server invitation"}</strong><span>{preview?formatCount(Number(preview.member_count)||0)+" members · "+formatCount(Number(preview.online_count)||0)+" online":"Invite link"}</span></div></div>
       {preview?.description&&<p>{preview.description}</p>}
-      <div className="invite-preview-footer"><span><Icon name="shield-check" size={14}/> {preview?"You're invited":"Invite link"}</span>{member&&listing?<button className="btn primary invite-join-button" type="button" onClick={()=>openServerPath(listing)}>Open Server <Icon name="arrow-right" size={14}/></button>:<button className="btn primary invite-join-button" type="button" onClick={onJoin} disabled={loading||!preview}>{loading?"Loading…":"Join Server"} <Icon name="arrow-right" size={14}/></button>}</div>
+      <div className="invite-preview-footer"><span><Icon name="shield" size={14}/> {preview?"You're invited":"Invite link"}</span>{member&&listing?<button className="btn primary invite-join-button" type="button" onClick={()=>openServerPath(listing)}>Open Server <Icon name="arrowRight" size={14}/></button>:<button className="btn primary invite-join-button" type="button" onClick={onJoin} disabled={loading||!preview}>{loading?"Loading…":"Join Server"} <Icon name="arrowRight" size={14}/></button>}</div>
     </div>
   </section>;
 }
