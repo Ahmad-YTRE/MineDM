@@ -57,7 +57,7 @@ export function AuthScreen() {
 
   return <main style={{minHeight:"100dvh",display:"grid",placeItems:"center",padding:24,background:"radial-gradient(ellipse at 50% 0%,#132b3c 0,transparent 50%),#090b10",color:"#e5ebf5",fontFamily:"Inter,system-ui,sans-serif"}}>
     <section style={{width:"min(100%,420px)",padding:32,border:"1px solid #ffffff18",borderRadius:18,background:"#10151eee",boxShadow:"0 24px 80px #0006"}}>
-      <div style={{display:"flex",alignItems:"center",gap:12,fontWeight:950,letterSpacing:2,fontSize:22,color:"#fff",marginBottom:16}}><img src="/logo.png" alt="" width={48} height={48} style={{objectFit:"contain"}} />Voax</div>
+      <div style={{display:"flex",alignItems:"center",gap:12,fontWeight:950,letterSpacing:2,fontSize:22,color:"#fff",marginBottom:16}}><img src={import.meta.env.BASE_URL + "logo.svg"} alt="" width={48} height={48} style={{objectFit:"contain"}} />Voax</div>
       
       <form onSubmit={submit} style={{display:"grid",gap:13}}>
         {mode === "signup" && <label style={{display:"grid",gap:6,fontSize:12,color:"#aeb9ca"}}>Username<input value={username} onChange={e=>setUsername(e.target.value)} maxLength={32} placeholder="CraftyBuilder" style={fieldStyle}/></label>}
