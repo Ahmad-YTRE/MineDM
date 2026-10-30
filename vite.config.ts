@@ -1,6 +1,7 @@
 import { defineConfig } from "vite";
 
 export default defineConfig({
+  base: (globalThis as any).process?.env?.GITHUB_ACTIONS ? "/Voax/" : "/",
   build: {
     rollupOptions: {
       output: {
