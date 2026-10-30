@@ -48,26 +48,20 @@ function useLiveServerOnlineCounts(serverIds:string[]) {
     const ids=serverKey?serverKey.split(","):[];
     if(!ids.length){setCounts({});return;}
     let alive=true;
-    const membersByServer:Record<string,Set<string>>={};
     const channel=supabase.channel("voax-presence",{config:{presence:{key:"voax-live-count-reader"}}});
     const sync=()=>{
       if(!alive)return;
-      const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:string}>>;
-      const onlineUsers=new Set<string>();
+      const state=channel.presenceState() as Record<string,Array<{userId?:string;status?:string;serverIds?:string[]}>>;
+      const onlineByServer:Record<string,Set<string>>={};
       for(const entries of Object.values(state))for(const entry of entries){
-        if(entry.userId&&entry.status!=="Offline")onlineUsers.add(entry.userId);
+        if(!entry.userId||entry.status==="Offline")continue;
+        for(const serverId of entry.serverIds||[])if(ids.includes(serverId))(onlineByServer[serverId]||=new Set()).add(entry.userId);
       }
       const next:Record<string,number>={};
-      for(const id of ids)next[id]=[...(membersByServer[id]||[])].filter(userId=>onlineUsers.has(userId)).length;
+      for(const id of ids)next[id]=(onlineByServer[id]||new Set()).size;
       setCounts(next);
     };
-    channel.on("presence",{event:"sync"},sync).subscribe(async state=>{
-      if(state!=="SUBSCRIBED")return;
-      const {data,error}=await supabase.from("server_members").select("server_id,user_id").in("server_id",ids);
-      if(!alive)return;
-      if(!error)for(const row of data||[])(membersByServer[row.server_id]||=new Set()).add(row.user_id);
-      sync();
-    });
+    channel.on("presence",{event:"sync"},sync).subscribe(state=>{if(state==="SUBSCRIBED")sync();});
     return()=>{alive=false;void supabase.removeChannel(channel);};
   },[serverKey]);
   return counts;
@@ -126,7 +120,7 @@ export function ExplorePage({session,embedded=false,routePath,onNavigate}:{sessi
     })();
     return()=>{alive=false;};
   },[session.user.id,isManagePath]);
-  useEffect(()=>{if(detailId&&listings.length){setSelected(listings.find(item=>item.server_id===detailId||item.server_public_id===detailId)||null);}},[detailId,listings]);
+  useEffect(()=>{if(!detailId){setSelected(null);return;}if(listings.length){setSelected(listings.find(item=>item.server_id===detailId||item.server_public_id===detailId)||null);}},[detailId,listings]);
   const filtered=useMemo(()=>{
     const needle=query.trim().toLowerCase();
     return listings.filter(item=>(category==="All"||item.category===category)&&(!needle||[item.server_name,item.short_description,item.full_description,item.category,...item.tags].join(" ").toLowerCase().includes(needle)));
@@ -333,7 +327,7 @@ export function InvitePreviewCard({code,onJoin}:{code:string;onJoin:()=>void}) {
     <div className="invite-preview-cover">{(preview?.banner_url||preview?.server_banner_url)&&<img src={preview.banner_url||preview.server_banner_url} alt=""/>}<span>VOAX INVITE</span></div>
     <div className="invite-preview-content">
       <div className="invite-preview-heading"><ServerAvatar name={preview?.server_name||"Voax server"} url={preview?.icon_url||null}/><div><strong>{loading?"Loading invitation…":preview?.server_name||"Server invitation"}</strong><span>{preview?formatCount(Number(preview.member_count)||0)+" members · "+formatCount(liveOnlineCount)+" online":"Invite link"}</span></div></div>
-      <p>{preview?.description?.trim()||"A place for this community to chat and hang out."}</p>
+      <p>{preview?.description?.trim()&&!/^a voax server$/i.test(preview.description.trim())?preview.description:"A place for this community to chat and hang out."}</p>
       <div className="invite-preview-footer"><span><Icon name="shield" size={14}/> {preview?"You're invited":"Invite link"}</span>{member&&listing?<button className="btn primary invite-join-button" type="button" onClick={()=>openServerPath(listing)}>Open Server <Icon name="arrowRight" size={14}/></button>:<button className="btn primary invite-join-button" type="button" onClick={onJoin} disabled={loading||!preview}>{loading?"Loading…":"Join Server"} <Icon name="arrowRight" size={14}/></button>}</div>
     </div>
   </section>;
