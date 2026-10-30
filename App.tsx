@@ -1438,6 +1438,7 @@ function App({ session }: { session: Session }) {
     const description=serverShortDescription.trim().replace(/\s+/g," ").slice(0,120);
     const {error}=await supabase.from("servers").update({name:value,description,banner_url:serverBannerUrl}).eq("id",currentServer.id);
     if(error){notify("Couldn't save server settings: "+error.message);return;}
+    await supabase.from("server_discovery").update({short_description:description}).eq("server_id",currentServer.id);
     await loadWorkspace();setModal(null);setModalInput("");notify("Server settings saved.");
   }
   async function uploadServerBanner(file:File|null){
@@ -1468,7 +1469,7 @@ function App({ session }: { session: Session }) {
     const payload={server_id:currentServer.id,owner_id:currentServer.createdBy||session.user.id,server_name:currentServer.name,icon_url:currentServer.iconUrl||null,banner_url:serverBannerUrl,short_description:serverShortDescription.trim()||currentServer.name+" community",full_description:serverDiscoveryLongDescription.trim().slice(0,500),category:serverDiscoveryCategory,tags:[...new Set(serverDiscoveryTags.split(",").map(tag=>tag.trim().toLowerCase()).filter(Boolean))].slice(0,10),language:serverDiscoveryLanguage.trim().slice(0,40)||"English",listing_enabled:false,listing_status:"pending"};
     const {data:existing,error:lookupError}=await supabase.from("server_discovery").select("id").eq("server_id",currentServer.id).maybeSingle();
     if(lookupError){setServerDiscoverySaving(false);notify("Couldn't check discovery listing: "+lookupError.message);return;}
-    const result=existing?await supabase.from("server_discovery").update({server_name:payload.server_name,icon_url:payload.icon_url,banner_url:payload.banner_url,short_description:payload.short_description,full_description:payload.full_description,category:payload.category,tags:payload.tags,language:payload.language}).eq("id",existing.id):await supabase.from("server_discovery").insert(payload);
+    const result=existing?await supabase.from("server_discovery").update({server_name:payload.server_name,icon_url:payload.icon_url,...(serverBannerUrl?{banner_url:serverBannerUrl}:{}),short_description:payload.short_description,full_description:payload.full_description,category:payload.category,tags:payload.tags,language:payload.language}).eq("id",existing.id):await supabase.from("server_discovery").insert(payload);
     setServerDiscoverySaving(false);
     if(result.error){notify("Couldn't save discovery settings: "+result.error.message);return;}
     notify("Discovery settings saved. Your listing visibility is unchanged.");
