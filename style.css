@@ -3928,3 +3928,23 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
   .channel-mobile-reorder-controls{margin-left:auto}
   .channel-mobile-reorder-controls select{max-width:78px}
 }
+
+
+/* Dedicated category and server ordering settings. */
+.category-order-controls,.server-order-group-heading,.server-order-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.category-order-controls{margin:0 0 18px;padding:12px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+.category-order-controls>div:first-child,.server-order-group-heading>div:first-child{display:grid;gap:4px;min-width:0}
+.category-order-controls strong,.server-order-group-heading strong{color:var(--text);font-size:12px;font-weight:800}
+.category-order-controls small,.server-order-group-heading small{color:var(--muted);font-size:10px;line-height:1.45}
+.server-order-settings{display:grid;gap:14px}
+.server-order-group{overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+.server-order-group-heading{min-height:58px;padding:11px 13px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--accent) 4%,var(--card))}
+.server-order-row{min-height:48px;padding:7px 13px 7px 17px;border-bottom:1px solid var(--line)}
+.server-order-row:last-child{border-bottom:0}
+.server-order-row>span{display:flex;align-items:center;gap:9px;min-width:0;color:var(--text);font-size:12px;font-weight:650}
+.server-order-row>span svg{flex:0 0 auto;color:var(--muted)}
+.server-order-move-buttons{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.server-order-move-buttons button{display:grid;place-items:center;width:30px;height:30px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--muted);cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.server-order-move-buttons button:hover:not(:disabled){border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 10%,var(--panel));color:var(--text)}
+.server-order-move-buttons button:disabled{opacity:.32;cursor:not-allowed}
+@media(max-width:650px){.server-order-row{padding-inline:10px}.server-order-move-buttons button{width:28px;height:28px}}
