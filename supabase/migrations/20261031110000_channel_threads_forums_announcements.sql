@@ -212,9 +212,15 @@ using (public.has_channel_permission(channel_id, 'view_channel'));
 drop policy if exists "Channel managers manage forum tags" on public.forum_tags;
 create policy "Channel managers manage forum tags"
 on public.forum_tags for all to authenticated
-using (public.has_channel_permission(channel_id, 'manage_channels'))
-with check (
+using (
   public.has_channel_permission(channel_id, 'manage_channels')
+  or public.has_channel_permission(channel_id, 'manage_threads')
+)
+with check (
+  (
+    public.has_channel_permission(channel_id, 'manage_channels')
+    or public.has_channel_permission(channel_id, 'manage_threads')
+  )
   and exists (
     select 1 from public.channels c
     where c.id = channel_id and c.channel_type = 'forum'
