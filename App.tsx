@@ -929,7 +929,7 @@ function App({ session }: { session: Session }) {
   },[session.user.id]);
   useEffect(()=>{
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
-    if(!channelId&&!conversationId){setMessagesLoading(false);return;}let cancelled=false;setMessagesLoading(true);
+    if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text"){setMessagesLoading(false);return;}let cancelled=false;setMessagesLoading(true);
     const loadMessages=async()=>{
       const result=channelId?await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("channel_id",channelId).order("created_at",{ascending:false}).limit(200):await supabase.from("messages").select("id,author_id,body,created_at,reply_to,channel_id,conversation_id,attachments").eq("conversation_id",conversationId!).order("created_at",{ascending:false}).limit(200);
       if(cancelled)return;if(result.error){notify("Couldn't load messages: "+result.error.message);setMessagesLoading(false);return;}
@@ -951,7 +951,7 @@ function App({ session }: { session: Session }) {
   },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,clockFormat]);
   useEffect(()=>{
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
-    if(!channelId&&!conversationId)return;
+    if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text")return;
     const filter=channelId?"channel_id=eq."+channelId:"conversation_id=eq."+conversationId;
     const realtime=supabase.channel("voax-messages-"+(channelId||conversationId))
       .on("postgres_changes",{event:"INSERT",schema:"public",table:"messages",filter},async payload=>{
