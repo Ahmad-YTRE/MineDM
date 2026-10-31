@@ -3501,17 +3501,19 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .channel-category-actions { display:flex; align-items:center; gap:2px; flex:0 0 auto; }
 .channel-category-actions .category-add-channel,
 .channel-category-actions .category-settings-button { display:grid; place-items:center; width:24px; height:24px; padding:0; border:0; border-radius:6px; background:transparent; color:#8794a8; opacity:0; pointer-events:none; cursor:pointer; transition:opacity .14s ease,background .14s ease,color .14s ease; }
+.channel-category-actions .category-order-button { display:grid; place-items:center; width:20px; height:24px; padding:0; border:0; border-radius:5px; background:transparent; color:#8794a8; opacity:0; pointer-events:none; cursor:pointer; font:inherit; font-size:13px; font-weight:800; transition:opacity .14s ease,background .14s ease,color .14s ease; }
+.channel-category-actions .category-order-button:disabled { opacity:.22; cursor:not-allowed; }
 .channel-category-label:hover .category-add-channel,
-.channel-category-label:hover .category-settings-button,
+.channel-category-label:hover .category-settings-button,\n.channel-category-label:hover .category-order-button,
 .channel-category-label:focus-within .category-add-channel,
-.channel-category-label:focus-within .category-settings-button { opacity:1; pointer-events:auto; }
+.channel-category-label:focus-within .category-settings-button,\n.channel-category-label:focus-within .category-order-button { opacity:1; pointer-events:auto; }
 .channel-category-actions .category-add-channel:hover,
-.channel-category-actions .category-settings-button:hover { background:#ffffff12; color:#eafaff; }
+.channel-category-actions .category-settings-button:hover,\n.channel-category-actions .category-order-button:not(:disabled):hover { background:#ffffff12; color:#eafaff; }
 :root[data-theme="light"] .channel-category-actions .category-add-channel:hover,
-:root[data-theme="light"] .channel-category-actions .category-settings-button:hover { background:#e4ebf3; color:#172033; }
+:root[data-theme="light"] .channel-category-actions .category-settings-button:hover,\n:root[data-theme="light"] .channel-category-actions .category-order-button:not(:disabled):hover { background:#e4ebf3; color:#172033; }
 @media (hover:none) {
   .channel-category-actions .category-add-channel,
-  .channel-category-actions .category-settings-button { opacity:1; pointer-events:auto; }
+  .channel-category-actions .category-settings-button,\n  .channel-category-actions .category-order-button { opacity:1; pointer-events:auto; }
 }
 
 
