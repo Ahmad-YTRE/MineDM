@@ -1727,7 +1727,8 @@ function App({ session }: { session: Session }) {
       const category=(categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels");
       const {data:categoryRow,error:categoryError}=await supabase.from("channel_categories").select("id").eq("server_id",targetServerId).eq("name",category).maybeSingle();
       if(categoryError){notify("Couldn't check the channel category: "+categoryError.message);return;}
-      const {data,error}=await supabase.from("channels").insert({server_id:targetServerId,name:channelName,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput,permissions_synced:true,description:"A new community channel",created_by:authenticatedUser.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
+      const {data:createdChannel,error}=await supabase.rpc("create_server_channel",{p_server_id:targetServerId,p_name:channelName,p_category:category,p_category_id:categoryRow?.id||null,p_channel_type:channelTypeInput,p_description:"A new community channel"});
+      const data=createdChannel as {id:string;server_id:string;name:string;description:string;category:string;category_id:string|null;channel_type:string;permissions_synced:boolean}|null;
       if(error||!data){notify("Couldn't create the channel: "+(error?.message||"Please try again."));return;}
       await loadWorkspace();setActiveServer(targetServerId);setActive(data.id);setView("channel");setShowLanding(false);setCategoryInput("Text Channels");setChannelTypeInput("text");notify("Channel created.");
     }
