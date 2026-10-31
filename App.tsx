@@ -1802,7 +1802,22 @@ function App({ session }: { session: Session }) {
     if(result.error){notify("Couldn't save discovery settings: "+result.error.message);return;}
     notify("Discovery settings saved. Your listing visibility is unchanged.");
   }
-  async function moveCategory(categoryName:string,direction:-1|1){\n    if(!canManageChannels||!activeServer)return;\n    const ordered=channelCategories.filter(item=>item.serverId===activeServer&&item.id&&item.name!=="Text Channels").sort((a,b)=>(a.position??0)-(b.position??0));\n    const index=ordered.findIndex(item=>item.name===categoryName);\n    const target=index+direction;\n    if(index<0||target<0||target>=ordered.length)return;\n    const next=[...ordered];\n    [next[index],next[target]]=[next[target],next[index]];\n    const results=await Promise.all(next.map((item,position)=>supabase.from("channel_categories").update({position}).eq("id",item.id!).eq("server_id",activeServer)));\n    const failed=results.find(result=>result.error);\n    if(failed?.error){notify("Could not reorder categories: "+failed.error.message);await loadWorkspace();return;}\n    const positions=new Map(next.map((item,position)=>[item.id!,position]));\n    setChannelCategories(current=>current.map(item=>item.id&&positions.has(item.id)?{...item,position:positions.get(item.id)!}:item));\n    notify("Category moved.");\n  }\n  async function renameCategory(e:FormEvent){
+  async function moveCategory(categoryName:string,direction:-1|1){
+    if(!canManageChannels||!activeServer)return;
+    const ordered=channelCategories.filter(item=>item.serverId===activeServer&&item.id&&item.name!=="Text Channels").sort((a,b)=>(a.position??0)-(b.position??0));
+    const index=ordered.findIndex(item=>item.name===categoryName);
+    const target=index+direction;
+    if(index<0||target<0||target>=ordered.length)return;
+    const next=[...ordered];
+    [next[index],next[target]]=[next[target],next[index]];
+    const results=await Promise.all(next.map((item,position)=>supabase.from("channel_categories").update({position}).eq("id",item.id!).eq("server_id",activeServer)));
+    const failed=results.find(result=>result.error);
+    if(failed?.error){notify("Could not reorder categories: "+failed.error.message);await loadWorkspace();return;}
+    const positions=new Map(next.map((item,position)=>[item.id!,position]));
+    setChannelCategories(current=>current.map(item=>item.id&&positions.has(item.id)?{...item,position:positions.get(item.id)!}:item));
+    notify("Category moved.");
+  }
+  async function renameCategory(e:FormEvent){
     e.preventDefault();
     const oldName=selectedCategory;
     const nextName=modalInput.trim().replace(/\s+/g," ").slice(0,32);
