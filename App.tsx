@@ -1471,18 +1471,20 @@ function App({ session }: { session: Session }) {
     setMessages(old=>{const list=old[activeKey]||old[active]||[];const next=list.some(m=>m.id===item.id)?list:[...list,item];return{...old,[activeKey]:next,[active]:next};});
     setPeople(old=>old.map(p=>p.id===activePerson?.id?{...p,preview:body||"Shared an attachment",hasConversation:true}:p));setDraft("");setMentionMenu(null);setReplyingTo(null);setPendingAttachments([]);
   }
-  async function loadChannelPermissionOverwrites(channelId:string){
+  async function loadChannelPermissionOverwrites(channelId:string,syncedOverride?:boolean){
     setChannelPermissionsLoading(true);
     const channel=channels.find(item=>item.id===channelId);
+    const isSynced=syncedOverride??channel?.permissionsSynced??false;
     const query=supabase.from("channel_permission_overwrites").select("id,target_type,target_id,allow_permissions,deny_permissions");
-    const {data,error}=channel?.permissionsSynced&&channel.categoryId?await query.eq("category_id",channel.categoryId):await query.eq("channel_id",channelId);
+    const {data,error}=isSynced&&channel?.categoryId?await query.eq("category_id",channel.categoryId):await query.eq("channel_id",channelId);
     setChannelPermissionsLoading(false);
     if(error){notify("Could not load channel permissions: "+error.message);return;}
     setChannelPermissionOverwrites((data||[]) as typeof channelPermissionOverwrites);
   }
   async function ensureChannelOverridesLocal(channelId:string){
-    const channel=channels.find(item=>item.id===channelId);
-    if(channel?.permissionsSynced){
+    const {data:channel,error:channelError}=await supabase.from("channels").select("permissions_synced").eq("id",channelId).maybeSingle();
+    if(channelError){notify("Could not check channel permissions: "+channelError.message);return null;}
+    if(channel?.permissions_synced){
       const {error}=await supabase.from("channels").update({permissions_synced:false}).eq("id",channelId);
       if(error){notify("Could not separate channel permissions: "+error.message);return null;}
       setChannels(current=>current.map(item=>item.id===channelId?{...item,permissionsSynced:false}:item));
@@ -1497,7 +1499,7 @@ function App({ session }: { session: Session }) {
     const {error}=await supabase.from("channels").update({permissions_synced:synced}).eq("id",channelId);
     if(error){notify("Could not update permission syncing: "+error.message);return;}
     setChannels(current=>current.map(item=>item.id===channelId?{...item,permissionsSynced:synced}:item));
-    await loadChannelPermissionOverwrites(channelId);
+    await loadChannelPermissionOverwrites(channelId,synced);
     notify(synced?"Channel permissions synced with its category.":"Channel now has separate permissions.");
   }
   async function saveChannelPermission(channelId:string,targetType:"everyone"|"role",targetId:string|null,permission:string,enabled:boolean){
@@ -1511,7 +1513,7 @@ function App({ session }: { session: Session }) {
     if(existing)result=await supabase.from("channel_permission_overwrites").update({allow_permissions:payload.allow_permissions,deny_permissions:payload.deny_permissions}).eq("id",existing.id);
     else result=await supabase.from("channel_permission_overwrites").insert(payload);
     if(result.error){notify("Could not save channel permissions: "+result.error.message);return;}
-    await loadChannelPermissionOverwrites(channelId);
+    await loadChannelPermissionOverwrites(channelId,false);
   }
   async function setChannelPrivate(channelId:string,privateChannel:boolean){
     const rows=await ensureChannelOverridesLocal(channelId);if(!rows)return;
@@ -1525,7 +1527,7 @@ function App({ session }: { session: Session }) {
     else if(privateChannel)result=await supabase.from("channel_permission_overwrites").insert(payload);
     else result={error:null};
     if(result.error){notify("Could not update channel visibility: "+result.error.message);return;}
-    await loadChannelPermissionOverwrites(channelId);
+    await loadChannelPermissionOverwrites(channelId,false);
     notify(privateChannel?"Channel is now private.":"Channel is visible to all server members.");
   }
   async function createItem(e:FormEvent){
