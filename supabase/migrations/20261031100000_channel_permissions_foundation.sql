@@ -364,3 +364,30 @@ before update of permissions_synced on public.channels
 for each row
 when (old.permissions_synced is distinct from new.permissions_synced)
 execute function public.sync_channel_permission_overwrites();
+
+
+-- Deleting a category must not silently make its private channels public.
+-- Unsync each channel first; the channel sync trigger snapshots the category
+-- overwrites before the category's cascading delete removes them.
+create or replace function public.preserve_channel_permissions_before_category_delete()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public
+as $function$
+begin
+  update public.channels
+  set permissions_synced = false
+  where category_id = old.id
+    and server_id = old.server_id
+    and permissions_synced = true;
+
+  return old;
+end;
+$function$;
+
+drop trigger if exists preserve_channel_permissions_before_category_delete on public.channel_categories;
+create trigger preserve_channel_permissions_before_category_delete
+before delete on public.channel_categories
+for each row
+execute function public.preserve_channel_permissions_before_category_delete();
