@@ -2100,7 +2100,7 @@ function App({ session }: { session: Session }) {
       {(() => {
         const allMembers: Person[] = [
           { id: session.user.id, name, online: status !== "Offline", status, color: "blue", preview: "You", avatarUrl, isFriend: false },
-          ...serverMemberPeople
+          ...visibleChannelMemberPeople
         ];
         const orderedRoles = [...customServerRoles].sort((a, b) => b.position - a.position);
         const getPrimaryCustomRole = (userId: string) => {
