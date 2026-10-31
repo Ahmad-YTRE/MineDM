@@ -137,7 +137,7 @@ function formatDateTime(date: Date, format: "12h" | "24h") {
   const suffix = lastTwo >= 11 && lastTwo <= 13 ? "th" : value % 10 === 1 ? "st" : value % 10 === 2 ? "nd" : value % 10 === 3 ? "rd" : "th";
   return `${month} ${value}${suffix} ${date.getFullYear()} at ${time}`;
 }
-const SIGNED_ATTACHMENT_URL_TTL_MS = 55 * 60 * 1000;
+const SIGNED_ATTACHMENT_URL_TTL_MS = 4 * 60 * 1000;
 const signedAttachmentUrlCache = new Map<string, { url: string; expiresAt: number }>();
 async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
   const attachments = Array.isArray(value) ? value as Omit<Attachment, "url">[] : [];
@@ -149,7 +149,7 @@ async function signMessageAttachments(value: unknown): Promise<Attachment[]> {
     return !cached || cached.expiresAt <= now;
   });
   if (missingPaths.length) {
-    const { data } = await supabase.storage.from("message-attachments").createSignedUrls(missingPaths, 3600);
+    const { data } = await supabase.storage.from("message-attachments").createSignedUrls(missingPaths, 300);
     for (const item of data || []) {
       if (item.path && item.signedUrl) signedAttachmentUrlCache.set(item.path, { url: item.signedUrl, expiresAt: now + SIGNED_ATTACHMENT_URL_TTL_MS });
     }
