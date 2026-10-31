@@ -1656,7 +1656,8 @@ function App({ session }: { session: Session }) {
     e.preventDefault();const value=modalInput.trim().toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");if(!value||!activeChannel)return;
     if(serverChannels.some(c=>c.id!==activeChannel.id&&c.name.toLowerCase()===value)){notify("That channel already exists in this server.");return;}
     const category=categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels";
-    const {data:categoryRow}=await supabase.from("channel_categories").select("id").eq("server_id",activeServer).eq("name",category).maybeSingle();\n    const {error}=await supabase.from("channels").update({name:value,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput}).eq("id",activeChannel.id);if(error){notify("Couldn't rename the channel: "+error.message);return;}
+    const {data:categoryRow}=await supabase.from("channel_categories").select("id").eq("server_id",activeServer).eq("name",category).maybeSingle();
+    const {error}=await supabase.from("channels").update({name:value,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput}).eq("id",activeChannel.id);if(error){notify("Couldn't rename the channel: "+error.message);return;}
     await loadWorkspace();setModal(null);setModalInput("");setCategoryInput("Text Channels");notify("Channel updated.");
   }
   function askDeleteServer(){if(!currentServer)return;if(servers.length<=1){notify("Keep at least one server.");return;}setPendingDelete({type:"server",id:currentServer.id,name:currentServer.name});setModal("confirmDelete");}
