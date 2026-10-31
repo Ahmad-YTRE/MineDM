@@ -111,7 +111,7 @@ for each row execute function public.guard_channel_thread_updates();
 create or replace function public.enforce_thread_reply_permissions()
 returns trigger
 language plpgsql
-security invoker
+security definer
 set search_path = public, auth
 as $function$
 declare
@@ -146,10 +146,37 @@ begin
 end;
 $function$;
 
+revoke all on function public.enforce_thread_reply_permissions() from public;
+revoke all on function public.enforce_thread_reply_permissions() from anon;
+
 drop trigger if exists enforce_thread_reply_permissions on public.messages;
 create trigger enforce_thread_reply_permissions
-before insert on public.messages
+before insert or update on public.messages
 for each row execute function public.enforce_thread_reply_permissions();
+
+create or replace function public.bump_channel_thread_activity()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $function$
+begin
+  if new.thread_id is not null then
+    update public.channel_threads
+    set last_activity_at = new.created_at
+    where id = new.thread_id;
+  end if;
+  return new;
+end;
+$function$;
+
+revoke all on function public.bump_channel_thread_activity() from public;
+revoke all on function public.bump_channel_thread_activity() from anon;
+
+drop trigger if exists bump_channel_thread_activity on public.messages;
+create trigger bump_channel_thread_activity
+after insert on public.messages
+for each row execute function public.bump_channel_thread_activity();
 
 create table if not exists public.forum_tags (
   id uuid primary key default gen_random_uuid(),
