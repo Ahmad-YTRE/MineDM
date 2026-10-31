@@ -105,7 +105,7 @@ type AppNotification = { id: string; actor_id: string | null; type: string; titl
 function isMessageActivityNotification(notification: AppNotification) {
   return notification.type === "message" || /\b(sent a message|message sent)\b/i.test(`${notification.title} ${notification.body}`);
 }
-type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string };
+type Channel = { id: string; publicId?: string; name: string; description: string; serverId?: string; category?: string; categoryId?: string | null; channelType?: "text" | "announcement" | "forum"; permissionsSynced?: boolean };
 type ContextMenuTarget = { kind: "person"; person: Person } | { kind: "server"; server: Server } | { kind: "channel"; channel: Channel } | { kind: "message"; message: Message } | { kind: "channels" };
 type ContextMenuState = { x: number; y: number } & ContextMenuTarget;
 type VoaxReportTarget = { target_type: "account"; target_user_id: string; snapshot: Record<string, unknown> } | { target_type: "message"; target_message_id: string; snapshot: Record<string, unknown> } | { target_type: "server"; target_server_id: string; snapshot: Record<string, unknown> };
@@ -1136,7 +1136,7 @@ function App({ session }: { session: Session }) {
     if(serverIds.length){
       const [sr,cr,mr,cat,dr]=await Promise.all([
         supabase.from("servers").select("id,public_id,name,description,created_by,invite_code,icon_url,banner_url").in("id",serverIds).order("created_at"),
-        supabase.from("channels").select("id,public_id,server_id,name,description,category").in("server_id",serverIds).order("created_at"),
+        supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,channel_type,permissions_synced").in("server_id",serverIds).order("created_at"),
         supabase.from("server_members").select("server_id,user_id,role").in("server_id",serverIds),
         supabase.from("channel_categories").select("server_id,name,position").in("server_id",serverIds).order("position").order("created_at"),
         supabase.from("server_discovery").select("server_id").in("server_id",serverIds).eq("listing_enabled",true).eq("listing_status","approved")]);
@@ -1183,7 +1183,7 @@ function App({ session }: { session: Session }) {
     setDiscoverableServerIds(discoveryRows.map(row=>row.server_id));
     const membersByServer:Record<string,string[]>={},rolesByServer:Record<string,Record<string,"owner"|"admin"|"member">>={};for(const row of serverMemberRows){(membersByServer[row.server_id] ||= []).push(row.user_id);(rolesByServer[row.server_id] ||= {})[row.user_id]=row.role;}setServerMembersByServer(membersByServer);setServerMemberRoles(rolesByServer);
     setFriendRequests((friendships||[]).filter(row=>row.status==="pending"&&row.addressee_id===uid).map(row=>({id:row.id,requester_id:row.requester_id,addressee_id:row.addressee_id,name:profiles.find(p=>p.id===row.requester_id)?.username||"Player",avatarUrl:profiles.find(p=>p.id===row.requester_id)?.avatar_url||null})));
-    setChannels(channelRows.map(row=>({id:row.id,publicId:row.public_id,serverId:row.server_id,name:row.name,description:row.description||"",category:row.category||"Text Channels"})));
+    setChannels(channelRows.map(row=>({id:row.id,publicId:row.public_id,serverId:row.server_id,name:row.name,description:row.description||"",category:row.category||"Text Channels",categoryId:row.category_id||null,channelType:row.channel_type||"text",permissionsSynced:row.permissions_synced!==false})));
     setChannelCategories([...new Map([...categoryRows.map(row=>[row.server_id+":"+row.name,{serverId:row.server_id,name:row.name}] as const),...channelRows.map(row=>[row.server_id+":"+(row.category||"Text Channels"),{serverId:row.server_id,name:row.category||"Text Channels"}] as const)]).values()]);
     if(channelRows.length)setUnread(old=>({...old,...unreadByChannel}));
     setPeople(profiles.map((p,i)=>({id:p.id,...(p.public_id?{publicId:p.public_id}:{}),name:p.username||"Player",status:presenceByUser[p.id]||(p.status||"Offline") as PresenceStatus,online:Boolean(presenceByUser[p.id]&&presenceByUser[p.id]!=="Offline"),color:colors[i%colors.length],preview:"",avatarUrl:p.avatar_url||null,bio:p.bio||null,isFriend:friendIds.has(p.id),hasConversation:Boolean(convMap[p.id])})));
@@ -1265,7 +1265,7 @@ function App({ session }: { session: Session }) {
     if(target==="/app"){window.history.pushState({},"","/app");setView("home");setActive("");setShowLanding(false);return;}
     if(target.startsWith("/channel/")||target.startsWith("/channels/")){
       const channelKey=target.split("/")[3]||"";
-      const channelResult=await supabase.from("channels").select("id,public_id,server_id,name,description,category").or("id.eq."+channelKey+",public_id.eq."+channelKey).maybeSingle();
+      const channelResult=await supabase.from("channels").select("id,public_id,server_id,name,description,category,category_id,channel_type,permissions_synced").or("id.eq."+channelKey+",public_id.eq."+channelKey).maybeSingle();
       if(!channelResult.data){window.location.assign(target);return;}
       await loadWorkspace();
       const channel=channelResult.data;
@@ -1484,7 +1484,7 @@ function App({ session }: { session: Session }) {
       if(!channelName||!activeServer)return;
       if(serverChannels.some(c=>c.name===channelName)){notify("That channel already exists in this server.");return;}
       const category=(categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels");
-      const {data,error}=await supabase.from("channels").insert({server_id:activeServer,name:channelName,category,description:"A new community channel",created_by:session.user.id}).select("id,server_id,name,description,category").single();
+      const {data:categoryRow}=await supabase.from("channel_categories").select("id").eq("server_id",activeServer).eq("name",category).maybeSingle();\n      const {data,error}=await supabase.from("channels").insert({server_id:activeServer,name:channelName,category,category_id:categoryRow?.id||null,channel_type:"text",permissions_synced:true,description:"A new community channel",created_by:session.user.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
       if(error||!data){notify("Couldn't create the channel: "+(error?.message||"Please try again."));return;}
       await loadWorkspace();setActive(data.id);setView("channel");setShowLanding(false);setCategoryInput("Text Channels");notify("Channel created.");
     }
@@ -1574,7 +1574,7 @@ function App({ session }: { session: Session }) {
     e.preventDefault();const value=modalInput.trim().toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");if(!value||!activeChannel)return;
     if(serverChannels.some(c=>c.id!==activeChannel.id&&c.name.toLowerCase()===value)){notify("That channel already exists in this server.");return;}
     const category=categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels";
-    const {error}=await supabase.from("channels").update({name:value,category}).eq("id",activeChannel.id);if(error){notify("Couldn't rename the channel: "+error.message);return;}
+    const {data:categoryRow}=await supabase.from("channel_categories").select("id").eq("server_id",activeServer).eq("name",category).maybeSingle();\n    const {error}=await supabase.from("channels").update({name:value,category,category_id:categoryRow?.id||null}).eq("id",activeChannel.id);if(error){notify("Couldn't rename the channel: "+error.message);return;}
     await loadWorkspace();setModal(null);setModalInput("");setCategoryInput("Text Channels");notify("Channel updated.");
   }
   function askDeleteServer(){if(!currentServer)return;if(servers.length<=1){notify("Keep at least one server.");return;}setPendingDelete({type:"server",id:currentServer.id,name:currentServer.name});setModal("confirmDelete");}
