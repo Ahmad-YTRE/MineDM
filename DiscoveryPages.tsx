@@ -243,6 +243,29 @@ export function AdminPage({session,mode="admin"}:{session:Session;mode?:"admin"|
     const permitted=Boolean(role)&&(mode==="moderator"||role==="owner"||role==="admin");
     if(check.error||!permitted){setAllowed(false);setLoading(false);return;}
     setAllowed(true);
+    if(mode==="moderator") {
+      const [profiles,reportRows,banRows,appealRows]=await Promise.all([
+        supabase.from("profiles").select("id,username").limit(500),
+        supabase.from("voax_reports").select("id,reporter_id,target_type,target_user_id,target_message_id,target_server_id,reason,details,snapshot,status,created_at,reviewed_by,resolved_at").order("created_at",{ascending:false}).limit(200),
+        supabase.from("voax_account_bans").select("id,user_id,reason,duration,expires_at,status,banned_by,created_at,revoked_at").order("created_at",{ascending:false}).limit(200),
+        supabase.from("voax_ban_appeals").select("id,ban_id,user_id,message,status,response,created_at,reviewed_by,resolved_at").order("created_at",{ascending:false}).limit(200)
+      ]);
+      const failure=[profiles,reportRows,banRows,appealRows].find(result=>result.error);
+      if(failure?.error)setNotice("Some moderation data couldn't load: "+failure.error.message);
+      setUsers(profiles.data||[]);
+      setReports(reportRows.data||[]);
+      setBans(banRows.data||[]);
+      setAppeals(appealRows.data||[]);
+      setPending([]);setServers([]);setAllListings([]);setStaff([]);setAudit([]);
+      setStats({
+        users:0,servers:0,listings:0,pending:0,
+        reports:(reportRows.data||[]).filter((item:any)=>item.status==="open").length,
+        bans:(banRows.data||[]).filter((item:any)=>item.status==="active"&&(!item.expires_at||new Date(item.expires_at)>new Date())).length,
+        appeals:(appealRows.data||[]).filter((item:any)=>item.status==="open").length
+      });
+      setLoading(false);
+      return;
+    }
     const [profiles,serverRows,listings,queue,reportRows,banRows,appealRows,staffRows,auditRows]=await Promise.all([
       supabase.from("profiles").select("id,username,status,created_at",{count:"exact"}).order("created_at",{ascending:false}).limit(200),
       supabase.from("servers").select("id,name,description,created_by,created_at,icon_url",{count:"exact"}).order("created_at",{ascending:false}).limit(100),
