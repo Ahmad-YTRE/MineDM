@@ -3491,8 +3491,10 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 }
 
 
-/* Collapsible channel categories and their existing plus/settings actions. */
+/* Collapsible, draggable channel categories and channel rows. */
 .channel-category-label { min-width:0; }
+.channel-category-label[draggable="true"], .channel-row[draggable="true"] { cursor:grab; }
+.channel-category-label[draggable="true"]:active, .channel-row[draggable="true"]:active { cursor:grabbing; }
 .channel-category-label .category-collapse-trigger { display:flex; align-items:center; gap:9px; min-width:0; flex:1; padding:4px 0; border:0; background:transparent; color:inherit; text-align:left; cursor:pointer; font:inherit; font-size:inherit; font-weight:inherit; letter-spacing:inherit; text-transform:inherit; }
 .category-collapse-trigger > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .category-collapse-trigger::before { content:""; width:6px; height:6px; flex:0 0 6px; border-right:1.5px solid currentColor; border-bottom:1.5px solid currentColor; transform:rotate(45deg) translateY(-2px); opacity:.7; transition:transform .14s ease; }
@@ -3501,19 +3503,20 @@ input:focus, select:focus, textarea:focus { border-color: color-mix(in srgb, var
 .channel-category-actions { display:flex; align-items:center; gap:2px; flex:0 0 auto; }
 .channel-category-actions .category-add-channel,
 .channel-category-actions .category-settings-button { display:grid; place-items:center; width:24px; height:24px; padding:0; border:0; border-radius:6px; background:transparent; color:#8794a8; opacity:0; pointer-events:none; cursor:pointer; transition:opacity .14s ease,background .14s ease,color .14s ease; }
-.channel-category-actions .category-order-button { display:grid; place-items:center; width:20px; height:24px; padding:0; border:0; border-radius:5px; background:transparent; color:#8794a8; opacity:0; pointer-events:none; cursor:pointer; font:inherit; font-size:13px; font-weight:800; transition:opacity .14s ease,background .14s ease,color .14s ease; }
-.channel-category-actions .category-order-button:disabled { opacity:.22; cursor:not-allowed; }
 .channel-category-label:hover .category-add-channel,
-.channel-category-label:hover .category-settings-button,\n.channel-category-label:hover .category-order-button,
+.channel-category-label:hover .category-settings-button,
 .channel-category-label:focus-within .category-add-channel,
-.channel-category-label:focus-within .category-settings-button,\n.channel-category-label:focus-within .category-order-button { opacity:1; pointer-events:auto; }
+.channel-category-label:focus-within .category-settings-button { opacity:1; pointer-events:auto; }
 .channel-category-actions .category-add-channel:hover,
-.channel-category-actions .category-settings-button:hover,\n.channel-category-actions .category-order-button:not(:disabled):hover { background:#ffffff12; color:#eafaff; }
+.channel-category-actions .category-settings-button:hover { background:#ffffff12; color:#eafaff; }
 :root[data-theme="light"] .channel-category-actions .category-add-channel:hover,
-:root[data-theme="light"] .channel-category-actions .category-settings-button:hover,\n:root[data-theme="light"] .channel-category-actions .category-order-button:not(:disabled):hover { background:#e4ebf3; color:#172033; }
+:root[data-theme="light"] .channel-category-actions .category-settings-button:hover { background:#e4ebf3; color:#172033; }
+.channel-category-label.is-dragging, .channel-row.is-dragging { opacity:.38; }
+.channel-category-label.drag-over { background:color-mix(in srgb,var(--accent) 13%,transparent); outline:1px dashed var(--accent); outline-offset:-2px; border-radius:7px; }
+.channel-row.drag-over { background:color-mix(in srgb,var(--accent) 16%,transparent); outline:1px dashed var(--accent); outline-offset:-2px; border-radius:7px; }
 @media (hover:none) {
   .channel-category-actions .category-add-channel,
-  .channel-category-actions .category-settings-button,\n  .channel-category-actions .category-order-button { opacity:1; pointer-events:auto; }
+  .channel-category-actions .category-settings-button { opacity:1; pointer-events:auto; }
 }
 
 
