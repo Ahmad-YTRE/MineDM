@@ -178,6 +178,11 @@ begin
     'manage_channels', 'manage_messages', 'manage_threads',
     'publish_announcements', 'manage_announcements'
   );
+  -- Server role permissions form the base state; category/channel overwrites
+  -- can still deny or allow the capability below.
+  if public.has_server_permission(v_server_id, permission_name) then
+    v_allowed := true;
+  end if;
 
   if v_synced and v_category_id is not null then
     v_overwrite_scope := 'category';
