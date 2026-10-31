@@ -113,6 +113,17 @@ with check (
       where c.id = channel_id and c.server_id = channel_permission_overwrites.server_id
     ))
   )
+  and (
+    target_type = 'everyone'
+    or (target_type = 'role' and exists (
+      select 1 from public.server_roles r
+      where r.id = target_id and r.server_id = channel_permission_overwrites.server_id
+    ))
+    or (target_type = 'member' and exists (
+      select 1 from public.server_members sm
+      where sm.user_id = target_id and sm.server_id = channel_permission_overwrites.server_id
+    ))
+  )
 );
 
 drop policy if exists "channel overwrite managers delete" on public.channel_permission_overwrites;
@@ -302,3 +313,54 @@ comment on column public.channels.permissions_synced is
   'When true and category_id is set, the channel resolves permission overwrites from its category. When false, it uses channel-specific overwrites.';
 comment on column public.channels.channel_type is
   'Channel behavior: text, announcement, or forum. Thread-specific tables are introduced separately.';
+
+
+-- Preserve the effective category configuration when a channel is unsynced.
+-- Re-syncing removes local overrides so the category becomes authoritative again.
+create or replace function public.sync_channel_permission_overwrites()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, auth
+as $function$
+begin
+  if new.permissions_synced is distinct from old.permissions_synced then
+    if not public.has_server_permission(old.server_id, 'manage_channels') then
+      raise exception 'You do not have permission to change channel permission syncing.'
+        using errcode = '42501';
+    end if;
+
+    if old.permissions_synced and not new.permissions_synced then
+      delete from public.channel_permission_overwrites
+      where channel_id = new.id;
+
+      if old.category_id is not null then
+        insert into public.channel_permission_overwrites (
+          server_id, channel_id, target_type, target_id,
+          allow_permissions, deny_permissions
+        )
+        select
+          server_id, new.id, target_type, target_id,
+          allow_permissions, deny_permissions
+        from public.channel_permission_overwrites
+        where category_id = old.category_id;
+      end if;
+    elsif not old.permissions_synced and new.permissions_synced then
+      delete from public.channel_permission_overwrites
+      where channel_id = new.id;
+    end if;
+  end if;
+
+  return new;
+end;
+$function$;
+
+revoke all on function public.sync_channel_permission_overwrites() from public;
+revoke all on function public.sync_channel_permission_overwrites() from anon;
+
+drop trigger if exists sync_channel_permission_overwrites on public.channels;
+create trigger sync_channel_permission_overwrites
+before update of permissions_synced on public.channels
+for each row
+when (old.permissions_synced is distinct from new.permissions_synced)
+execute function public.sync_channel_permission_overwrites();
