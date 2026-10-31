@@ -1906,11 +1906,11 @@ function App({ session }: { session: Session }) {
     if(kind==="category"){
       const ordered=channelCategories.filter(item=>item.serverId===activeServer&&item.id&&item.name!=="Text Channels").sort((a,b)=>(a.position??0)-(b.position??0));
       const index=ordered.findIndex(item=>item.name===current.targetId),next=ordered[Math.max(0,Math.min(ordered.length-1,index+delta))];
-      if(next&&next.name!==id){setKeyboardSidebarDrag({...current,targetId:next.name,category:next.name,after:delta<0});setSidebarDragAnnouncement("Drop "+(delta<0?"after ":"before ")+next.name+".");}
+      if(next&&next.name!==id){setKeyboardSidebarDrag({...current,targetId:next.name,category:next.name,after:delta>0});setSidebarDragAnnouncement("Drop "+(delta>0?"after ":"before ")+next.name+".");}
     }else{
       const ordered=channels.filter(item=>item.serverId===activeServer&&(item.category||"Text Channels")===current.category).sort((a,b)=>(a.position??0)-(b.position??0));
       const index=ordered.findIndex(item=>item.id===current.targetId),next=ordered[Math.max(0,Math.min(ordered.length-1,index+delta))];
-      if(next&&next.id!==id){setKeyboardSidebarDrag({...current,targetId:next.id,after:delta<0});setSidebarDragAnnouncement("Drop "+(delta<0?"after ":"before ")+"#"+next.name+".");}
+      if(next&&next.id!==id){setKeyboardSidebarDrag({...current,targetId:next.id,after:delta>0});setSidebarDragAnnouncement("Drop "+(delta>0?"after ":"before ")+"#"+next.name+".");}
     }
   }
   function moveCategoryBy(name:string,delta:number){
