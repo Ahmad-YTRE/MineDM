@@ -403,8 +403,12 @@ using (
   and (
     (
       (storage.foldername(name))[1] = 'channels'
-      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'view_channel')
-      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'read_message_history')
+      and exists (
+        select 1 from public.channels c
+        where c.id::text = (storage.foldername(objects.name))[2]
+          and public.has_channel_permission(c.id, 'view_channel')
+          and public.has_channel_permission(c.id, 'read_message_history')
+      )
     )
     or
     (
@@ -427,8 +431,12 @@ with check (
   and (
     (
       (storage.foldername(name))[1] = 'channels'
-      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'view_channel')
-      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'send_messages')
+      and exists (
+        select 1 from public.channels c
+        where c.id::text = (storage.foldername(objects.name))[2]
+          and public.has_channel_permission(c.id, 'view_channel')
+          and public.has_channel_permission(c.id, 'send_messages')
+      )
     )
     or
     (
