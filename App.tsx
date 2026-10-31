@@ -858,7 +858,8 @@ function App({ session }: { session: Session }) {
   useEffect(() => { if (!toast) return; const t = window.setTimeout(() => setToast(""), 2400); return () => window.clearTimeout(t); }, [toast]);
   useEffect(() => { if (!mediaViewer) return; const onKeyDown = (event: KeyboardEvent) => { if (event.key === "Escape") setMediaViewer(null); else if (event.key === "ArrowRight") setMediaViewer(current => current ? { ...current, index: (current.index + 1) % current.items.length } : current); else if (event.key === "ArrowLeft") setMediaViewer(current => current ? { ...current, index: (current.index - 1 + current.items.length) % current.items.length } : current); }; window.addEventListener("keydown", onKeyDown); document.body.style.overflow = "hidden"; return () => { window.removeEventListener("keydown", onKeyDown); document.body.style.overflow = ""; }; }, [mediaViewer]);
 
-  const currentServer = servers.find(s => s.id === activeServer) || servers[0];
+  // Never display another server's role/settings as a fallback when activeServer is stale.
+  const currentServer = servers.find(s => s.id === activeServer);
   const serverMemberIds = serverMembersByServer[activeServer] || [];
   const serverMemberPeople = serverMemberIds.filter(id => id !== session.user.id).map(id => {
     const person = people.find(p => p.id === id);
@@ -1713,19 +1714,20 @@ function App({ session }: { session: Session }) {
     }
     if(modal==="channel"){
       const channelName=value.toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
-      // Resolve the selected server from the loaded server records, not a stale
-      // activeServer value. currentServer is also the source used for the
-      // displayed server name and built-in role badge.
-      const targetServerId=currentServer?.id;
-      if(!channelName||!targetServerId)return;
+      // Use only the explicitly selected server. Do not fall back to the first
+      // server, because that can pair one server's UI role with another ID.
+      const targetServerId=servers.some(server=>server.id===activeServer)?activeServer:"";
+      if(!channelName||!targetServerId){notify("Select a server before creating a channel.");return;}
       if(channels.some(c=>c.serverId===targetServerId&&c.name===channelName)){notify("That channel already exists in this server.");return;}
-      // Keep the selected server ID aligned with the server whose role is shown
-      // in the UI before performing the RLS-protected insert.
-      if(activeServer!==targetServerId)setActiveServer(targetServerId);
+      // Resolve the user from the current Supabase access token immediately
+      // before the insert. This keeps created_by identical to auth.uid() even
+      // if the React session snapshot was refreshed or became stale.
+      const {data:{user:authenticatedUser},error:authUserError}=await supabase.auth.getUser();
+      if(authUserError||!authenticatedUser){notify("Your session could not be verified. Please sign in again.");return;}
       const category=(categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels");
       const {data:categoryRow,error:categoryError}=await supabase.from("channel_categories").select("id").eq("server_id",targetServerId).eq("name",category).maybeSingle();
       if(categoryError){notify("Couldn't check the channel category: "+categoryError.message);return;}
-      const {data,error}=await supabase.from("channels").insert({server_id:targetServerId,name:channelName,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput,permissions_synced:true,description:"A new community channel",created_by:session.user.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
+      const {data,error}=await supabase.from("channels").insert({server_id:targetServerId,name:channelName,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput,permissions_synced:true,description:"A new community channel",created_by:authenticatedUser.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
       if(error||!data){notify("Couldn't create the channel: "+(error?.message||"Please try again."));return;}
       await loadWorkspace();setActiveServer(targetServerId);setActive(data.id);setView("channel");setShowLanding(false);setCategoryInput("Text Channels");setChannelTypeInput("text");notify("Channel created.");
     }
