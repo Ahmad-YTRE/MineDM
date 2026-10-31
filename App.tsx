@@ -948,7 +948,7 @@ function App({ session }: { session: Session }) {
     };
     void loadMessages().catch(error=>{if(!cancelled){notify("Couldn't load messages: "+(error instanceof Error?error.message:"Please try again."));setMessagesLoading(false);}});
     return()=>{cancelled=true;};
-  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,clockFormat]);
+  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,activeChannel?.channelType,clockFormat]);
   useEffect(()=>{
     const channelId=view==="channel"?active:null,conversationId=view==="dm"&&activePerson?activeConversationId:null;
     if(!channelId&&!conversationId||channelId&&activeChannel&&activeChannel.channelType!=="text")return;
@@ -967,7 +967,7 @@ function App({ session }: { session: Session }) {
       }).subscribe();
     messageEventsChannelRef.current=realtime;
     return()=>{if(messageEventsChannelRef.current===realtime)messageEventsChannelRef.current=null;void supabase.removeChannel(realtime);};
-  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id]);
+  },[active,activeKey,view,session.user.id,activeConversationId,activePerson?.id,activeChannel?.channelType]);
 
   useEffect(()=>{
     const channel=supabase.channel("voax-presence",{config:{presence:{key:session.user.id}}});
