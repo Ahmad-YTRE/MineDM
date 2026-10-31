@@ -647,6 +647,7 @@ function App({ session }: { session: Session }) {
   const [categoryInput, setCategoryInput] = useState("Text Channels");
   const [channelTypeInput, setChannelTypeInput] = useState<"text"|"announcement"|"forum">("text");
   const [channelPermissionOverwrites, setChannelPermissionOverwrites] = useState<{id:string;target_type:"everyone"|"role"|"member";target_id:string|null;allow_permissions:string[];deny_permissions:string[]}[]>([]);
+  const [activeChannelAccessOverwrites, setActiveChannelAccessOverwrites] = useState<{target_type:"everyone"|"role"|"member";target_id:string|null;allow_permissions:string[];deny_permissions:string[]}[]>([]);
   const [channelPermissionsLoading, setChannelPermissionsLoading] = useState(false);
   const [channelCategories, setChannelCategories] = useState<{id?:string;serverId:string;name:string;position?:number}[]>([]);
   const [categoryPermissionOverwrites, setCategoryPermissionOverwrites] = useState<{id:string;target_type:"everyone"|"role"|"member";target_id:string|null;allow_permissions:string[];deny_permissions:string[]}[]>([]);
@@ -930,6 +931,52 @@ function App({ session }: { session: Session }) {
   useEffect(() => { document.title = logoUnreadTotal > 0 ? `Voax [${logoUnreadTotal}]` : "Voax"; }, [logoUnreadTotal]);
 
   const activeChannel = serverChannels.find(c => c.id === active) || serverChannels[0];
+  useEffect(() => {
+    let cancelled = false;
+    const loadAccess = async () => {
+      if (view !== "channel" || !activeChannel?.id) {
+        setActiveChannelAccessOverwrites([]);
+        return;
+      }
+      const query = supabase.from("channel_permission_overwrites")
+        .select("target_type,target_id,allow_permissions,deny_permissions")
+        .eq("server_id", activeChannel.serverId || activeServer);
+      const result = activeChannel.permissionsSynced && activeChannel.categoryId
+        ? await query.eq("category_id", activeChannel.categoryId)
+        : await query.eq("channel_id", activeChannel.id);
+      if (cancelled) return;
+      if (result.error) {
+        console.warn("Could not load channel member visibility:", result.error.message);
+        setActiveChannelAccessOverwrites([]);
+        return;
+      }
+      setActiveChannelAccessOverwrites((result.data || []) as typeof activeChannelAccessOverwrites);
+    };
+    void loadAccess();
+    return () => { cancelled = true; };
+  }, [view, activeChannel?.id, activeChannel?.categoryId, activeChannel?.permissionsSynced, activeChannel?.serverId, activeServer]);
+
+  const canViewActiveChannel = (userId: string) => {
+    if (!activeChannel || userId === session.user.id) return true;
+    const overwrites = activeChannelAccessOverwrites;
+    const everyone = overwrites.find(row => row.target_type === "everyone");
+    let allowed = true;
+    if (everyone?.deny_permissions?.includes("view_channel")) allowed = false;
+    if (everyone?.allow_permissions?.includes("view_channel")) allowed = true;
+    const assignedRoleIds = customRoleAssignments[activeServer]?.[userId] || [];
+    const roleRows = overwrites.filter(row => row.target_type === "role" && row.target_id && assignedRoleIds.includes(row.target_id));
+    const roleDenied = roleRows.some(row => row.deny_permissions?.includes("view_channel"));
+    const roleAllowed = roleRows.some(row => row.allow_permissions?.includes("view_channel"));
+    if (roleDenied) allowed = false;
+    if (roleAllowed) allowed = true;
+    const member = overwrites.find(row => row.target_type === "member" && row.target_id === userId);
+    if (member?.deny_permissions?.includes("view_channel")) allowed = false;
+    if (member?.allow_permissions?.includes("view_channel")) allowed = true;
+    return allowed;
+  };
+  const visibleChannelMemberPeople = serverMemberPeople.filter(person => canViewActiveChannel(person.id));
+  const visibleChannelOnlineCount = visibleChannelMemberPeople.filter(person => person.online).length + (presenceByUser[session.user.id] && presenceByUser[session.user.id] !== "Offline" ? 1 : 0);
+
   const activePerson = people.find(p => p.name.toLowerCase() === active.toLowerCase());
   const activeKey = keyFor(view === "dm" ? "dm" : "channel", active);
   const activeConversationId = view === "dm" && activePerson ? conversationIds[activePerson.id] : null;
@@ -2049,7 +2096,7 @@ function App({ session }: { session: Session }) {
 
     {mediaViewer && mediaViewer.items[mediaViewer.index] && <div className="media-viewer-backdrop" role="presentation" onClick={()=>setMediaViewer(null)}><div className="media-viewer-dialog" role="dialog" aria-modal="true" aria-label="Media viewer" onClick={event=>event.stopPropagation()}><div className="media-viewer-toolbar"><span className="media-viewer-filename">{mediaViewer.items[mediaViewer.index].name}</span><span className="media-viewer-count">{mediaViewer.index+1} / {mediaViewer.items.length}</span><button type="button" className="media-viewer-close" onClick={()=>setMediaViewer(null)} aria-label="Close viewer"><Icon name="close" size={21}/></button></div><div className="media-viewer-stage">{mediaViewer.items[mediaViewer.index].mimeType.startsWith("video/")?<video key={mediaViewer.items[mediaViewer.index].path} src={mediaViewer.items[mediaViewer.index].url} controls autoPlay playsInline/>:<img src={mediaViewer.items[mediaViewer.index].url} alt={mediaViewer.items[mediaViewer.index].name}/>}</div>{mediaViewer.items.length>1&&<><button type="button" className="media-viewer-nav media-viewer-prev" onClick={()=>setMediaViewer(current=>current?{...current,index:(current.index-1+current.items.length)%current.items.length}:current)} aria-label="Previous media"><Icon name="chevron-left" size={25}/></button><button type="button" className="media-viewer-nav media-viewer-next" onClick={()=>setMediaViewer(current=>current?{...current,index:(current.index+1)%current.items.length}:current)} aria-label="Next media"><Icon name="chevron-right" size={25}/></button></>}</div></div>}
     {showMembers && view === "channel" && <aside className="member-panel" aria-label="Channel members">
-      <div className="member-panel-head"><div><strong>Members</strong><span>{onlineServerMemberCount} online · {serverMemberIds.length} members</span></div></div>
+      <div className="member-panel-head"><div><strong>Members</strong><span>{visibleChannelOnlineCount} online · {visibleChannelMemberPeople.length + 1} members</span></div></div>
       {(() => {
         const allMembers: Person[] = [
           { id: session.user.id, name, online: status !== "Offline", status, color: "blue", preview: "You", avatarUrl, isFriend: false },
