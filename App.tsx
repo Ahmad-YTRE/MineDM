@@ -1713,13 +1713,21 @@ function App({ session }: { session: Session }) {
     }
     if(modal==="channel"){
       const channelName=value.toLowerCase().replace(/[^a-z0-9-]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
-      if(!channelName||!activeServer)return;
-      if(serverChannels.some(c=>c.name===channelName)){notify("That channel already exists in this server.");return;}
+      // Resolve the selected server from the loaded server records, not a stale
+      // activeServer value. currentServer is also the source used for the
+      // displayed server name and built-in role badge.
+      const targetServerId=currentServer?.id;
+      if(!channelName||!targetServerId)return;
+      if(channels.some(c=>c.serverId===targetServerId&&c.name===channelName)){notify("That channel already exists in this server.");return;}
+      // Keep the selected server ID aligned with the server whose role is shown
+      // in the UI before performing the RLS-protected insert.
+      if(activeServer!==targetServerId)setActiveServer(targetServerId);
       const category=(categoryInput.trim().replace(/\s+/g," ").slice(0,32)||"Text Channels");
-      const {data:categoryRow}=await supabase.from("channel_categories").select("id").eq("server_id",activeServer).eq("name",category).maybeSingle();
-      const {data,error}=await supabase.from("channels").insert({server_id:activeServer,name:channelName,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput,permissions_synced:true,description:"A new community channel",created_by:session.user.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
+      const {data:categoryRow,error:categoryError}=await supabase.from("channel_categories").select("id").eq("server_id",targetServerId).eq("name",category).maybeSingle();
+      if(categoryError){notify("Couldn't check the channel category: "+categoryError.message);return;}
+      const {data,error}=await supabase.from("channels").insert({server_id:targetServerId,name:channelName,category,category_id:categoryRow?.id||null,channel_type:channelTypeInput,permissions_synced:true,description:"A new community channel",created_by:session.user.id}).select("id,server_id,name,description,category,category_id,channel_type,permissions_synced").single();
       if(error||!data){notify("Couldn't create the channel: "+(error?.message||"Please try again."));return;}
-      await loadWorkspace();setActive(data.id);setView("channel");setShowLanding(false);setCategoryInput("Text Channels");setChannelTypeInput("text");notify("Channel created.");
+      await loadWorkspace();setActiveServer(targetServerId);setActive(data.id);setView("channel");setShowLanding(false);setCategoryInput("Text Channels");setChannelTypeInput("text");notify("Channel created.");
     }
     setModal(null);setModalInput("");
   }
