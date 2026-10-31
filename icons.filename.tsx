@@ -7,7 +7,7 @@ export type IconName =
   | "home" | "search" | "explore" | "menu" | "grid" | "chevron" | "plus" | "close"
   | "shield" | "flag" | "lock" | "bell" | "bell-off" | "block"
   | "settings" | "refresh" | "download" | "upload" | "link" | "filter"
-  | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash"
+  | "calendar" | "clock" | "location" | "globe" | "palette" | "user" | "users" | "hash" | "chevron-up" | "chevron-down"
   | "pickaxe" | "tree" | "flask" | "inbox" | "send" | "paperclip" | "sparkles" | "message"
   | "zap" | "micOff" | "headphonesOff" | "voice" | "arrowUpRight" | "arrowRight" | "chevronDown" | "at";
 
@@ -40,6 +40,8 @@ const paths: Record<string, React.ReactNode> = {
   menu: <path d="M4 6h16M4 12h16M4 18h16"/>,
   grid: <><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></>,
   chevron: <path d="m9 18 6-6-6-6"/>,
+  "chevron-up": <path d="m6 15 6-6 6 6"/>,
+  "chevron-down": <path d="m6 9 6 6 6-6"/>,
   chevronDown: <path d="m6 9 6 6 6-6"/>,
   plus: <path d="M12 5v14M5 12h14"/>,
   close: <path d="m18 6-12 12M6 6l12 12"/>,
