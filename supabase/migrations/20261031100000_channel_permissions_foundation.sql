@@ -391,3 +391,53 @@ create trigger preserve_channel_permissions_before_category_delete
 before delete on public.channel_categories
 for each row
 execute function public.preserve_channel_permissions_before_category_delete();
+
+-- Keep attachment access aligned with channel visibility. The previous bucket
+-- policies allowed every server member to read channel attachments, even when
+-- the parent channel becomes private.
+drop policy if exists "Conversation members can read attachments" on storage.objects;
+create policy "Members can read permitted channel attachments"
+on storage.objects for select to authenticated
+using (
+  bucket_id = 'message-attachments'
+  and (
+    (
+      (storage.foldername(name))[1] = 'channels'
+      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'view_channel')
+      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'read_message_history')
+    )
+    or
+    (
+      (storage.foldername(name))[1] = 'conversations'
+      and exists (
+        select 1 from public.conversation_members cm
+        where cm.conversation_id::text = (storage.foldername(objects.name))[2]
+          and cm.user_id = (select auth.uid())
+      )
+    )
+  )
+);
+
+drop policy if exists "Members upload their own attachments" on storage.objects;
+create policy "Members upload permitted channel attachments"
+on storage.objects for insert to authenticated
+with check (
+  bucket_id = 'message-attachments'
+  and (storage.foldername(name))[3] = (select auth.uid())::text
+  and (
+    (
+      (storage.foldername(name))[1] = 'channels'
+      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'view_channel')
+      and public.has_channel_permission(((storage.foldername(name))[2])::uuid, 'send_messages')
+    )
+    or
+    (
+      (storage.foldername(name))[1] = 'conversations'
+      and exists (
+        select 1 from public.conversation_members cm
+        where cm.conversation_id::text = (storage.foldername(objects.name))[2]
+          and cm.user_id = (select auth.uid())
+      )
+    )
+  )
+);
